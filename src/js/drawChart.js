@@ -5,7 +5,7 @@ import { callFontSetting, getUraSymbol } from './font/font';
 //==============================================================================
 // Drawing config and helpers
 
-const CHART_PADDING_TOP = 62;
+const CHART_PADDING_TOP = 110;
 const CHART_PADDING_BOTTOM = -14;
 const CHART_BG = '#cccccc';
 
@@ -509,7 +509,10 @@ export default function (chart, courseId) {
 		let fontSetting = callFontSetting(chart.headers.font.toLowerCase());
 		
 		drawText(ctx, fontSetting.x1, fontSetting.y1, fixedTitle, fontSetting.titleText, titleTextColor, 'top', 'left', fontSetting.stroke1);
-		drawText(ctx, fontSetting.x2, fontSetting.y2, difficultyText, fontSetting.subTitleText, levelTextColor, 'top', 'left', fontSetting.stroke2);
+		drawText(ctx, fontSetting.x2, fontSetting.y2, chart.headers.subtitle, fontSetting.subTitleText, titleTextColor, 'top', 'left', fontSetting.stroke1);
+		if (course.headers.maker !== null || chart.headers.maker !== null)
+			drawText(ctx, fontSetting.x1, fontSetting.y2 + (fontSetting.y2 - 2 * fontSetting.y1), `Charter: ${(course.headers.maker !== null) ? course.headers.maker : chart.headers.maker}`, fontSetting.subTitleText, levelTextColor, 'top', 'left', fontSetting.stroke2);
+		drawText(ctx, fontSetting.x2, fontSetting.y2 + 2 * (fontSetting.y2 - 2 * fontSetting.y1), difficultyText, fontSetting.subTitleText, levelTextColor, 'top', 'left', fontSetting.stroke2);
 		
         //============================================================================
         // 3. Go-go time, measure grid, events

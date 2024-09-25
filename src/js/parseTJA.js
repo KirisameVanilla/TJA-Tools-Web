@@ -9,6 +9,7 @@ function parseLine(line) {
         'OFFSET',
         'DEMOSTART',
         'GENRE',
+        'MAKER',
 		'FONT',
 		'SPROLL',
 		'LEVELCOLOR',
@@ -70,7 +71,7 @@ function parseLine(line) {
         line = line.substr(0, match.index).trim();
 
     // header
-    if (match = line.match(/^([A-Z]+):(.+)/i)) {
+    if (match = line.match(/^([A-Z0-9]+):(.+)/i)) {
         const nameUpper = match[1].toUpperCase();
         const value = match[2];
 
@@ -128,7 +129,7 @@ function getCourse(tjaHeaders, lines) {
         scoreInit: 0,
         scoreDiff: 0,
 		scoreShin: null,
-
+        maker: null,
         ttRowBeat: 16,
     };
 
@@ -219,8 +220,18 @@ function getCourse(tjaHeaders, lines) {
                     headers.scoreDiff = parseInt(line.value, 10);
                     break;
 
+                case 'NOTESDESIGNER0':
+                case 'NOTESDESIGNER1':
+                case 'NOTESDESIGNER2':
+                case 'NOTESDESIGNER3':
+                case 'NOTESDESIGNER4': 
+                    headers.maker = line.value;
+                    break; 
+
                 case 'TTROWBEAT':
                     headers.ttRowBeat = parseInt(line.value, 10);
+                    break;
+
             }
         }
         else if (line.type === 'command') {
@@ -722,6 +733,7 @@ export default function parseTJA(tja) {
         offset: 0,
         demoStart: 0,
         genre: '',
+        maker: null,
 		font: 'donscore',
 		spRoll: 'kusudama',
 		levelColor: 0,
@@ -748,7 +760,7 @@ export default function parseTJA(tja) {
                     break;
 
                 case 'SUBTITLE':
-                    headers.subtitle = parsed.value;
+                    headers.subtitle = parsed.value.replace(/^(\+\+|--)/, '');
                     break;
 
                 case 'BPM':
@@ -769,6 +781,10 @@ export default function parseTJA(tja) {
 
                 case 'GENRE':
                     headers.genre = parsed.value;
+                    break;
+
+                case 'MAKER':
+                    headers.maker = parsed.value;
                     break;
 				
 				case 'FONT':
