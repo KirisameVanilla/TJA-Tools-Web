@@ -320,6 +320,15 @@ function drawBalloonSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, count, imo =
 	drawImageText(ctx, x - 3 - xDelta, y - 3 + (rows[sRow].branch.indexOf(bt) * 24), count.toString(), 'num');
 }
 
+function drawFuse(ctx, rows, sRow, sBeat, eRow, eBeat, count) {
+    drawSmallNote(ctx, eRow, eBeat, '#640aad');
+    drawLong(ctx, rows, sRow, sBeat, eRow, eBeat, '#640aad', 'body');
+    drawSmallNote(ctx, sRow, sBeat, '#a4f', false);
+
+    const { x, y } = getNoteCenter(sRow, sBeat);
+    drawPixelText(ctx, x, y + 0.5, count.toString(), '#fcc');
+}
+
 //==============================================================================
 // Main drawing function
 
@@ -771,7 +780,7 @@ export default function (chart, courseId) {
 
 					for (let didx = measure.data[bt].length; didx >= 0; didx--) {
 						const note = measure.data[bt].charAt(didx);
-						if (note === '7') {
+						if (note === '7' || note === 'D') {
 							balloonIdx += 1;
 						}
 						else if (note === '9' && !imoStart) {
@@ -876,6 +885,14 @@ export default function (chart, courseId) {
 								drawNoteSprite(ctx, ridx, rowYDelta, nBeat, 'bomb');
 								break;
 
+							case 'D':
+								const fuseCount = course.headers.balloon[bt][balloonIdx - 1];
+
+								drawFuse(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], fuseCount);
+								balloonIdx -= 1;
+								longEnd = false;
+								break;
+ 
 							case 'F':
 								//drawSmallNote(ctx, ridx, nBeat, '#ddd');
 								drawNoteSprite(ctx, ridx, rowYDelta, nBeat, 'adlib');

@@ -105,7 +105,7 @@ function parseLine(line) {
         }
     }
     // data
-    else if (match = line.match(/^(([0-9]|A|B|C|F|G)*,?)$/)) {
+    else if (match = line.match(/^(([0-9]|A|B|C|D|F|G|H|I)*,?)$/)) {
         const data = match[1];
 
         return {
@@ -533,7 +533,7 @@ function getCourse(tjaHeaders, lines) {
 			// Balloon Count
 			if (balloonType === 0) {
 				for (let i = 0; i < data.length; i++) {
-					if (data.charAt(i) === '7' || data.charAt(i) === '9') {
+					if (data.charAt(i) === '7' || data.charAt(i) === '9' || data.charAt(i) === 'D') {
 						if (tempBalloon.length <= balloonOffset) {
 							tempBalloon.push(0);
 						}
@@ -544,7 +544,7 @@ function getCourse(tjaHeaders, lines) {
 			}
 			else {
 				for (let i = 0; i < data.length; i++) {
-					if (data.charAt(i) === '7' || data.charAt(i) === '9') {
+					if (data.charAt(i) === '7' || data.charAt(i) === '9' || data.charAt(i) === 'D') {
 						if (headers.balloon[currentBranch].length <= balloonBranchOffset[currentBranch]) {
 							headers.balloon[currentBranch].push(0);
 						}

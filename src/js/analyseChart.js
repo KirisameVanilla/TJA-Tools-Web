@@ -52,7 +52,7 @@ function convertToTimed(course, branchType) {
 			let tempBalloon = {};
 			for (let j = 0; j < course.measures[i].data[bt].length; j++) {
 				const ch = course.measures[i].data[bt].charAt(j);
-				if (ch === '7' || ch === '9') {
+				if (ch === '7' || ch === '9' || ch === 'D') {
 					tempBalloon[j.toString()] = course.headers.balloon[bt][tempCount++];
 				}
 			}
@@ -112,7 +112,7 @@ function convertToTimed(course, branchType) {
 		
 		for (let j = 0; j < selData.length; j++) {
 			const ch = selData.charAt(j);
-			if (ch === '7' || ch === '9') {
+			if (ch === '7' || ch === '9' || ch === 'D') {
 				newBalloon.push(allBalloon[selected][i.toString()][j.toString()]);
 			}
 		}
@@ -200,6 +200,23 @@ function convertToTimed(course, branchType) {
                         imo = true;
                     }
                     break;
+
+                 case 'C':
+                     note.type = 'mine';
+                     break;
+
+                 case 'D':
+                     note.type = 'fuse';
+                     note.count = newBalloon[balloon++];
+                     break;
+
+                 case 'F':
+                     note.type = 'adlib';
+                     break;
+
+                 case 'G':
+                     note.type = 'kadon';
+                     break;
             }
 
             if (note.type) notes.push(note);
@@ -219,9 +236,10 @@ function getStatistics(course) {
     // renda length, balloon speed
     // potential score, score equations, recommended score variables
 
-    const notes = [0, 0, 0, 0], rendas = [], rendaExtends = [], balloons = [];
+    const notes = [0, 0, 0, 0, 0], rendas = [], rendaExtends = [], balloons = [];
+    let adlibs = 0, mines = 0;
     let start = 0, end = 0, combo = 0;
-    let rendaStart = false, rendaStartTime = 0, balloonStart = false, balloonStartTime = 0, balloonCount = 0, balloonGogo = 0;
+    let rendaStart = false, rendaStartTime = 0, balloonStart = false, balloonStartTime = 0, balloonCount = 0, balloonGogo = 0, balloonType = "balloon";
 	let isBigRenda = false, isGoGoRenda = false, rendaGroup = 0;
     let scCurEventIdx = 0, scCurEvent = course.events[scCurEventIdx];
     let scGogo = 0;
@@ -229,7 +247,7 @@ function getStatistics(course) {
     let scBalloon = [0, 0], scBalloonPop = [0, 0];
     let scPotential = 0;
 
-    const typeNote = ['don', 'kat', 'donBig', 'katBig'];
+    const typeNote = ['don', 'kat', 'donBig', 'katBig', 'kadon'];
 
     for (let i = 0; i < course.notes.length; i++) {
         const note = course.notes[i];
@@ -252,7 +270,7 @@ function getStatistics(course) {
             notes[v1] += 1;
             combo += 1;
 
-            const big = v1 === 2 || v1 === 3;
+            const big = v1 === 2 || v1 === 3 || v1 === 4;
             const scRange = (combo < 10 ? 0 : (combo < 30 ? 1 : (combo < 50 ? 2 : (combo < 100 ? 3 : 4))));
             scNotes[big ? 1 : 0][scGogo][scRange] += 1;
 
@@ -279,11 +297,12 @@ function getStatistics(course) {
 			isGoGoRenda = scGogo;
             continue;
         }
-        else if (note.type === 'balloon') {
+        else if (note.type === 'balloon' || note.type === 'fuse') {
             balloonStartTime = note.time;
 			balloonStart = true;
             balloonCount = note.count;
             balloonGogo = scGogo;
+            balloonType = note.type;
 
             continue;
         }
@@ -308,7 +327,7 @@ function getStatistics(course) {
             else if (balloonStart) {
                 const balloonLength = note.time - balloonStartTime;
                 const balloonSpeed = balloonCount / balloonLength;
-                balloons.push([balloonLength, balloonCount]);
+                balloons.push([balloonLength, balloonCount, balloonType]);
                 balloonStart = false;
 
                 if (balloonSpeed <= 60) {
@@ -316,6 +335,12 @@ function getStatistics(course) {
                     scBalloonPop[balloonGogo] += 1;
                 }
             }
+        }
+        else if (note.type === 'adlib') {
+            adlibs++;
+        }
+        else if (note.type === 'mine') {
+            mines++;
         }
     }
 	
@@ -332,18 +357,20 @@ function getStatistics(course) {
             balloon: scBalloon,
             balloonPop: scBalloonPop,
         },
+        adlibs: adlibs,
+        mines: mines,
     };
 }
 
 function getGraph(course) {
     const data = [];
-    let datum = { don: 0, kat: 0 }, max = 0;
+    let datum = { don: 0, kat: 0, kadon: 0 }, max = 0;
 
     const dataCount = 100,
         length = course.notes[course.notes.length - 1].time,
         timeframe = length / dataCount;
 
-    const typeNote = ['don', 'kat', 'donBig', 'katBig'];
+    const typeNote = ['don', 'kat', 'donBig', 'katBig', 'kadon'];
 
     for (let i = 0; i < course.notes.length; i++) {
         const note = course.notes[i];
@@ -351,20 +378,21 @@ function getGraph(course) {
         const v1 = typeNote.indexOf(note.type);
         if (v1 !== -1) {
             while ((data.length + 1) * timeframe <= note.time) {
-                const sum = datum.don + datum.kat;
+                const sum = datum.don + datum.kat + datum.kadon;
                 if (max < sum) max = sum;
 
                 data.push(datum);
-                datum = { don: 0, kat: 0 };
+                datum = { don: 0, kat: 0, kadon: 0 };
             }
 
             if (note.type === 'don' || note.type === 'donBig') datum.don += 1;
             else if (note.type === 'kat' || note.type === 'katBig') datum.kat += 1;
+            else if (note.type === 'kadon') datum.kadon += 1;
         }
     }
 
     while (data.length < dataCount)
-        data.push({ don: 0, kat: 0 });
+        data.push({ don: 0, kat: 0, kadon: 0 });
 
     return { timeframe, max, data };
 }

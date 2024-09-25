@@ -77,7 +77,7 @@ export function convertToDonscore(chart, courseId) {
 					margin = 1;
 					rolling = true;
 				}
-				else if (ch === '7' || ch === '9') {
+				else if (ch === '7' || ch === '9' || ch === 'D') {
 					index = j;
 					margin = course.headers.balloon[bt][balloonIdx++].toString().length + 2;
 					rolling = true;
@@ -197,6 +197,7 @@ export function convertToDonscore(chart, courseId) {
 						rolling = true;
 						break;
 					case '7':
+					case 'D':
 						tempData.push('[');
 						endChar = ']';
 						balloonText = '@' + course.headers.balloon[bt][balloonIdx++].toString();
