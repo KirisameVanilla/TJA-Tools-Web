@@ -60,6 +60,24 @@ let selectedScoreSystem = 'CS';
 let selectedGogoFloor = 'AC15';
 let selectedCalcMode = 'fromFile';
 
+const downloadNewUniqueId = async () => {
+    if (!tjaParsed === null) {
+        alert("Please select a chart");
+        return;
+    }
+
+    const s1 = tjaParsed.headers.title;
+    const s2 = tjaParsed.headers.subtitle;
+    const randId = (s1+s2).replace(/[^a-zA-Z0-9]/g, '').split('').map(c => Math.random() < 0.5 ? c.toLowerCase() : c.toUpperCase()).join('');
+    const uniqueId = {
+        "id": randId,
+        "url": "",
+    };
+
+    downloadjs(JSON.stringify(uniqueId), `uniqueId.json`, 'application/json');
+
+};
+
 const downloadStatisticsAsImage = async () => {
     if (!tjaParsed === null || selectedDifficulty === "") {
         alert("Please select a chart and difficulty");
@@ -602,6 +620,10 @@ window.onload = async function() {
     await initUsedSprite();
     await loadAllFonts();
 }
+
+$('.btn-unique').on('click', evt => {
+    downloadNewUniqueId();
+});
 
 //==============================================================================
 
