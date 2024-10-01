@@ -39,8 +39,9 @@ npm run build
 - [x] 異なる分岐を並べて表示する
 - ヘッダ（譜面全体）
     - [x] `TITLE`
-    - [ ] `SUBTITLE`
+    - [x] `SUBTITLE`
     - [x] `BPM`
+    - [x] `MAKER`
     - [x] `GENRE`
 - ヘッダ（難易度ごと）
     - `COURSE`
@@ -54,6 +55,8 @@ npm run build
     - [x] `LEVEL`
     - [x] `BALLOON`
     - [ ] `STYLE`
+    - [x] `NOTESDESIGNER0` ~ `NOTESDESIGNER6`（0～4のみ有効）
+    - [x] `TTROWBEAT`（画像表示用，1行あたりの最大拍数）
 - ノーツ
     - [x] `0`（なし）
     - [x] `1`（面）
@@ -71,6 +74,8 @@ npm run build
     - [x] `D`（紫風船音符）
     - [x] `F`（アドリブ音符）
     - [x] `G`（紫音符）
+    - [ ] `H`（大黄色連打か面連打始点）
+    - [ ] `I`（黄色連打か縁連打始点）
 - コマンド
     - [x] `#START`
     - [x] `#END`
@@ -90,6 +95,7 @@ npm run build
     - [ ] `#LYRIC`
     - [ ] `#LEVELHOLD`
     - [ ] `#NEXTSONG`
+    - [x] `#TTBREAK`（画像表示用，この小節の先頭で改行させる）
 
 ## 独自追加命令
 
