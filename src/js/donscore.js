@@ -1,5 +1,6 @@
 import { arrayLCM, lcm, addZero } from './common';
 import { compareArray } from './drawChart';
+import { isRollSymbol, isBalloonSymbol } from './analyseChart';
 
 const aryMax = function (a, b) {return Math.max(a, b);}
 
@@ -61,6 +62,7 @@ export function convertToDonscore(chart, courseId) {
 	// Add for Roll
 	for (let bt of branchTypes) {
 		let balloonIdx = 0;
+		let rollingStill = false;
 		for (let i = 0; i < newData.length; i++) {
 			if (newData[i][bt] === null) {
 				continue;
@@ -71,27 +73,27 @@ export function convertToDonscore(chart, courseId) {
 			let index = -1;
 			for (let j = 0; j < newData[i][bt].length; j++) {
 				const ch = newData[i][bt].charAt(j);
-				
-				if (ch === '5' || ch === '6') {
+
+				if (isRollSymbol(ch)) {
+					if (rollingStill)
+						continue;
 					index = j;
-					margin = 1;
-					rolling = true;
-				}
-				else if (ch === '7' || ch === '9' || ch === 'D') {
-					index = j;
-					margin = course.headers.balloon[bt][balloonIdx++].toString().length + 2;
-					rolling = true;
-				}
-				else if (ch === '8' && rolling) {
-					marginDiff.push(margin - (j - index - 1));
-					rolling = false;
+					rolling = rollingStill = true;
+
+					if (isBalloonSymbol(ch))
+						margin = course.headers.balloon[bt][balloonIdx++].toString().length + 2; // `[@5`
+					else
+						margin = 1; // `<`
+				} else if (ch !== '0' && rollingStill) {
+					marginDiff.push(margin - (j - index - 1)); // `[@5` - (between `[` & `]`), or (between line start & `]`)
+					rolling = rollingStill = false;
 				}
 			}
-			
+
 			if (rolling) {
-				marginDiff.push(margin - (newData[i][bt].length - index - 1));
+				marginDiff.push(margin - (newData[i][bt].length - index - 1)); // `[@5` - (between `[` & line end)
 			}
-			
+
 			if (marginDiff.length > 0) {
 				const marginMax = marginDiff.reduce(aryMax);
 				if (marginMax > 0) {
@@ -158,8 +160,23 @@ export function convertToDonscore(chart, courseId) {
 			let tempData = [];
 			
 			for (let j = 0; j < newData[i][bt].length; j++) {
-				const ch = newData[i][bt].charAt(j);
-				if (rolling && ch != '8') {
+				let ch = newData[i][bt].charAt(j);
+				if (isRollSymbol(ch) && rolling)
+					ch = '0';
+
+				let balloonCount = 0;
+				if (isRollSymbol(ch)) {
+					rolling = true;
+					if (isBalloonSymbol(ch))
+						balloonCount = course.headers.balloon[bt][balloonIdx++];
+					else
+						balloonTextCount = 0;
+				} else if (ch !== '0' && rolling) {
+					tempData.push((ch === '8') ? endChar : '\\' + endChar);
+					rolling = false;
+					if (ch === '8')
+						continue;
+				} else if (rolling) {
 					if (balloonTextCount > 0) {
 						tempData.push(balloonText.charAt(balloonText.length - balloonTextCount--));
 					}
@@ -187,33 +204,23 @@ export function convertToDonscore(chart, courseId) {
 					case '5':
 						tempData.push('<');
 						endChar = '>';
-						balloonTextCount = 0;
-						rolling = true;
 						break;
 					case '6':
 						tempData.push('(');
 						endChar = ')';
-						balloonTextCount = 0;
-						rolling = true;
 						break;
 					case '7':
 					case 'D':
 						tempData.push('[');
 						endChar = ']';
-						balloonText = '@' + course.headers.balloon[bt][balloonIdx++].toString();
+						balloonText = '@' + balloonCount.toString();
 						balloonTextCount = balloonText.length;
-						rolling = true;
 						break;
 					case '9':
 						tempData.push('[');
 						endChar = ']';
-						balloonText = spSymbol + course.headers.balloon[bt][balloonIdx++].toString();
+						balloonText = spSymbol + balloonCount.toString();
 						balloonTextCount = balloonText.length;
-						rolling = true;
-						break;
-					case '8':
-						tempData.push(endChar);
-						rolling = false;
 						break;
 					case 'C':
 						tempData.push('B');
@@ -236,7 +243,10 @@ export function convertToDonscore(chart, courseId) {
 				continue;
 			}
 			for (let j = 0; j < converted[i][bt].length; j++) {
-				const ch = converted[i][bt][j];
+				let ch = converted[i][bt][j];
+				const isForcedEnd = (ch[0] === '\\');
+				if (isForcedEnd)
+					ch = ch.substring(1);
 				
 				if (rollEndSymbol.includes(ch) && (i > 0 || j > 0)) {
 					if (j === 0) {
@@ -247,6 +257,8 @@ export function convertToDonscore(chart, courseId) {
 						converted[i][bt][j] = ' ';
 						converted[i][bt][j - 1] = ch;
 					}
+					if (isForcedEnd)
+						converted[i][bt].splice(j--, 1);
 				}
 			}
 		}

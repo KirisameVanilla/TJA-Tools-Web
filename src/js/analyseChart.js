@@ -34,9 +34,37 @@ function pulseToTime(events, objects) {
     return times;
 }
 
+export function isRollSymbol(sym) {
+    switch (sym) {
+        case '5':
+        case '6':
+        case '7':
+        case '9':
+        case 'D':
+        case 'H':
+        case 'I':
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+export function isBalloonSymbol(sym) {
+    switch (sym) {
+        case '7':
+        case '9':
+        case 'D':
+            return true;
+
+        default:
+            return false;
+    }
+}
+
 function convertToTimed(course, branchType) {
     const events = [], notes = [];
-    let beat = 0, balloon = 0, imo = false;
+    let beat = 0, balloon = 0, roll = false;
 	
 	// Get Branch Data
 	let newData = [];
@@ -52,7 +80,7 @@ function convertToTimed(course, branchType) {
 			let tempBalloon = {};
 			for (let j = 0; j < course.measures[i].data[bt].length; j++) {
 				const ch = course.measures[i].data[bt].charAt(j);
-				if (ch === '7' || ch === '9' || ch === 'D') {
+				if (isBalloonSymbol(ch)) {
 					tempBalloon[j.toString()] = course.headers.balloon[bt][tempCount++];
 				}
 			}
@@ -112,7 +140,7 @@ function convertToTimed(course, branchType) {
 		
 		for (let j = 0; j < selData.length; j++) {
 			const ch = selData.charAt(j);
-			if (ch === '7' || ch === '9' || ch === 'D') {
+			if (isBalloonSymbol(ch)) {
 				newBalloon.push(allBalloon[selected][i.toString()][j.toString()]);
 			}
 		}
@@ -156,6 +184,20 @@ function convertToTimed(course, branchType) {
 
             let note = { type: '', beat: beat + nBeat };
 
+            if (isRollSymbol(ch)) {
+                if (roll)
+                    continue;
+                roll = true;
+
+                if (isBalloonSymbol(ch)) {
+                    note.count = newBalloon[balloon++];
+                }
+            } else if (ch !== '0' && roll) {
+                let noteEnd = { type: (ch == '8') ? 'end' : 'endForced', beat: beat + nBeat };
+                notes.push(noteEnd);
+                roll = false;
+            }
+
             switch (ch) {
                 case '1':
                     note.type = 'don';
@@ -185,20 +227,10 @@ function convertToTimed(course, branchType) {
 
                 case '7':
                     note.type = 'balloon';
-                    note.count = newBalloon[balloon++];
-                    break;
-
-                case '8':
-                    note.type = 'end';
-                    if (imo) imo = false;
                     break;
 
                 case '9':
-                    if (imo === false) {
-                        note.type = 'balloon';
-                        note.count = newBalloon[balloon++];
-                        imo = true;
-                    }
+                    note.type = 'balloon';
                     break;
 
                  case 'C':
@@ -207,7 +239,6 @@ function convertToTimed(course, branchType) {
 
                  case 'D':
                      note.type = 'fuse';
-                     note.count = newBalloon[balloon++];
                      break;
 
                  case 'F':
@@ -306,7 +337,7 @@ function getStatistics(course) {
 
             continue;
         }
-        else if (note.type === 'end') {
+        else if (note.type === 'end' || note.type === 'endForced') {
             if (rendaStart) {
                 rendas.push(note.time - rendaStartTime);
 				

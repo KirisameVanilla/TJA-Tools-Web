@@ -1,4 +1,5 @@
 import { arrayLCM, addZero } from './common';
+import { isRollSymbol, isBalloonSymbol } from './analyseChart';
 
 function parseLine(line) {
     const HEADER_GLOBAL = [
@@ -150,6 +151,7 @@ function getCourse(tjaHeaders, lines) {
 	let tempBalloon = [];
 	let balloonOffset = 0;
 	let balloonBranchOffset = {'N':0,'E':0,'M':0};
+	let rolling = {'N': false, 'E': false, 'M': false};
 	let currentScroll = '1';
 	let currentScrollBranch = {'N':'1','E':'1','M':'1'};
 	
@@ -544,22 +546,38 @@ function getCourse(tjaHeaders, lines) {
 			// Balloon Count
 			if (balloonType === 0) {
 				for (let i = 0; i < data.length; i++) {
-					if (data.charAt(i) === '7' || data.charAt(i) === '9' || data.charAt(i) === 'D') {
-						if (tempBalloon.length <= balloonOffset) {
-							tempBalloon.push(0);
+					if (isRollSymbol(data.charAt(i))) {
+						if (rolling[currentBranch])
+							continue;
+						rolling[currentBranch] = true;
+
+						if (isBalloonSymbol(data.charAt(i))) {
+							if (tempBalloon.length <= balloonOffset) {
+								tempBalloon.push(0);
+							}
+							headers.balloon[currentBranch].push(tempBalloon[balloonOffset]);
+							balloonOffset++;
 						}
-						headers.balloon[currentBranch].push(tempBalloon[balloonOffset]);
-						balloonOffset++;
+					} else if (data.charAt(i) !== '0' & rolling[currentBranch]) {
+							rolling[currentBranch] = false;
 					}
 				}
 			}
 			else {
 				for (let i = 0; i < data.length; i++) {
-					if (data.charAt(i) === '7' || data.charAt(i) === '9' || data.charAt(i) === 'D') {
-						if (headers.balloon[currentBranch].length <= balloonBranchOffset[currentBranch]) {
-							headers.balloon[currentBranch].push(0);
+					if (isRollSymbol(data.charAt(i))) {
+						if (rolling[currentBranch])
+							continue;
+						rolling[currentBranch] = true;
+
+						if (isBalloonSymbol(data.charAt(i))) {
+							if (headers.balloon[currentBranch].length <= balloonBranchOffset[currentBranch]) {
+								headers.balloon[currentBranch].push(0);
+							}
+							balloonBranchOffset[currentBranch]++;
 						}
-						balloonBranchOffset[currentBranch]++;
+					} else if (data.charAt(i) !== '0' & rolling[currentBranch]) {
+							rolling[currentBranch] = false;
 					}
 				}
 			}

@@ -1,4 +1,5 @@
 import { drawLine, drawCircle, drawRect, drawText, drawPixelText, drawSprite, drawImageText, initSprites } from './canvasHelper';
+import { isRollSymbol, isBalloonSymbol } from './analyseChart';
 import { toFixedZero } from './main';
 import { callFontSetting, getUraSymbol } from './font/font';
 
@@ -770,43 +771,49 @@ export default function (chart, courseId) {
         // 4. Notes
 
 		for (let bt of branchTypes) {
-			// Pre-scan balloon
+			// Pre-scan roll & balloon (forward scanning)
 
-			let balloonIdx = 0, imoStart = false;
+			let balloonIdx = 0;
+			const rmdToBalloonCount = {};
+			let rmdLastRoll = null;
+			const rmdToRollEndRmd = {};
 			for (let ridx = 0; ridx < rows.length; ridx++) {
+				const mdToBalloonCount = rmdToBalloonCount[ridx] = {};
+				const mdToRollEndRmd = rmdToRollEndRmd[ridx] = {};
 				const measures = rows[ridx].measures;
 				if (!rows[ridx].branch.includes(bt)) {
 					continue;
 				}
 
 				for (let midx = 0; midx < measures.length; midx++) {
+					const dToBalloonCount = mdToBalloonCount[midx] = {};
+					const dToRollEndRmdx = mdToRollEndRmd[midx] = {};
 					const measure = measures[midx];
 
-					for (let didx = measure.data[bt].length; didx >= 0; didx--) {
+					for (let didx = 0; didx < measure.data[bt].length; didx++) {
 						const note = measure.data[bt].charAt(didx);
-						if (note === '7' || note === 'D') {
-							balloonIdx += 1;
-						}
-						else if (note === '9' && !imoStart) {
-							imoStart = 1;
-							balloonIdx += 1;
-						}
-						else if (note === '8' && imoStart) {
-							imoStart = false;
+						if (isRollSymbol(note)) {
+							if (rmdLastRoll !== null)
+								continue;
+							rmdLastRoll = [ridx, midx, didx];
+
+							if (isBalloonSymbol(note)) {
+								dToBalloonCount[didx] = course.headers.balloon[bt][balloonIdx++];
+							}
+						} else if (note !== '0' && rmdLastRoll !== null) {
+							const ridxR = rmdLastRoll[0], midxR = rmdLastRoll[1], didxR = rmdLastRoll[2];
+							rmdToRollEndRmd[ridxR][midxR][didxR] = [ridx, midx, didx];
+							rmdLastRoll = null;
 						}
 					}
 				}
 			}
 
-			if (course.headers.balloon[bt].length < balloonIdx) {
-				throw new Error('BALLOON count mismatch');
-			}
-
-			// Draw
-
-			let longEnd = false, imo = false;
+			// Draw (backward scanning)
 
 			for (let ridx = rows.length - 1; ridx >= 0; ridx--) {
+				const mdToBalloonCount = rmdToBalloonCount[ridx];
+				const mdToRollEndRmd = rmdToRollEndRmd[ridx];
 				const row = rows[ridx], measures = row.measures;
 				let beat = 0;
 				if (!row.branch.includes(bt)) {
@@ -815,13 +822,39 @@ export default function (chart, courseId) {
 				const rowYDelta = row.branch.indexOf(bt) * 24;
 
 				for (let midx = measures.length - 1; midx >= 0; midx--) {
+					const dToBalloonCount = mdToBalloonCount[midx];
+					const dToRollEndRmd = mdToRollEndRmd[midx];
 					const measure = measures[midx], mBeat = measure.lengthNotes[0] / measure.lengthNotes[1] * 4;
 
 					for (let didx = measure.data[bt].length; didx >= 0; didx--) {
 						const note = measure.data[bt].charAt(didx);
 						const nBeat = measure.rowBeat + (mBeat / measure.data[bt].length * didx);
 
-						let balloonCount;
+						let longEnd = null;
+						let balloonCount = 0;
+
+						// look up the pre-scanning results for roll & balloon
+						if (isRollSymbol(note)) {
+							const rollEndRmd = dToRollEndRmd[didx];
+							if (rollEndRmd === undefined)
+								continue;
+
+							const ridxE = rollEndRmd[0], midxE = rollEndRmd[1], didxE = rollEndRmd[2];
+							const measureE = rows[ridxE].measures[midxE];
+							const mBeatE = measureE.lengthNotes[0] / measureE.lengthNotes[1] * 4;
+							const nBeatE = measureE.rowBeat + (mBeatE / measureE.data[bt].length * didxE);
+							if (ridxE > 0 && nBeatE === 0) {
+								longEnd = [ridxE - 1, rows[ridxE - 1].beats];
+							}
+							else {
+								longEnd = [ridxE, nBeatE];
+							}
+
+							if (isBalloonSymbol(note)) {
+								balloonCount = dToBalloonCount[didx];
+							}
+						}
+
 						switch (note) {
 							case '1':
 								//drawSmallNote(ctx, ridx, nBeat, '#ff4242');
@@ -848,40 +881,21 @@ export default function (chart, courseId) {
 							case '5':
 								//drawRendaSmall(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1]);
 								drawRendaSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], 'roll');
-								longEnd = false;
 								break;
 
 							case '6':
 								//drawRendaBig(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1]);
 								drawRendaSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], 'bigRoll');
-								longEnd = false;
 								break;
 
 							case '7':
-								balloonCount = course.headers.balloon[bt][balloonIdx - 1];
-
 								//drawBalloon(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], balloonCount);
 								drawBalloonSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], balloonCount);
-								balloonIdx -= 1;
-								longEnd = false;
-								break;
-
-							case '8':
-								if (ridx > 0 && nBeat === 0) {
-									longEnd = [ridx - 1, rows[ridx - 1].beats];
-								}
-								else {
-									longEnd = [ridx, nBeat];
-								}
 								break;
 
 							case '9':
-								balloonCount = course.headers.balloon[bt][balloonIdx - 1];
-								
 								//drawBalloon(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], balloonCount, true);
 								drawBalloonSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], balloonCount, true, chart.headers.spRoll);
-								balloonIdx -= 1;
-								longEnd = false;
 								break;
 
 							case 'C':
@@ -890,11 +904,7 @@ export default function (chart, courseId) {
 								break;
 
 							case 'D':
-								const fuseCount = course.headers.balloon[bt][balloonIdx - 1];
-
-								drawFuse(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], fuseCount);
-								balloonIdx -= 1;
-								longEnd = false;
+								drawFuse(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], balloonCount);
 								break;
  
 							case 'F':
