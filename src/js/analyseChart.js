@@ -149,7 +149,7 @@ function convertToTimed(course) {
                     break;
 
                 case '9':
-                    note.type = 'balloon';
+                    note.type = 'balloonEx';
                     break;
 
                 case 'C':
@@ -189,7 +189,8 @@ function getStatistics(course) {
     const notes = [0, 0, 0, 0, 0], rendas = [], balloons = [];
     let adlibs = 0, mines = 0;
     let start = 0, end = 0, combo = 0;
-    let rendaStart = false, balloonStart = false, balloonCount = 0, balloonGogo = 0, balloonType = "balloon";
+    let rendaStart = false, balloonStart = false, balloonCount = 0, balloonGogo = 0;
+    let rollType = "renda";
     let scCurEventIdx = 0, scCurEvent = course.events[scCurEventIdx];
     let scGogo = 0;
     let scNotes = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]];
@@ -241,25 +242,26 @@ function getStatistics(course) {
 
         if (note.type === 'renda' || note.type === 'rendaBig') {
             rendaStart = note.time;
+            rollType = note.type;
             continue;
         }
-        else if (note.type === 'balloon' || note.type === 'fuse') {
+        else if (note.type === 'balloon' || note.type === 'balloonEx' || note.type === 'fuse') {
             balloonStart = note.time;
             balloonCount = note.count;
             balloonGogo = scGogo;
-            balloonType = note.type;
+            rollType = note.type;
 
             continue;
         }
         else if (note.type === 'end' || note.type === 'endForced') {
             if (rendaStart) {
-                rendas.push(note.time - rendaStart);
+                rendas.push([note.time - rendaStart, rollType]);
                 rendaStart = false;
             }
             else if (balloonStart) {
                 const balloonLength = note.time - balloonStart;
                 const balloonSpeed = balloonCount / balloonLength;
-                balloons.push([balloonLength, balloonCount, balloonType]);
+                balloons.push([balloonLength, balloonCount, rollType]);
                 balloonStart = false;
 
                 if (balloonSpeed <= 60) {
