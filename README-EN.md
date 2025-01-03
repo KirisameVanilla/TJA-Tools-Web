@@ -76,8 +76,8 @@ You shall then open `webpack-dist/index.html` (not `src/index.html`) with your w
     - [x] `#SCROLL`
     - [x] `#GOGOSTART`
     - [x] `#GOGOEND`
-    - [ ] `#BARLINEOFF`
-    - [ ] `#BARLINEON`
+    - [x] `#BARLINEOFF`
+    - [x] `#BARLINEON`
     - [x] `#BRANCHSTART` (only the highest branch is displayed)
     - [x] `#N`
     - [x] `#E`
