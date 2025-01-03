@@ -230,7 +230,7 @@ function convertToTimed(course, branchType) {
                     break;
 
                 case '9':
-                    note.type = 'balloon';
+                    note.type = 'balloonEx';
                     break;
 
                  case 'C':
@@ -328,7 +328,7 @@ function getStatistics(course) {
 			isGoGoRenda = scGogo;
             continue;
         }
-        else if (note.type === 'balloon' || note.type === 'fuse') {
+        else if (note.type === 'balloon' || note.type === 'balloonEx' || note.type === 'fuse') {
             balloonStartTime = note.time;
 			balloonStart = true;
             balloonCount = note.count;

@@ -366,11 +366,15 @@ function buildStatisticsPage(data) {
     const formatTime = (seconds) => `${Math.floor(seconds / 60)}m${(seconds % 60).toFixed(2).padStart(5, '0')}s`;
     $('.stat-formatted-length').text(formatTime(stats.length));
 
-    $('.stat-renda').text(stats.rendas.map(r => r.toFixed(3) + '秒').join(' + '));
+    $('.stat-renda').html(stats.rendas
+         .map((r, i) => (stats.rendaExtends[i].isBigRenda ? (x => `<span class="is-size-big">${x}</span>`) : (x => x))(
+             r.toFixed(3) + '秒'))
+         .join(' + '));
     $('.stat-renda-total').text(stats.rendas.reduce((a, b) => a + b, 0).toFixed(3) + '秒');
 
     $('.stat-balloon').html(stats.balloons.map(b => (
-        `${b[1]}打 / ${b[0].toFixed(3)}秒 = ${(b[1] / b[0]).toFixed(3)} 打/秒${(b[2] === 'fuse') ? " [💣]" : ""}`
+        ((b[2] === 'balloonEx') ? (x => `<span class="is-size-ex">${x}</span>`) : (x => x))(
+             `${b[1]}打 / ${b[0].toFixed(3)}秒 = ${(b[1] / b[0]).toFixed(3)} 打/秒${(b[2] === 'fuse') ? " [💣]" : ""}`)
     )).join('<br>'));
 
     // Graph
