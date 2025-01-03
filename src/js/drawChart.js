@@ -47,12 +47,18 @@ function drawSmallNote(ctx, row, beat, color, drawInner = true) {
     }
 }
 
-function drawBigNote(ctx, row, beat, color) {
+function drawBigNote(ctx, row, beat, color, drawInner = true) {
     const { x, y } = getNoteCenter(row, beat);
 
     drawCircle(ctx, x, y, NOTE_RADIUS + 3, '#000');
-    drawCircle(ctx, x, y, NOTE_RADIUS + 2, '#fff');
-    drawCircle(ctx, x, y, NOTE_RADIUS, color);
+
+    if (drawInner) {
+        drawCircle(ctx, x, y, NOTE_RADIUS + 2, '#fff');
+        drawCircle(ctx, x, y, NOTE_RADIUS, color);
+    }
+    else {
+        drawCircle(ctx, x, y, NOTE_RADIUS + 2, color);
+    }
 }
 
 //==============================================================================
@@ -143,6 +149,15 @@ function drawBalloon(ctx, rows, sRow, sBeat, eRow, eBeat, count) {
     drawSmallNote(ctx, eRow, eBeat, '#fb4');
     drawLong(ctx, rows, sRow, sBeat, eRow, eBeat, '#fb4', 'body');
     drawSmallNote(ctx, sRow, sBeat, '#fb4', false);
+
+    const { x, y } = getNoteCenter(sRow, sBeat);
+    drawPixelText(ctx, x, y + 0.5, count.toString(), '#000');
+}
+
+function drawBalloonEx(ctx, rows, sRow, sBeat, eRow, eBeat, count) {
+    drawBigNote(ctx, eRow, eBeat, '#fb4');
+    drawLong(ctx, rows, sRow, sBeat, eRow, eBeat, '#fb4', 'bodyBig');
+    drawBigNote(ctx, sRow, sBeat, '#fb4', false);
 
     const { x, y } = getNoteCenter(sRow, sBeat);
     drawPixelText(ctx, x, y + 0.5, count.toString(), '#000');
@@ -462,7 +477,7 @@ export default function (chart, courseId) {
                             break;
 
                         case '9':
-                            drawBalloon(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], balloonCount);
+                            drawBalloonEx(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], balloonCount);
                             break;
 
                         case 'C':
