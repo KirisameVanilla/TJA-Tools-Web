@@ -6,39 +6,20 @@ A tool to visualize `.tja` chart files. Forked from [Snack](https://github.com/S
 
 ## Run
 
-Visit [https://whmhammer.github.io/tja-tools](https://whmhammer.github.io/tja-tools)
+Visit https://whmhammer.github.io/tja-tools
 
 ## Build
 
-Install Node v14:
-
-```
-wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm install 14.19.1
-```
-
-Clone the repo:
+Install Node: https://nodejs.org/en/download, and then execute the following commands:
 
 ```
 git clone https://github.com/WHMHammer/tja-tools
 cd tja-tools
-```
-
-Install other dependencies:
-
-```
-npm install
-```
-
-Build:
-
-```
+npm i
 npm run build
 ```
 
-You shall then open `index.html` (not `src/index.html`) in your browser.
+You shall then open `webpack-dist/index.html` (not `src/index.html`) with your web browser or execute `npm start`
 
 ## Examples
 

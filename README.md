@@ -8,34 +8,21 @@ tjaファイルの譜面画像や情報を表示するツールです。
 
 ## サイト
 
-[https://dannal65535.github.io/tja-tools/](https://dannal65535.github.io/tja-tools/)
+https://dannal65535.github.io/tja-tools/
 にアクセスしてください。
 
 ## ビルド
 
-Nodeのv14で下みたいな感じでやれば出来るらしい：
-
-```
-wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm install 14.19.1
-```
+Nodeをインストールする: https://nodejs.org/ja/download、それから下みたいな感じでやれば出来るらしい：
 
 ```
 git clone https://github.com/Dannal65535/tja-tools
 cd tja-tools
-```
-
-```
-npm install
-```
-
-```
+npm i
 npm run build
 ```
 
-ビルドが終わったら、直下にある`index.html`を開くとツールが起動します。
+ビルドが終わったら、直下にある`webpack-dist/index.html`を開くか、`npm start` を実行すると、ツールが起動します。
 （`src/index.html`ではないので注意。）
 
 ## 例

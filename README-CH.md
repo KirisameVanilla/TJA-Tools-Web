@@ -2,43 +2,24 @@
 
 [日本語](README.md) 中文 [English](README-EN.md)
 
-将`.tja`文件转化为图片。由[Snack](https://github.com/Snack-X)的[tja-tools](https://github.com/Snack-X/tja-tools)分叉。
+将 `.tja` 文件转化为图片。由 [Snack](https://github.com/Snack-X) 的 [tja-tools](https://github.com/Snack-X/tja-tools) 分叉。
 
 ## 运行
 
-访问[https://whmhammer.github.io/tja-tools](https://whmhammer.github.io/tja-tools)
+访问 https://whmhammer.github.io/tja-tools
 
 ## 构建
 
-安装Node v14：
-
-```
-wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm install 14.19.1
-```
-
-克隆代码库：
+安装Node：https://nodejs.org/zh-cn/download，然后执行以下命令：
 
 ```
 git clone https://github.com/WHMHammer/tja-tools
 cd tja-tools
-```
-
-安装其它依赖：
-
-```
-npm install
-```
-
-构建：
-
-```
+npm i
 npm run build
 ```
 
-接着在浏览器中打开`index.html`（注意不是`src/index.html`）。
+接着在浏览器中打开 `webpack-dist/index.html`（注意不是`src/index.html`）或执行 `npm start`
 
 ## 示例
 

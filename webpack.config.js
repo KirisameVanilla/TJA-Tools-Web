@@ -11,10 +11,13 @@ const styleLoader = MiniCssExtractPlugin.loader;
 const postcssLoader = {
     loader: 'postcss-loader',
     options: {
-        ident: 'postcss',
-        plugins: [
-            CssnanoPlugin(),
-        ],
+        postcssOptions: {
+            plugins: [
+                [
+                    CssnanoPlugin()
+                ],
+            ],
+        },
     },
 };
 
@@ -23,20 +26,18 @@ const config = {
         app: './src/js/main.js',
     },
     output: {
-        filename: 'js/[name].js?hash=[contenthash:6]',
         path: path.resolve(__dirname, distPath),
-        publicPath: `./`,
     },
-    optimization: {
-        splitChunks: {
-            chunks: 'all',
-            cacheGroups: {
-                vendors: {
-                    test: /[\\/](node_modules|deps)[\\/]/,
-                },
-            },
-        },
-    },
+    // optimization: {
+    //     splitChunks: {
+    //         chunks: 'all',
+    //         cacheGroups: {
+    //             vendors: {
+    //                 test: /[\\/](node_modules|deps)[\\/]/,
+    //             },
+    //         },
+    //     },
+    // },
     module: {
         rules: [
             {
@@ -65,13 +66,10 @@ const config = {
             alwaysWriteToDisk: true,
         }),
         new HtmlWebpackHarddiskPlugin(),
-        new MiniCssExtractPlugin({
-            filename: 'css/[name].css?hash=[contenthash:6]',
-            chunkFilename: 'css/[id].css',
-        }),
+        new MiniCssExtractPlugin(),
     ],
     devServer: {
-        contentBase: path.resolve(__dirname, distPath),
+        static: `./${distPath}`,
         open: true,
     },
 };
