@@ -133,20 +133,23 @@ function drawLong(ctx, rows, sRow, sBeat, eRow, eBeat, color, type = 'body') {
     }
 }
 
-function drawRendaSmall(ctx, rows, sRow, sBeat, eRow, eBeat) {
+function drawRendaSmall(ctx, rows, sRow, sBeat, eRow, eBeat, omitEnd) {
     drawSmallNote(ctx, sRow, sBeat, '#fe4');
-    drawSmallNote(ctx, eRow, eBeat, '#fe4');
+    if (!omitEnd)
+        drawSmallNote(ctx, eRow, eBeat, '#fe4');
     drawLong(ctx, rows, sRow, sBeat, eRow, eBeat, '#fe4', 'body');
 }
 
-function drawRendaBig(ctx, rows, sRow, sBeat, eRow, eBeat) {
+function drawRendaBig(ctx, rows, sRow, sBeat, eRow, eBeat, omitEnd) {
     drawBigNote(ctx, sRow, sBeat, '#fe4');
-    drawBigNote(ctx, eRow, eBeat, '#fe4');
+    if (!omitEnd)
+        drawBigNote(ctx, eRow, eBeat, '#fe4');
     drawLong(ctx, rows, sRow, sBeat, eRow, eBeat, '#fe4', 'bodyBig');
 }
 
-function drawBalloon(ctx, rows, sRow, sBeat, eRow, eBeat, count) {
-    drawSmallNote(ctx, eRow, eBeat, '#fb4');
+function drawBalloon(ctx, rows, sRow, sBeat, eRow, eBeat, omitEnd, count) {
+    if (!omitEnd)
+        drawSmallNote(ctx, eRow, eBeat, '#fb4');
     drawLong(ctx, rows, sRow, sBeat, eRow, eBeat, '#fb4', 'body');
     drawSmallNote(ctx, sRow, sBeat, '#fb4', false);
 
@@ -154,8 +157,9 @@ function drawBalloon(ctx, rows, sRow, sBeat, eRow, eBeat, count) {
     drawPixelText(ctx, x, y + 0.5, count.toString(), '#000');
 }
 
-function drawBalloonEx(ctx, rows, sRow, sBeat, eRow, eBeat, count) {
-    drawBigNote(ctx, eRow, eBeat, '#fb4');
+function drawBalloonEx(ctx, rows, sRow, sBeat, eRow, eBeat, omitEnd, count) {
+    if (!omitEnd)
+        drawBigNote(ctx, eRow, eBeat, '#fb4');
     drawLong(ctx, rows, sRow, sBeat, eRow, eBeat, '#fb4', 'bodyBig');
     drawBigNote(ctx, sRow, sBeat, '#fb4', false);
 
@@ -163,8 +167,9 @@ function drawBalloonEx(ctx, rows, sRow, sBeat, eRow, eBeat, count) {
     drawPixelText(ctx, x, y + 0.5, count.toString(), '#000');
 }
 
-function drawFuse(ctx, rows, sRow, sBeat, eRow, eBeat, count) {
-    drawSmallNote(ctx, eRow, eBeat, '#640aad');
+function drawFuse(ctx, rows, sRow, sBeat, eRow, eBeat, count, omitEnd) {
+    if (!omitEnd)
+        drawSmallNote(ctx, eRow, eBeat, '#640aad');
     drawLong(ctx, rows, sRow, sBeat, eRow, eBeat, '#640aad', 'body');
     drawSmallNote(ctx, sRow, sBeat, '#a4f', false);
 
@@ -399,7 +404,7 @@ export default function (chart, courseId) {
                         }
                     } else if (note !== '0' && rmdLastRoll !== null) {
                         const ridxR = rmdLastRoll[0], midxR = rmdLastRoll[1], didxR = rmdLastRoll[2];
-                        rmdToRollEndRmd[ridxR][midxR][didxR] = [ridx, midx, didx];
+                        rmdToRollEndRmd[ridxR][midxR][didxR] = [ridx, midx, didx, note];
                         rmdLastRoll = null;
                     }
                 }
@@ -410,7 +415,7 @@ export default function (chart, courseId) {
         if (rmdLastRoll !== null) {
             const ridxR = rmdLastRoll[0], midxR = rmdLastRoll[1], didxR = rmdLastRoll[2];
             // Hack: draw the "unended" end below the image bottom so that it is invisible
-            rmdToRollEndRmd[ridxR][midxR][didxR] = [rows.length, 0, 0];
+            rmdToRollEndRmd[ridxR][midxR][didxR] = [rows.length, 0, 0, '#END'];
             rmdLastRoll = null;
         }
 
@@ -440,14 +445,15 @@ export default function (chart, courseId) {
                         if (rollEndRmd === undefined)
                             continue;
 
-                        const ridxE = rollEndRmd[0], midxE = rollEndRmd[1], didxE = rollEndRmd[2];
+                        const ridxE = rollEndRmd[0], midxE = rollEndRmd[1], didxE = rollEndRmd[2], noteE = rollEndRmd[3];
+                        const omitE = (noteE !== '8'); // omit forced roll ends for clarity
                         if (ridxE < rows.length) {
                             const measureE = rows[ridxE].measures[midxE];
                             const mBeatE = measureE.length[0] / measureE.length[1] * 4;
                             const nBeatE = measureE.rowBeat + (mBeatE / measureE.data.length * didxE);
-                            longEnd = [ridxE, nBeatE];
+                            longEnd = [ridxE, nBeatE, omitE];
                         } else {
-                            longEnd = [ridxE, 0];
+                            longEnd = [ridxE, 0, omitE];
                         }
 
                         if (isBalloonSymbol(note)) {
@@ -477,19 +483,19 @@ export default function (chart, courseId) {
                             break;
 
                         case '5':
-                            drawRendaSmall(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1]);
+                            drawRendaSmall(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2]);
                             break;
 
                         case '6':
-                            drawRendaBig(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1]);
+                            drawRendaBig(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2]);
                             break;
 
                         case '7':
-                            drawBalloon(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], balloonCount);
+                            drawBalloon(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], balloonCount);
                             break;
 
                         case '9':
-                            drawBalloonEx(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], balloonCount);
+                            drawBalloonEx(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], balloonCount);
                             break;
 
                         case 'C':
@@ -497,7 +503,7 @@ export default function (chart, courseId) {
                             break;
 
                         case 'D':
-                            drawFuse(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], balloonCount);
+                            drawFuse(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], balloonCount);
                             break;
 
                         case 'F':
