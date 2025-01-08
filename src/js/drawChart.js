@@ -269,8 +269,8 @@ function drawRendaBig(ctx, rows, sRow, sBeat, eRow, eBeat) {
     drawBigNote(ctx, sRow, sBeat, '#ffef43');
 }
 
-function drawRendaSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, type) {
-	if (eRow != undefined) {
+function drawRendaSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, omitEnd, type) {
+	if (eRow != undefined && !omitEnd) {
 		drawNoteSprite(ctx, eRow, rows[eRow].branch.indexOf(bt) * 24, eBeat, type + 'End');
 	}
 	let feRow = eRow;
@@ -292,7 +292,7 @@ function drawBalloon(ctx, rows, sRow, sBeat, eRow, eBeat, count, imo = false) {
     drawPixelText(ctx, x, y + 0.5, count.toString(), '#000');
 }
 
-function drawBalloonSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, count, imo = false, spSymbol = 'kusudama') {
+function drawBalloonSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, omitEnd, count, imo = false, spSymbol = 'kusudama') {
 	let symbol = 'balloon';
 	if (imo) {
 		if (spSymbol === 'denden') {
@@ -309,7 +309,7 @@ function drawBalloonSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, count, imo =
 		}
 	}
 	
-	if (eRow != undefined) {
+	if (eRow != undefined && !omitEnd) {
 		drawNoteSprite(ctx, eRow, rows[eRow].branch.indexOf(bt) * 24, eBeat, 'spRollEnd');
 	}
 	drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, 'spRollMiddle');
@@ -321,8 +321,9 @@ function drawBalloonSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, count, imo =
 	drawImageText(ctx, x - 3 - xDelta, y - 3 + (rows[sRow].branch.indexOf(bt) * 24), count.toString(), 'num');
 }
 
-function drawFuse(ctx, rows, sRow, sBeat, eRow, eBeat, count) {
-    drawSmallNote(ctx, eRow, eBeat, '#640aad');
+function drawFuse(ctx, rows, sRow, sBeat, eRow, eBeat, count, omitEnd) {
+    if (!omitEnd)
+        drawSmallNote(ctx, eRow, eBeat, '#640aad');
     drawLong(ctx, rows, sRow, sBeat, eRow, eBeat, '#640aad', 'body');
     drawSmallNote(ctx, sRow, sBeat, '#a4f', false);
 
@@ -802,7 +803,7 @@ export default function (chart, courseId) {
 							}
 						} else if (note !== '0' && rmdLastRoll !== null) {
 							const ridxR = rmdLastRoll[0], midxR = rmdLastRoll[1], didxR = rmdLastRoll[2];
-							rmdToRollEndRmd[ridxR][midxR][didxR] = [ridx, midx, didx];
+							rmdToRollEndRmd[ridxR][midxR][didxR] = [ridx, midx, didx, note];
 							rmdLastRoll = null;
 						}
 					}
@@ -812,7 +813,7 @@ export default function (chart, courseId) {
 			// Handle unended roll at chart end
 			if (rmdLastRoll !== null) {
 				const ridxR = rmdLastRoll[0], midxR = rmdLastRoll[1], didxR = rmdLastRoll[2];
-				rmdToRollEndRmd[ridxR][midxR][didxR] = [undefined, 0, 0];
+				rmdToRollEndRmd[ridxR][midxR][didxR] = [undefined, 0, 0, '#END'];
 				rmdLastRoll = null;
 			}
 
@@ -846,19 +847,20 @@ export default function (chart, courseId) {
 							if (rollEndRmd === undefined)
 								continue;
 
-							const ridxE = rollEndRmd[0], midxE = rollEndRmd[1], didxE = rollEndRmd[2];
+							const ridxE = rollEndRmd[0], midxE = rollEndRmd[1], didxE = rollEndRmd[2], noteE = rollEndRmd[3];
+							const omitE = (noteE !== '8'); // omit forced roll ends for clarity
 							if (ridxE < rows.length) {
 								const measureE = rows[ridxE].measures[midxE];
 								const mBeatE = measureE.lengthNotes[0] / measureE.lengthNotes[1] * 4;
 								const nBeatE = measureE.rowBeat + (mBeatE / measureE.data[bt].length * didxE);
 								if (ridxE > 0 && nBeatE === 0) {
-									longEnd = [ridxE - 1, rows[ridxE - 1].beats];
+									longEnd = [ridxE - 1, rows[ridxE - 1].beats, omitE];
 								}
 								else {
-									longEnd = [ridxE, nBeatE];
+									longEnd = [ridxE, nBeatE, omitE];
 								}
 							} else {
-								longEnd = [ridxE, 0];
+								longEnd = [ridxE, 0, omitE];
 							}
 
 							if (isBalloonSymbol(note)) {
@@ -891,22 +893,22 @@ export default function (chart, courseId) {
 
 							case '5':
 								//drawRendaSmall(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1]);
-								drawRendaSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], 'roll');
+								drawRendaSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], 'roll');
 								break;
 
 							case '6':
 								//drawRendaBig(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1]);
-								drawRendaSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], 'bigRoll');
+								drawRendaSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], 'bigRoll');
 								break;
 
 							case '7':
 								//drawBalloon(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], balloonCount);
-								drawBalloonSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], balloonCount);
+								drawBalloonSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], balloonCount);
 								break;
 
 							case '9':
 								//drawBalloon(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], balloonCount, true);
-								drawBalloonSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], balloonCount, true, chart.headers.spRoll);
+								drawBalloonSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], balloonCount, true, chart.headers.spRoll);
 								break;
 
 							case 'C':
@@ -915,7 +917,7 @@ export default function (chart, courseId) {
 								break;
 
 							case 'D':
-								drawFuse(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], balloonCount);
+								drawFuse(ctx, rows, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], balloonCount);
 								break;
  
 							case 'F':
