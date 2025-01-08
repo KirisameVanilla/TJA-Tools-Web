@@ -135,4 +135,7 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+# Local webpack build output
+webpack-dist/
+
 *.tja
