@@ -406,6 +406,14 @@ export default function (chart, courseId) {
             }
         }
 
+        // Handle unended roll at chart end
+        if (rmdLastRoll !== null) {
+            const ridxR = rmdLastRoll[0], midxR = rmdLastRoll[1], didxR = rmdLastRoll[2];
+            // Hack: draw the "unended" end below the image bottom so that it is invisible
+            rmdToRollEndRmd[ridxR][midxR][didxR] = [rows.length, 0, 0];
+            rmdLastRoll = null;
+        }
+
         // Draw (backward scanning)
 
         for (let ridx = rows.length - 1; ridx >= 0; ridx--) {
@@ -433,10 +441,14 @@ export default function (chart, courseId) {
                             continue;
 
                         const ridxE = rollEndRmd[0], midxE = rollEndRmd[1], didxE = rollEndRmd[2];
-                        const measureE = rows[ridxE].measures[midxE];
-                        const mBeatE = measureE.length[0] / measureE.length[1] * 4;
-                        const nBeatE = measureE.rowBeat + (mBeatE / measureE.data.length * didxE);
-                        longEnd = [ridxE, nBeatE];
+                        if (ridxE < rows.length) {
+                            const measureE = rows[ridxE].measures[midxE];
+                            const mBeatE = measureE.length[0] / measureE.length[1] * 4;
+                            const nBeatE = measureE.rowBeat + (mBeatE / measureE.data.length * didxE);
+                            longEnd = [ridxE, nBeatE];
+                        } else {
+                            longEnd = [ridxE, 0];
+                        }
 
                         if (isBalloonSymbol(note)) {
                             balloonCount = dToBalloonCount[didx];
