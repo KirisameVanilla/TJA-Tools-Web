@@ -809,6 +809,13 @@ export default function (chart, courseId) {
 				}
 			}
 
+			// Handle unended roll at chart end
+			if (rmdLastRoll !== null) {
+				const ridxR = rmdLastRoll[0], midxR = rmdLastRoll[1], didxR = rmdLastRoll[2];
+				rmdToRollEndRmd[ridxR][midxR][didxR] = [undefined, 0, 0];
+				rmdLastRoll = null;
+			}
+
 			// Draw (backward scanning)
 
 			for (let ridx = rows.length - 1; ridx >= 0; ridx--) {
@@ -840,14 +847,18 @@ export default function (chart, courseId) {
 								continue;
 
 							const ridxE = rollEndRmd[0], midxE = rollEndRmd[1], didxE = rollEndRmd[2];
-							const measureE = rows[ridxE].measures[midxE];
-							const mBeatE = measureE.lengthNotes[0] / measureE.lengthNotes[1] * 4;
-							const nBeatE = measureE.rowBeat + (mBeatE / measureE.data[bt].length * didxE);
-							if (ridxE > 0 && nBeatE === 0) {
-								longEnd = [ridxE - 1, rows[ridxE - 1].beats];
-							}
-							else {
-								longEnd = [ridxE, nBeatE];
+							if (ridxE < rows.length) {
+								const measureE = rows[ridxE].measures[midxE];
+								const mBeatE = measureE.lengthNotes[0] / measureE.lengthNotes[1] * 4;
+								const nBeatE = measureE.rowBeat + (mBeatE / measureE.data[bt].length * didxE);
+								if (ridxE > 0 && nBeatE === 0) {
+									longEnd = [ridxE - 1, rows[ridxE - 1].beats];
+								}
+								else {
+									longEnd = [ridxE, nBeatE];
+								}
+							} else {
+								longEnd = [ridxE, 0];
 							}
 
 							if (isBalloonSymbol(note)) {
