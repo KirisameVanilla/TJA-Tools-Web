@@ -453,14 +453,14 @@ export default function (chart, courseId) {
 		let titleUraSymbol = uraSymbols.title;
 		let levelUraSymbol = uraSymbols.level;
 		
-		const fixedTitle = (course.course === 4 && chart.headers.levelUra != 1) ? chart.headers.title + titleUraSymbol : chart.headers.title;
+		const fixedTitle = (course.headers.course === 4 && chart.headers.levelUra != 1) ? chart.headers.title + titleUraSymbol : chart.headers.title;
 		
 		const difficulty = ['かんたん', 'ふつう', 'むずかしい', 'おに', 'おに' + (chart.headers.levelUra === 1 ? levelUraSymbol : '')];
         const levelMax = [5, 7, 8, 10, 10];
         const difficultyText = (
-            difficulty[course.course] + ' ' +
+            difficulty[course.headers.course] + ' ' +
             '★'.repeat(course.headers.level) +
-            '☆'.repeat(Math.max(levelMax[course.course] - course.headers.level, 0)) +
+            '☆'.repeat(Math.max(levelMax[course.headers.course] - course.headers.level, 0)) +
             ` Lv.${course.headers.level}`
         );
 		
@@ -499,13 +499,13 @@ export default function (chart, courseId) {
 		const diffColors = ['#f22706', '#92c400', '#0090e8', '#ce00a2', '#5a3cdc'];
 		switch (chart.headers.levelColor) {
 			case 1:
-				levelTextColor = diffColors[course.course];
-				if (course.course === 4) {
+				levelTextColor = diffColors[course.headers.course];
+				if (course.headers.course === 4) {
 					levelTextColor = diffColors[3];
 				}
 				break;
 			case 2:
-				levelTextColor = diffColors[course.course];
+				levelTextColor = diffColors[course.headers.course];
 				break;
 		}
 		

@@ -456,8 +456,8 @@ export function predictScore(stats, course, gogoFloor, scoreSystem) {
 	const levelMax = [5,7,8,10,10];
 	const autoAC16 = [6.0,7.5,10.0,15.0,15.0];
 	let tempLevel = course.headers.level;
-	if (tempLevel > levelMax[course.course]){
-		tempLevel = levelMax[course.course];
+	if (tempLevel > levelMax[course.headers.course]){
+		tempLevel = levelMax[course.headers.course];
 	}
 	const drop1 = n => Math.floor(n / 10) * 10;
 	const multipliers = [0, 1, 2, 4, 8];
@@ -467,11 +467,11 @@ export function predictScore(stats, course, gogoFloor, scoreSystem) {
 	let noteGogoScores;
 	let noteGogoScoresBig;
 	const rollAC15 = 1.0 / 15.0;
-	const rollAC16 = 1.0 / autoAC16[course.course];
+	const rollAC16 = 1.0 / autoAC16[course.headers.course];
 	const rollScore = [[100,200],[120,240]];
 	
 	//AC15
-	scoreGoal = tenjo[course.course][tempLevel - 1] * 10000;
+	scoreGoal = tenjo[course.headers.course][tempLevel - 1] * 10000;
 	while (scoreTemp < scoreGoal){
 		diffTemp++;
 		scoreDiff = Math.ceil(diffTemp / 4);

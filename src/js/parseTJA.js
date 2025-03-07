@@ -1,6 +1,26 @@
 import { arrayLCM, addZero } from './common';
 import { isRollSymbol, isBalloonSymbol } from './analyseChart';
 
+function parseCourseValue(courseValue) {
+    switch (courseValue.toLowerCase()) {
+        case 'easy': case '0':
+            return 0;
+
+        case 'normal': case '1':
+            return 1;
+
+        case 'hard': case '2':
+            return 2;
+
+        case 'oni': case '3':
+            return 3;
+
+        case 'edit': case 'ura': case '4':
+            return 4;
+    }
+    return null;
+}
+
 function parseLine(line) {
     const HEADER_GLOBAL = [
         'TITLE',
@@ -124,7 +144,7 @@ function parseLine(line) {
 
 function getCourse(tjaHeaders, lines) {
     const headers = {
-        course: 'Oni',
+        course: tjaHeaders.course,
         level: 0,
         balloon: {'N':[],'E':[],'M':[]},
         scoreInit: 0,
@@ -160,7 +180,10 @@ function getCourse(tjaHeaders, lines) {
         if (line.type === 'header') {
             switch (line.name) {
                 case 'COURSE':
-                    headers.course = line.value;
+                    const course = parseCourseValue(line.value);
+                    if (course !== null) {
+                        tjaHeaders.course = headers.course = course;
+                    }
                     break;
 
                 case 'LEVEL':
@@ -638,32 +661,6 @@ function getCourse(tjaHeaders, lines) {
         }
     }
 
-    // Helper values
-    let course = 0;
-    const courseValue = headers.course.toLowerCase();
-
-    switch (courseValue) {
-        case 'easy': case '0':
-            course = 0;
-            break;
-
-        case 'normal': case '1':
-            course = 1;
-            break;
-
-        case 'hard': case '2':
-            course = 2;
-            break;
-
-        case 'oni': case '3':
-            course = 3;
-            break;
-
-        case 'edit': case 'ura': case '4':
-            course = 4;
-            break;
-    }
-
     if (measureData) {
 		measureData = measureData === '' ? '0' : measureData;
         measures.push({
@@ -735,7 +732,7 @@ function getCourse(tjaHeaders, lines) {
 
     // Output
     //console.log(measures[measures.length - 1])
-    return { course, headers, measures };
+    return { headers, measures };
 }
 
 export default function parseTJA(tja) {
@@ -752,6 +749,7 @@ export default function parseTJA(tja) {
         demoStart: 0,
         genre: '',
         maker: null,
+        course: 3, // for fallback
 		font: 'donscore',
 		spRoll: 'kusudama',
 		levelColor: 0,
@@ -839,7 +837,7 @@ export default function parseTJA(tja) {
             if (parsed.name === 'COURSE') {
                 if (courseLines.length) {
                     const course = getCourse(headers, courseLines);
-                    courses[course.course] = course;
+                    courses[headers.course] = course;
                     courseLines = [];
                 }
             }
@@ -856,7 +854,7 @@ export default function parseTJA(tja) {
 
     if (courseLines.length) {
         const course = getCourse(headers, courseLines);
-        courses[course.course] = course;
+        courses[headers.course] = course;
     }
 
     // Return

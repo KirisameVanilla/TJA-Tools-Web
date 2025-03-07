@@ -268,11 +268,11 @@ export function convertToDonscore(chart, courseId) {
 	// Header
 	let titleUraSymbol = '(裏譜面)';
 	let levelUraSymbol = '裏';
-	const fixedTitle = (course.course === 4 && chart.headers.levelUra != 1) ? chart.headers.title + titleUraSymbol : chart.headers.title;
+	const fixedTitle = (course.headers.course === 4 && chart.headers.levelUra != 1) ? chart.headers.title + titleUraSymbol : chart.headers.title;
 	const difficulty = ['かんたん', 'ふつう', 'むずかしい', 'おに', 'おに' + (chart.headers.levelUra === 1 ? levelUraSymbol : '')];
 	
 	result.push(`#title ${fixedTitle}`);
-	result.push(`#difficulty ${difficulty[course.course]}`);
+	result.push(`#difficulty ${difficulty[course.headers.course]}`);
 	result.push(`#level ${course.headers.level}`);
 	
 	// Chart
