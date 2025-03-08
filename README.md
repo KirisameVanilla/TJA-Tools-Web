@@ -37,13 +37,14 @@ npm run build
 
 - [x] 文字コードを指定する
 - [x] 異なる分岐を並べて表示する
+- [ ] 異なるプレイヤー側を並べて表示する
 - ヘッダ（譜面全体）
     - [x] `TITLE`
     - [x] `SUBTITLE`
     - [x] `BPM`
     - [x] `MAKER`
     - [x] `GENRE`
-- ヘッダ（難易度ごと）
+- ヘッダ（難易度ごと変更可能）
     - `COURSE`
         - [x] `Easy` / `0`
         - [x] `Normal` / `1`
@@ -54,7 +55,7 @@ npm run build
         - [ ] `Dan` / `6`
     - [x] `LEVEL`
     - [x] `BALLOON`
-    - [ ] `STYLE`
+    - [x] `STYLE`（各プレイヤー側を別難易度扱い）
     - [x] `NOTESDESIGNER0` ~ `NOTESDESIGNER6`（0～4のみ有効）
     - [x] `TTROWBEAT`（画像表示用，1行あたりの最大拍数）
 - ノーツ
@@ -78,6 +79,7 @@ npm run build
     - [ ] `I`（黄色連打か縁連打始点）
 - コマンド
     - [x] `#START`
+        - [x] `P1`, `P2`, …（プレイヤー番号は上限なし）
     - [x] `#END`
     - [x] `#MEASURE`
     - [x] `#BPMCHANGE`
