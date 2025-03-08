@@ -11,7 +11,7 @@ import html2canvas from 'html2canvas';
 import chardet from 'chardet';
 import iconv from 'iconv-lite';
 
-import parseTJA from './parseTJA';
+import parseTJA, { difficultyTypeToString } from './parseTJA';
 import {
     getCourseLines,
     getEnabledBranch
@@ -121,6 +121,30 @@ function displayErrors(message) {
     $errors.text(message);
 }
 
+function clearControlsDiffs() {
+    $(`.controls-diff .button`).remove();
+}
+
+function addControlsDiff(difficultyId, difficultyType) {
+    let element = `<span class="button btn-diff-${difficultyId}" data-value='${difficultyId}'>${difficultyTypeToString(difficultyType)}</span>`;
+
+    $(`.controls-diff`).append(element);
+    $(`.controls-diff`).append(' ');
+}
+
+function listenControlsDiffs() {
+    $('.controls-diff .button').on('click', evt => {
+        const diff = $(evt.target).data('value');
+
+        selectedDifficulty = diff;
+
+        const enabledBranch = getEnabledBranch(tjaParsed, selectedDifficulty);
+        selectedBranch = enabledBranch[enabledBranch.length - 1];
+
+        updateUI();
+    });
+}
+
 function updateUI() {
     $('.controls-diff .button.is-active').removeClass('is-active');
     $(`.controls-diff .btn-diff-${selectedDifficulty}`).addClass('is-active');
@@ -143,11 +167,15 @@ function updateUI() {
 function processTJA() {
     try {
         tjaParsed = parseTJA($input.first().value);
+        tjaParsed.courses.sort(function (a, b) {
+            return a.headers.course - b.headers.course;
+        });
 
-        $('.controls-diff .button').addClass('is-hidden');
-        for (let diff in tjaParsed.courses) {
-            $(`.controls-diff .btn-diff-${diff}`).removeClass('is-hidden');
-        }
+        clearControlsDiffs();
+        tjaParsed.courses.forEach(function (course, iDiff) {
+            addControlsDiff(iDiff, course.headers.course);
+        });
+        listenControlsDiffs();
 
         displayErrors('No error');
     } catch (e) {
@@ -548,17 +576,6 @@ $input.on('drop', dropEvt => {
     };
 
     reader.readAsArrayBuffer(file);
-});
-
-$('.controls-diff .button').on('click', evt => {
-    const diff = $(evt.target).data('value');
-
-    selectedDifficulty = diff;
-
-    const enabledBranch = getEnabledBranch(tjaParsed, selectedDifficulty);
-    selectedBranch = enabledBranch[enabledBranch.length - 1];
-
-    updateUI();
 });
 
 $('.controls-branch .button').on('click', evt => {

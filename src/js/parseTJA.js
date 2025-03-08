@@ -1,6 +1,22 @@
 import { arrayLCM, addZero } from './common';
 import { isRollSymbol, isBalloonSymbol } from './analyseChart';
 
+export function difficultyTypeToString(difficultyType) {
+    switch (difficultyType) {
+        case 0:
+            return 'かんたん'; // 'Easy';
+        case 1:
+            return 'ふつう'; // 'Normal';
+        case 2:
+            return 'むずかしい'; // 'Hard';
+        case 3:
+            return 'おに'; // 'Oni';
+        case 4:
+            return 'おに裏'; // 'Edit';
+    }
+    return 'Unknown';
+}
+
 function parseCourseValue(courseValue) {
     switch (courseValue.toLowerCase()) {
         case 'easy': case '0':
@@ -757,7 +773,7 @@ export default function parseTJA(tja) {
 		titleColor: 0,
     };
 
-    const courses = {};
+    const courses = [];
 
     // Line by line
     let idx;
@@ -837,7 +853,7 @@ export default function parseTJA(tja) {
             if (parsed.name === 'COURSE') {
                 if (courseLines.length) {
                     const course = getCourse(headers, courseLines);
-                    courses[headers.course] = course;
+                    courses.push(course);
                     courseLines = [];
                 }
             }
@@ -854,7 +870,7 @@ export default function parseTJA(tja) {
 
     if (courseLines.length) {
         const course = getCourse(headers, courseLines);
-        courses[headers.course] = course;
+        courses.push(course);
     }
 
     // Return
