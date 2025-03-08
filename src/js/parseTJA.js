@@ -159,20 +159,54 @@ function parseLine(line) {
 }
 
 function getCourse(tjaHeaders, lines) {
-    const headers = {
-        course: tjaHeaders.course,
-        level: 0,
-        balloon: {'N':[],'E':[],'M':[]},
-        scoreInit: 0,
-        scoreDiff: 0,
-		scoreShin: null,
-        maker: null,
-        ttRowBeat: 16,
-    };
+    const defaultCourseHeaders = tjaHeaders.courseHeaders[undefined];
+    const latestCourseHeaders = tjaHeaders.latestCourseHeaders;
+    let courseHeaders = tjaHeaders.courseHeaders[latestCourseHeaders.course];
+    const headers = {};
+
+    function setHeaderValue(header, value) {
+        latestCourseHeaders[header] = courseHeaders[header] = headers[header] = value;
+    }
+
+    function setHeaderBalloon(branch, value) {
+        if (headers.balloon === undefined)
+            headers.balloon = {'N': [], 'E': [], 'M': [], all: [], type: 0};
+        headers.balloon[branch] = value;
+        switch (branch) {
+            case 'N': case 'E': case 'M':
+                headers.balloon.type = 1;
+        }
+    }
+
+    function deepCopyBalloonData(data) {
+        const res = {...data};
+        for (let branch of ['N', 'E', 'M', 'all']) {
+            res[branch] = [...res[branch]];
+        }
+        return res;
+    }
+
+    function initBalloonHeader() {
+        if (headers.balloon !== undefined) {
+            latestCourseHeaders.balloon = courseHeaders.balloon = deepCopyBalloonData(headers.balloon);
+            return;
+        }
+        if (courseHeaders.balloon !== undefined) {
+            headers.balloon = deepCopyBalloonData(courseHeaders.balloon);
+            return;
+        }
+        if (latestCourseHeaders.balloon !== undefined) {
+            // TODO: warn cross-course header fallback
+            headers.balloon = deepCopyBalloonData(latestCourseHeaders.balloon);
+            return;
+        }
+        headers.balloon = deepCopyBalloonData(defaultCourseHeaders.balloon);
+    }
 
     const measures = [];
 
     // Process lines
+    let hasStarted = false;
     let measureDividend = 4, measureDivisor = 4;
 	let measureDividendNotes = 4, measureDivisorNotes = 4;
     let measureProperties = {}, measureData = '', measureEvents = [];
@@ -183,8 +217,6 @@ function getCourse(tjaHeaders, lines) {
 	let branching = false;
 	let countBranchNum = 0;
 	let firstBranch = true;
-	let balloonType = 0;
-	let tempBalloon = [];
 	let balloonOffset = 0;
 	let balloonBranchOffset = {'N':0,'E':0,'M':0};
 	let rolling = {'N': false, 'E': false, 'M': false};
@@ -198,47 +230,64 @@ function getCourse(tjaHeaders, lines) {
                 case 'COURSE':
                     const course = parseCourseValue(line.value);
                     if (course !== null) {
-                        tjaHeaders.course = headers.course = course;
+                        // switch parsed course
+                        if (tjaHeaders.courseHeaders[course] === undefined) {
+                            courseHeaders = tjaHeaders.courseHeaders[course] = {};
+                        }
+                        setHeaderValue('course', course);
                     }
                     break;
 
                 case 'LEVEL':
-                    headers.level = parseInt(line.value, 10);
+                    setHeaderValue('level', parseInt(line.value, 10));
                     break;
 
                 case 'BALLOON':
+                    if (hasStarted) {
+                        // TODO: warn post-#START BALLOON commands
+                        break;
+                    }
                     balloons = line.value
                         .split(/[^0-9]/)
                         .filter(b => b !== '')
                         .map(b => parseInt(b, 10));
-                    tempBalloon = balloons;
+                    setHeaderBalloon('all', balloons);
                     break;
 
 				case 'BALLOONNOR':
-					balloonType = 1;
+					if (hasStarted) {
+						// TODO: warn post-#START BALLOON commands
+						break;
+					}
                     balloons = line.value
                         .split(/[^0-9]/)
                         .filter(b => b !== '')
                         .map(b => parseInt(b, 10));
-                    headers.balloon['N'] = balloons;
+                    setHeaderBalloon('N', balloons);
                     break;
 
 				case 'BALLOONEXP':
-					balloonType = 1;
+					if (hasStarted) {
+						// TODO: warn post-#START BALLOON commands
+						break;
+					}
                     balloons = line.value
                         .split(/[^0-9]/)
                         .filter(b => b !== '')
                         .map(b => parseInt(b, 10));
-                    headers.balloon['E'] = balloons;
+                    setHeaderBalloon('E', balloons);
                     break;
 
 				case 'BALLOONMAS':
-					balloonType = 1;
+					if (hasStarted) {
+						// TODO: warn post-#START BALLOON commands
+						break;
+					}
                     balloons = line.value
                         .split(/[^0-9]/)
                         .filter(b => b !== '')
                         .map(b => parseInt(b, 10));
-                    headers.balloon['M'] = balloons;
+                    setHeaderBalloon('M', balloons);
                     break;
 
                 case 'SCOREINIT':
@@ -248,17 +297,18 @@ function getCourse(tjaHeaders, lines) {
                         .map(b => parseInt(b, 10));
 					
 					if (inits.length === 1) {
-						headers.scoreInit = inits[0];
+						setHeaderValue('scoreInit', inits[0]);
+						setHeaderValue('scoreShin', null);
 					}
 					else if (inits.length >= 2){
-						headers.scoreInit = inits[0];
-						headers.scoreShin = inits[1];
+						setHeaderValue('scoreInit', inits[0]);
+						setHeaderValue('scoreShin', inits[1]);
 					}
                     //headers.scoreInit = parseInt(line.value, 10);
                     break;
 
                 case 'SCOREDIFF':
-                    headers.scoreDiff = parseInt(line.value, 10);
+                    setHeaderValue('scoreDiff', parseInt(line.value, 10));
                     break;
 
                 case 'NOTESDESIGNER0':
@@ -266,16 +316,20 @@ function getCourse(tjaHeaders, lines) {
                 case 'NOTESDESIGNER2':
                 case 'NOTESDESIGNER3':
                 case 'NOTESDESIGNER4': 
-                    headers.maker = line.value;
+                    setHeaderValue('maker', line.value);
                     break; 
 
                 case 'TTROWBEAT':
-                    headers.ttRowBeat = parseInt(line.value, 10);
+                    setHeaderValue('ttRowBeat', parseInt(line.value, 10));
                     break;
 
             }
         }
         else if (line.type === 'command') {
+            if (!hasStarted && line.name !== 'END') {
+                hasStarted = true;
+                initBalloonHeader();
+            }
             switch (line.name) {
                 case 'BRANCHSTART':
 					/*
@@ -420,6 +474,7 @@ function getCourse(tjaHeaders, lines) {
                     break;
 
                 case 'END':
+                    hasStarted = false;
                     currentBranch = 'N';
                     targetBranch = 'N';
                     flagLevelhold = false;
@@ -580,10 +635,14 @@ function getCourse(tjaHeaders, lines) {
         }
         //else if (line.type === 'data' && currentBranch === targetBranch) {
 		else if (line.type === 'data') {
+            if (!hasStarted) {
+                hasStarted = true;
+                initBalloonHeader();
+            }
             let data = line.data;
 
 			// Balloon Count
-			if (balloonType === 0) {
+			if (headers.balloon.type === 0) {
 				for (let i = 0; i < data.length; i++) {
 					if (isRollSymbol(data.charAt(i))) {
 						if (rolling[currentBranch])
@@ -591,10 +650,10 @@ function getCourse(tjaHeaders, lines) {
 						rolling[currentBranch] = true;
 
 						if (isBalloonSymbol(data.charAt(i))) {
-							if (tempBalloon.length <= balloonOffset) {
-								tempBalloon.push(0);
+							if (headers.balloon.all.length <= balloonOffset) {
+								headers.balloon.all.push(0);
 							}
-							headers.balloon[currentBranch].push(tempBalloon[balloonOffset]);
+							headers.balloon[currentBranch].push(headers.balloon.all[balloonOffset]);
 							balloonOffset++;
 						}
 					} else if (data.charAt(i) !== '0' & rolling[currentBranch]) {
@@ -748,6 +807,31 @@ function getCourse(tjaHeaders, lines) {
 
     // Output
     //console.log(measures[measures.length - 1])
+
+    if (!hasStarted) {
+        initBalloonHeader();
+    }
+
+    // handle header value fallbacks
+    for (let header in defaultCourseHeaders) {
+        if (header === 'balloon') {
+            continue;
+        }
+        if (headers[header] !== undefined) {
+            continue;
+        }
+        if (courseHeaders[header] !== undefined) {
+            headers[header] = courseHeaders[header];
+            continue;
+        }
+        if (latestCourseHeaders[header] !== undefined) {
+            // TODO: warn cross-course header fallback
+            headers[header] = latestCourseHeaders[header];
+            continue;
+        }
+        headers[header] = defaultCourseHeaders[header];
+    }
+
     return { headers, measures };
 }
 
@@ -757,6 +841,7 @@ export default function parseTJA(tja) {
         .map(line => line.trim());
 
     const headers = {
+        // global-fineness headers
         title: '',
         subtitle: '',
         bpm: 120,
@@ -765,12 +850,27 @@ export default function parseTJA(tja) {
         demoStart: 0,
         genre: '',
         maker: null,
-        course: 3, // for fallback
 		font: 'donscore',
 		spRoll: 'kusudama',
 		levelColor: 0,
 		levelUra: 0,
 		titleColor: 0,
+
+        // local-fineness headers
+        courseHeaders: [],
+        latestCourseHeaders: {},
+    };
+
+    // for initial parsed course-fineness headers
+    headers.courseHeaders[undefined] = {
+        course: 3,
+        level: 0,
+        balloon: {'N':[],'E':[],'M':[], all: [], type: 0},
+        scoreInit: 0,
+        scoreDiff: 0,
+		scoreShin: null,
+        maker: null,
+        ttRowBeat: 16,
     };
 
     const courses = [];
