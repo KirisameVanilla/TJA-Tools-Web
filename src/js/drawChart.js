@@ -321,7 +321,7 @@ function drawBalloonSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, omitEnd, cou
 	drawImageText(ctx, x - 3 - xDelta, y - 3 + (rows[sRow].branch.indexOf(bt) * 24), count.toString(), 'num');
 }
 
-function drawFuse(ctx, rows, sRow, sBeat, eRow, eBeat, count, omitEnd) {
+function drawFuse(ctx, rows, sRow, sBeat, eRow, eBeat, omitEnd, count) {
     if (!omitEnd)
         drawSmallNote(ctx, eRow, eBeat, '#640aad');
     drawLong(ctx, rows, sRow, sBeat, eRow, eBeat, '#640aad', 'body');
