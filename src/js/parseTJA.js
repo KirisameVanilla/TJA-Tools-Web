@@ -25,7 +25,11 @@ function parseLine(line) {
 		'BALLOONMAS',
         'SCOREINIT',
         'SCOREDIFF',
-
+        'NOTESDESIGNER0',
+        'NOTESDESIGNER1',
+        'NOTESDESIGNER2',
+        'NOTESDESIGNER3',
+        'NOTESDESIGNER4',
         'TTROWBEAT',
     ];
 
