@@ -374,6 +374,11 @@ function getCourse(tjaHeaders, lines) {
 					currentBranchNum = 0;
 					branching = true;
 					firstBranch = true;
+					measureEvents.push({
+						name: 'branchStart',
+						position: measureData.length,
+						branch: currentBranch,
+					});
                     break;
 
                 case 'BRANCHEND':
@@ -401,6 +406,11 @@ function getCourse(tjaHeaders, lines) {
 						currentScrollBranch[currentBranch] = currentScroll;
 					}
 					
+					measureEvents.push({
+						name: 'branchEnd',
+						position: measureData.length,
+						branch: currentBranch,
+					});
                     break;
 
                 case 'N':

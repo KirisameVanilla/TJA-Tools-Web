@@ -526,7 +526,7 @@ export default function (chart, courseId) {
 		let barlineTemp;
 		let moveEvent = 0;
 		let moveEventTemp;
-		let sectionTemp = false;
+		let branchStartTemp = false;
 		let avoidText = false;
 
         for (let ridx = 0; ridx < rows.length; ridx++) {
@@ -588,7 +588,7 @@ export default function (chart, courseId) {
 				// Events Pre
 				barlineTemp = barline;
 				moveEventTemp = moveEvent;
-				sectionTemp = false;
+				branchStartTemp = false;
 				for (let i = 0; i < measure.events.length; i++) {
 					const event = measure.events[i];
                     if (event.name === 'barlineon') {
@@ -608,9 +608,9 @@ export default function (chart, courseId) {
 							moveEventTemp = isNaN(event.value) ? moveEvent : event.value;
 						}
 					}
-					else if (event.name === 'section') {
+					else if (event.name === 'branchStart') {
 						if (event.position === 0) {
-							sectionTemp = true;
+							branchStartTemp = true;
 						}
 					}
                 }
@@ -705,14 +705,14 @@ export default function (chart, courseId) {
                 }
 
                 // Measure lines, number
-				const firstLineColor = sectionTemp ? '#ffe400' : '#fff';
+				const firstLineColor = branchStartTemp ? '#ffe400' : '#fff';
 				if (firstScrollCount === 0) {
 					firstScrollCount++;
 				}
 				if (barlineTemp) {
 					drawLine(ctx, mx, y + moveEventTemp - ((firstScrollCount - 1) * 6), mx, y + ROW_HEIGHT + rowDeltas[ridx], 2, firstLineColor, eventCover, avoidText);
 				}
-				else if (sectionTemp) {
+				else if (branchStartTemp) {
 					drawLine(ctx, mx, y + moveEventTemp - ((firstScrollCount - 1) * 6), mx, y + ROW_HEIGHT_INFO, 2, firstLineColor, eventCover, avoidText);
 				}
                 //drawPixelText(ctx, mx + 2, y + ROW_HEIGHT_INFO - 1, measureNumber.toString(), '#000', 'bottom', 'left');
