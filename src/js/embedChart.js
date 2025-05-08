@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import pako from 'pako';
 
 function readPNGChunksFromDataURL(dataURL) {
