@@ -315,7 +315,7 @@ function drawFuseSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, omitEnd, count)
 
 	const { x, y } = getNoteCenter(sRow, sBeat);
 	const xDelta = Math.floor((count.toString().length * 6) / 2) - 3
-	drawPixelText(ctx, x, y + 0.5 + (rows[sRow].branch.indexOf(bt) * 24), count.toString(), '#fcc');
+	drawImageText(ctx, x - 3 - xDelta, y - 3 + (rows[sRow].branch.indexOf(bt) * 24), count.toString(), 'fuseNum');
 }
 
 //==============================================================================
