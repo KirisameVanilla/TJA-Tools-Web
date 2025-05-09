@@ -1,6 +1,6 @@
 {
   "name": "tja-tools",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "author": {
     "name": "WHMHammer",
     "email": "whmhammer@gmail.com",
@@ -15,6 +15,19 @@
     {
       "name": "申しコミ",
       "url": "https://github.com/0auBSQ"
+    },
+    {
+      "name": "Dannal65535",
+      "url": "https://github.com/Dannal65535"
+    },
+    {
+      "name": "Wei-Cheng Yeh (IID)",
+      "email": "iid@ccns.ncku.edu.tw",
+      "url": "https://github.com/IepIweidieng"
+    },
+    {
+      "name": "sakurada0291",
+      "url": "https://github.com/sakurada0291"
     }
   ],
   "main": "index.html",
@@ -51,6 +64,7 @@
     "downloadjs": "^1.4.7",
     "html2canvas": "^1.4.1",
     "iconv-lite": "^0.6.3",
+    "pako": "^2.1.0",
     "umbrellajs": "^3.3.3"
   }
 }

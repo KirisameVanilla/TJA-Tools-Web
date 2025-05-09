@@ -67,6 +67,10 @@ body {
 
 .is-size-big,
 .is-size-ex {
+    font-size: 125%;
+}
+
+.is-in-gogo {
     font-weight: bold;
 }
 
@@ -238,4 +242,70 @@ body {
             stroke: #777;
         }
     }
+	
+	.renda-head {
+		display: flex;
+	}
+
+	.renda-text-copy {
+		width: 4.5m;
+		height: 2em;
+		margin-top: 1.1em;
+		margin-left: 1em;
+	}
+
+    .button {
+        padding: 2px 4px;
+        background: #fafafa;
+        border: 1px solid #aaa;
+        font-size: 14px;
+        cursor: pointer;
+
+        &:hover {
+            background: #f6f6f6;
+        }
+
+        &.is-active {
+            font-weight: bold;
+            background: #eee;
+        }
+		
+		&.btn-branch-n {
+            color: #666;
+        }
+		
+		&.btn-branch-e {
+            color: #069;
+        }
+		
+		&.btn-branch-m {
+            color: #909;
+        }
+    }
 }
+
+/***** localization *****/
+
+div.area-footer {
+    display: flex;
+}
+
+div.area-footer > hr {
+  min-height: 100%;
+  max-height: 100vh;
+  margin: 0 auto 0;
+}
+
+.l10n [lang] {
+    padding: 0;
+    margin: 0;
+}
+
+html[lang="en"] .l10n [lang]:not([lang|="en" i]) {
+    display: none;
+}
+
+html[lang="ja"] .l10n [lang]:not([lang|="ja" i]) {
+    display: none;
+}
+

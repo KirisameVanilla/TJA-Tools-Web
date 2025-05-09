@@ -30,6 +30,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Dependencies
         run: npm install
+      - name: Change Source Repo Link
+        run: sed -i 's|\bclass="source-repo" href="https://github.com/WHMHammer/tja-tools"|class="source-repo" href="'"$GITHUB_SERVER_URL"'/'"$GITHUB_REPOSITORY"'"|g' src/index.html
       - name: Build Webpack Project
         run: npm run build
       - name: Setup Pages

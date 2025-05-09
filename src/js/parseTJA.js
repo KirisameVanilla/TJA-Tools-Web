@@ -1,15 +1,18 @@
+import { arrayLCM, addZero } from './common';
+import { isRollSymbol, isBalloonSymbol } from './analyseChart';
+
 export function difficultyTypeToString(difficultyType) {
     switch (difficultyType) {
         case 0:
-            return 'Easy';
+            return '<span lang="en">Easy</span><span lang="ja">かんたん</span>';
         case 1:
-            return 'Normal';
+            return '<span lang="en">Normal</span><span lang="ja">ふつう</span>';
         case 2:
-            return 'Hard';
+            return '<span lang="en">Hard</span><span lang="ja">むずかしい</span>';
         case 3:
-            return 'Oni';
+            return '<span lang="en">Oni</span><span lang="ja">おに</span>';
         case 4:
-            return 'Edit';
+            return '<span lang="en">Edit</span><span lang="ja">おに裏</span>';
     }
     return 'Unknown';
 }
@@ -59,6 +62,11 @@ function parseLine(line) {
         'DEMOSTART',
         'GENRE',
         'MAKER',
+		'FONT',
+		'SPROLL',
+		'LEVELCOLOR',
+		'LEVELURA',
+		'TITLECOLOR',
     ];
 
     const HEADER_COURSE = [
@@ -66,6 +74,9 @@ function parseLine(line) {
         'STYLE',
         'LEVEL',
         'BALLOON',
+		'BALLOONNOR',
+		'BALLOONEXP',
+		'BALLOONMAS',
         'SCOREINIT',
         'SCOREDIFF',
         'NOTESDESIGNER0',
@@ -98,6 +109,12 @@ function parseLine(line) {
         'BARLINEON',
 
         'TTBREAK',
+		'NEWLINE',
+		'MOVEEVENT',
+		'COUNTCHANGE',
+		'AVOIDTEXTOFF',
+		'AVOIDTEXTON',
+		'MOVELINE',
     ];
 
     let match;
@@ -158,6 +175,7 @@ function parseLine(line) {
 }
 
 function getCourse(tjaHeaders, lines) {
+    const defaultCourseHeaders = tjaHeaders.courseHeaders[undefined];
     const latestCourseHeaders = tjaHeaders.latestCourseHeaders;
     let courseHeaders = tjaHeaders.courseHeaders[latestCourseHeaders.course];
     const headers = {};
@@ -166,16 +184,63 @@ function getCourse(tjaHeaders, lines) {
         latestCourseHeaders[header] = courseHeaders[header] = headers[header] = value;
     }
 
+    function setHeaderBalloon(branch, value) {
+        if (headers.balloon === undefined)
+            headers.balloon = {'N': [], 'E': [], 'M': [], all: [], type: 0};
+        headers.balloon[branch] = value;
+        switch (branch) {
+            case 'N': case 'E': case 'M':
+                headers.balloon.type = 1;
+        }
+    }
+
+    function deepCopyBalloonData(data) {
+        const res = {...data};
+        for (let branch of ['N', 'E', 'M', 'all']) {
+            res[branch] = [...res[branch]];
+        }
+        return res;
+    }
+
+    function initBalloonHeader() {
+        if (headers.balloon !== undefined) {
+            latestCourseHeaders.balloon = courseHeaders.balloon = deepCopyBalloonData(headers.balloon);
+            return;
+        }
+        if (courseHeaders.balloon !== undefined) {
+            headers.balloon = deepCopyBalloonData(courseHeaders.balloon);
+            return;
+        }
+        if (latestCourseHeaders.balloon !== undefined) {
+            // TODO: warn cross-course header fallback
+            headers.balloon = deepCopyBalloonData(latestCourseHeaders.balloon);
+            return;
+        }
+        headers.balloon = deepCopyBalloonData(defaultCourseHeaders.balloon);
+    }
+
     const measures = [];
 
     // Process lines
+    let hasStarted = false;
     let measureDividend = 4, measureDivisor = 4;
+	let measureDividendNotes = 4, measureDivisorNotes = 4;
     let measureProperties = {}, measureData = '', measureEvents = [];
     let currentBranch = 'N';
     let targetBranch = 'N';
     let flagLevelhold = false;
-
+	let currentBranchNum = 0;
+	let branching = false;
+	let countBranchNum = 0;
+	let firstBranch = true;
+	let balloonOffset = 0;
+	let balloonBranchOffset = {'N':0,'E':0,'M':0};
+	let rolling = {'N': false, 'E': false, 'M': false};
+	let currentScroll = '1';
+	let currentScrollBranch = {'N':'1','E':'1','M':'1'};
+	
     for (const line of lines) {
+		let balloons;
         if (line.type === 'header') {
             switch (line.name) {
                 case 'COURSE':
@@ -201,15 +266,68 @@ function getCourse(tjaHeaders, lines) {
                     break;
 
                 case 'BALLOON':
-                    const balloons = line.value
+                    if (hasStarted) {
+                        // TODO: warn post-#START BALLOON commands
+                        break;
+                    }
+                    balloons = line.value
                         .split(/[^0-9]/)
                         .filter(b => b !== '')
                         .map(b => parseInt(b, 10));
-                    setHeaderValue('balloon', balloons);
+                    setHeaderBalloon('all', balloons);
+                    break;
+
+				case 'BALLOONNOR':
+					if (hasStarted) {
+						// TODO: warn post-#START BALLOON commands
+						break;
+					}
+                    balloons = line.value
+                        .split(/[^0-9]/)
+                        .filter(b => b !== '')
+                        .map(b => parseInt(b, 10));
+                    setHeaderBalloon('N', balloons);
+                    break;
+
+				case 'BALLOONEXP':
+					if (hasStarted) {
+						// TODO: warn post-#START BALLOON commands
+						break;
+					}
+                    balloons = line.value
+                        .split(/[^0-9]/)
+                        .filter(b => b !== '')
+                        .map(b => parseInt(b, 10));
+                    setHeaderBalloon('E', balloons);
+                    break;
+
+				case 'BALLOONMAS':
+					if (hasStarted) {
+						// TODO: warn post-#START BALLOON commands
+						break;
+					}
+                    balloons = line.value
+                        .split(/[^0-9]/)
+                        .filter(b => b !== '')
+                        .map(b => parseInt(b, 10));
+                    setHeaderBalloon('M', balloons);
                     break;
 
                 case 'SCOREINIT':
-                    setHeaderValue('scoreInit', parseInt(line.value, 10));
+					let inits = line.value
+                        .split(/[^0-9]/)
+                        .filter(b => b !== '')
+                        .map(b => parseInt(b, 10));
+					
+					if (inits.length === 1) {
+						setHeaderValue('scoreInit', inits[0]);
+						setHeaderValue('scoreShin', null);
+					}
+					else if (inits.length >= 2){
+						setHeaderValue('scoreInit', inits[0]);
+						setHeaderValue('scoreShin', inits[1]);
+					}
+                    //headers.scoreInit = parseInt(line.value, 10);
                     break;
 
                 case 'SCOREDIFF':
@@ -227,12 +345,17 @@ function getCourse(tjaHeaders, lines) {
                 case 'TTROWBEAT':
                     setHeaderValue('ttRowBeat', parseInt(line.value, 10));
                     break;
-                    
+
             }
         }
         else if (line.type === 'command') {
+            if (!hasStarted && line.name !== 'END') {
+                hasStarted = true;
+                initBalloonHeader();
+            }
             switch (line.name) {
                 case 'BRANCHSTART':
+					/*
                     if (flagLevelhold) {
                         break;
                     }
@@ -247,30 +370,134 @@ function getCourse(tjaHeaders, lines) {
                         else if (values.length >= 2 && parseFloat(values[1]) <= 100) targetBranch = 'E';
                         else targetBranch = 'N';
                     }
-                    measureEvents.push({
-                        name: 'branchStart',
-                        position: measureData.length,
-                    });
+					*/
+					currentBranchNum = 0;
+					branching = true;
+					firstBranch = true;
+					measureEvents.push({
+						name: 'branchStart',
+						position: measureData.length,
+						branch: currentBranch,
+					});
                     break;
 
                 case 'BRANCHEND':
-                    currentBranch = targetBranch;
-                    measureEvents.push({
-                        name: 'branchEnd',
-                        position: measureData.length,
-                    });
+                    currentBranch = 'N';
+					branching = false;
+					firstBranch = true;
+					
+					if (currentScroll != currentScrollBranch[currentBranch]) {
+						if (firstBranch || !branching) {
+							measureEvents.push({
+								name: 'scroll',
+								position: 0,
+								value: currentScroll,
+								branch: currentBranch,
+							});
+						}
+						else {
+							measures[measures.length - countBranchNum].events.push({
+								name: 'scroll',
+								position: 0,
+								value: currentScroll,
+								branch: currentBranch,
+							});
+						}
+						currentScrollBranch[currentBranch] = currentScroll;
+					}
+					
+					measureEvents.push({
+						name: 'branchEnd',
+						position: measureData.length,
+						branch: currentBranch,
+					});
                     break;
 
                 case 'N':
                     currentBranch = 'N';
+					if (currentBranchNum > 0) {
+						countBranchNum = currentBranchNum;
+						firstBranch = false;
+					}
+					
+					if (currentScroll != currentScrollBranch[currentBranch]) {
+						if (firstBranch || !branching) {
+							measureEvents.push({
+								name: 'scroll',
+								position: 0,
+								value: currentScroll,
+								branch: currentBranch,
+							});
+						}
+						else {
+							measures[measures.length - countBranchNum].events.push({
+								name: 'scroll',
+								position: 0,
+								value: currentScroll,
+								branch: currentBranch,
+							});
+						}
+						currentScrollBranch[currentBranch] = currentScroll;
+					}
+					
                     break;
 
                 case 'E':
                     currentBranch = 'E';
+					if (currentBranchNum > 0) {
+						countBranchNum = currentBranchNum;
+						firstBranch = false;
+					}
+					
+					if (currentScroll != currentScrollBranch[currentBranch]) {
+						if (firstBranch || !branching) {
+							measureEvents.push({
+								name: 'scroll',
+								position: 0,
+								value: currentScroll,
+								branch: currentBranch,
+							});
+						}
+						else {
+							measures[measures.length - countBranchNum].events.push({
+								name: 'scroll',
+								position: 0,
+								value: currentScroll,
+								branch: currentBranch,
+							});
+						}
+						currentScrollBranch[currentBranch] = currentScroll;
+					}
+					
                     break;
 
                 case 'M':
                     currentBranch = 'M';
+					if (currentBranchNum > 0) {
+						countBranchNum = currentBranchNum;
+						firstBranch = false;
+					}
+					
+					if (currentScroll != currentScrollBranch[currentBranch]) {
+						if (firstBranch || !branching) {
+							measureEvents.push({
+								name: 'scroll',
+								position: 0,
+								value: currentScroll,
+								branch: currentBranch,
+							});
+						}
+						else {
+							measures[measures.length - countBranchNum].events.push({
+								name: 'scroll',
+								position: 0,
+								value: currentScroll,
+								branch: currentBranch,
+							});
+						}
+						currentScrollBranch[currentBranch] = currentScroll;
+					}
+					
                     break;
 
                 case 'START':
@@ -287,28 +514,44 @@ function getCourse(tjaHeaders, lines) {
                     break;
 
                 case 'END':
+                    hasStarted = false;
                     currentBranch = 'N';
                     targetBranch = 'N';
                     flagLevelhold = false;
                     break;
 
                 default:
+					/*
                     if (currentBranch != targetBranch) {
                         break;
                     }
+					*/
                     switch (line.name) {
                         case 'MEASURE':
                             let matchMeasure = line.value.match(/(\d+)\/(\d+)/);
-                            if (!matchMeasure) break;
+							let matchMeasure2 = line.value.match(/(\d+)\/(\d+),\s*(\d+)\/(\d+)/);
+                            if (!matchMeasure && !matchMeasure2) break;
 
-                            measureDividend = parseInt(matchMeasure[1], 10);
-                            measureDivisor = parseInt(matchMeasure[2], 10);
+							if (matchMeasure2) {
+								measureDividend = parseInt(matchMeasure2[1], 10);
+								measureDivisor = parseInt(matchMeasure2[2], 10);
+								measureDividendNotes = parseInt(matchMeasure2[3], 10);
+								measureDivisorNotes = parseInt(matchMeasure2[4], 10);
+							}
+							else {
+								measureDividend = parseInt(matchMeasure[1], 10);
+								measureDivisor = parseInt(matchMeasure[2], 10);
+								measureDividendNotes = parseInt(matchMeasure[1], 10);
+								measureDivisorNotes = parseInt(matchMeasure[2], 10);
+							}
+							
                             break;
 
                         case 'GOGOSTART':
                             measureEvents.push({
                                 name: 'gogoStart',
                                 position: measureData.length,
+								branch: currentBranch,
                             });
                             break;
 
@@ -316,62 +559,193 @@ function getCourse(tjaHeaders, lines) {
                             measureEvents.push({
                                 name: 'gogoEnd',
                                 position: measureData.length,
-                            });
-                            break;
-
-                        case 'BARLINEOFF':
-                            measureEvents.push({
-                                name: 'barlineOff',
-                                position: measureData.length,
+								branch: currentBranch,
                             });
                             break;
 
                         case 'BARLINEON':
                             measureEvents.push({
-                                name: 'barlineOn',
+                                name: 'barlineon',
                                 position: measureData.length,
+								branch: currentBranch,
+                            });
+                            break;
+
+                        case 'BARLINEOFF':
+                            measureEvents.push({
+                                name: 'barlineoff',
+                                position: measureData.length,
+								branch: currentBranch,
                             });
                             break;
 
                         case 'SCROLL':
-                            measureEvents.push({
-                                name: 'scroll',
-                                position: measureData.length,
-                                value: parseFloat(line.value),
-                            });
+							if (firstBranch || !branching) {
+								measureEvents.push({
+									name: 'scroll',
+									position: measureData.length,
+									value: line.value,
+									branch: currentBranch,
+								});
+							}
+							else {
+								measures[measures.length - countBranchNum].events.push({
+									name: 'scroll',
+									position: measureData.length,
+									value: line.value,
+									branch: currentBranch,
+								});
+							}
+							
+							currentScroll = line.value;
+							currentScrollBranch[currentBranch] = line.value;
+
                             break;
 
                         case 'BPMCHANGE':
                             measureEvents.push({
                                 name: 'bpm',
                                 position: measureData.length,
-                                value: parseFloat(line.value),
+                                value: line.value,
+								branch: currentBranch,
                             });
                             break;
 
+						case 'MOVEEVENT':
+                            measureEvents.push({
+                                name: 'moveEvent',
+                                position: measureData.length,
+                                value: parseInt(line.value),
+								branch: currentBranch,
+                            });
+                            break;
+
+						case 'COUNTCHANGE':
+                            measureEvents.push({
+                                name: 'countChange',
+                                position: measureData.length,
+                                value: parseInt(line.value),
+								branch: currentBranch,
+                            });
+                            break;
+
+                        case 'AVOIDTEXTON':
+                            measureEvents.push({
+                                name: 'avoidtexton',
+                                position: measureData.length,
+								branch: currentBranch,
+                            });
+                            break;
+
+                        case 'AVOIDTEXTOFF':
+                            measureEvents.push({
+                                name: 'avoidtextoff',
+                                position: measureData.length,
+								branch: currentBranch,
+                            });
+                            break;
+
+						case 'DELAY':
+                            measureProperties['delay'] = parseFloat(line.value);
+                            break;
+
+						case 'SECTION':
+                            measureEvents.push({
+                                name: 'section',
+                                position: measureData.length,
+								branch: currentBranch,
+                            });
+                            break;
+
+						case 'MOVELINE':
+							measureProperties['moveLine'] = parseInt(line.value);
+							break;
+
                         case 'TTBREAK':
+						case 'NEWLINE':
                             measureProperties['ttBreak'] = true;
                             break;
 
+						/*
                         case 'LEVELHOLD':
                             flagLevelhold = true;
+						*/
                     }
             }
         }
-        else if (line.type === 'data' && currentBranch === targetBranch) {
+        //else if (line.type === 'data' && currentBranch === targetBranch) {
+		else if (line.type === 'data') {
+            if (!hasStarted) {
+                hasStarted = true;
+                initBalloonHeader();
+            }
             let data = line.data;
 
+			// Balloon Count
+			if (headers.balloon.type === 0) {
+				for (let i = 0; i < data.length; i++) {
+					if (isRollSymbol(data.charAt(i))) {
+						if (rolling[currentBranch])
+							continue;
+						rolling[currentBranch] = true;
+
+						if (isBalloonSymbol(data.charAt(i))) {
+							if (headers.balloon.all.length <= balloonOffset) {
+								headers.balloon.all.push(0);
+							}
+							headers.balloon[currentBranch].push(headers.balloon.all[balloonOffset]);
+							balloonOffset++;
+						}
+					} else if (data.charAt(i) !== '0' & rolling[currentBranch]) {
+							rolling[currentBranch] = false;
+					}
+				}
+			}
+			else {
+				for (let i = 0; i < data.length; i++) {
+					if (isRollSymbol(data.charAt(i))) {
+						if (rolling[currentBranch])
+							continue;
+						rolling[currentBranch] = true;
+
+						if (isBalloonSymbol(data.charAt(i))) {
+							if (headers.balloon[currentBranch].length <= balloonBranchOffset[currentBranch]) {
+								headers.balloon[currentBranch].push(0);
+							}
+							balloonBranchOffset[currentBranch]++;
+						}
+					} else if (data.charAt(i) !== '0' & rolling[currentBranch]) {
+							rolling[currentBranch] = false;
+					}
+				}
+			}
+
             if (data.endsWith(',')) {
-                measureData += data.slice(0, -1);
+				measureData += data.slice(0, -1);
+				measureData = measureData === '' ? '0' : measureData;
+				
+				if (firstBranch || !branching) {
+					let measureDatas = {N:null, E:null, M:null};
+					measureDatas[currentBranch] = measureData;
 
-                const measure = {
-                    length: [measureDividend, measureDivisor],
-                    properties: measureProperties,
-                    data: measureData,
-                    events: measureEvents,
-                };
-
-                measures.push(measure);
+					let measure = {
+						length: [measureDividend, measureDivisor],
+						lengthNotes: [measureDividendNotes, measureDivisorNotes],
+						properties: measureProperties,
+						data: measureDatas,
+						events: measureEvents,
+						dataNum: -1,
+					};
+					measures.push(measure);
+					currentBranchNum++;
+				}
+				else {
+					if (countBranchNum > 0) {
+						measures[measures.length - countBranchNum].data[currentBranch] = measureData;
+						countBranchNum--;
+					}
+				}
+				
                 measureData = '';
                 measureEvents = [];
                 measureProperties = {};
@@ -403,11 +777,14 @@ function getCourse(tjaHeaders, lines) {
     }
 
     if (measureData) {
+		measureData = measureData === '' ? '0' : measureData;
         measures.push({
             length: [measureDividend, measureDivisor],
+			lengthNotes: [measureDividendNotes, measureDivisorNotes],
             properties: measureProperties,
-            data: measureData,
+            data: {N:measureData, E:null, M:null},
             events: measureEvents,
+			dataNum: -1,
         });
     } else {
         for (let event of measureEvents) {
@@ -416,12 +793,70 @@ function getCourse(tjaHeaders, lines) {
         }
     }
 
+	// After
+	for (let i = 0; i < measures.length; i++) {
+		// Add Zeros
+		let lengths = [];
+		const branchs = ['N','E','M'];
+		
+		for (let b of branchs) {
+			if (measures[i].data[b] != null) {
+				lengths.push(measures[i].data[b].length);
+			}
+		}
+		
+		measures[i].dataNum = lengths.length;
+		
+		const fixedMax = arrayLCM(lengths);
+		
+		for (let j = 0; j < measures[i].events.length; j++) {
+			if (measures[i].data[measures[i].events[j].branch] != null) {
+				const rate = fixedMax / measures[i].data[measures[i].events[j].branch].length;
+				measures[i].events[j].position = measures[i].events[j].position * rate;
+			}
+		}
+		
+		for (let b of branchs) {
+			if (measures[i].data[b] != null) {
+				measures[i].data[b] = addZero(measures[i].data[b], fixedMax);
+			}
+		}
+		
+		// Merge HS Event
+		let canDelete = [];
+		for (let j = 0; j < measures[i].events.length; j++) {
+			if (measures[i].events[j].name === 'scroll') {
+				let newValue = {N:null, E:null, M:null};
+				newValue[measures[i].events[j].branch] = measures[i].events[j].value;
+				
+				for (let k = j + 1; k < measures[i].events.length; k++) {
+					if (measures[i].events[k].name === 'scroll' && measures[i].events[j].position === measures[i].events[k].position) {
+						newValue[measures[i].events[k].branch] = measures[i].events[k].value;
+						canDelete.push(k);
+					}
+				}
+				
+				measures[i].events[j].value = newValue;
+			}
+		}
+		
+		for (let cd of canDelete.reverse()) {
+			measures[i].events.splice(cd, 1);
+		}
+	}
+
     // Output
-    console.log(measures[measures.length - 1])
+    //console.log(measures[measures.length - 1])
+
+    if (!hasStarted) {
+        initBalloonHeader();
+    }
 
     // handle header value fallbacks
-    const defaultCourseHeaders = tjaHeaders.courseHeaders[undefined];
     for (let header in defaultCourseHeaders) {
+        if (header === 'balloon') {
+            continue;
+        }
         if (headers[header] !== undefined) {
             continue;
         }
@@ -455,6 +890,11 @@ export default function parseTJA(tja) {
         demoStart: 0,
         genre: '',
         maker: null,
+		font: 'donscore',
+		spRoll: 'kusudama',
+		levelColor: 0,
+		levelUra: 0,
+		titleColor: 0,
 
         // local-fineness headers
         courseHeaders: [],
@@ -467,9 +907,10 @@ export default function parseTJA(tja) {
         style: 1,
         startPlayer: 1,
         level: 0,
-        balloon: [],
-        scoreInit: 100,
-        scoreDiff: 100,
+        balloon: {'N':[],'E':[],'M':[], all: [], type: 0},
+        scoreInit: 0,
+        scoreDiff: 0,
+		scoreShin: null,
         maker: null,
         ttRowBeat: 16,
     };
@@ -502,6 +943,7 @@ export default function parseTJA(tja) {
         }
     }
 
+
     for (idx = 0; idx < lines.length; idx++) {
         const line = lines[idx];
         if (line === '') continue;
@@ -515,11 +957,11 @@ export default function parseTJA(tja) {
                     break;
 
                 case 'SUBTITLE':
-                    headers.subtitle = parsed.value.replace(/^(\+\+|--)/, '');;
+                    headers.subtitle = parsed.value.replace(/^(\+\+|--)/, '');
                     break;
 
                 case 'BPM':
-                    headers.bpm = parseFloat(parsed.value);
+                    headers.bpm = parsed.value;
                     break;
 
                 case 'WAVE':
@@ -540,6 +982,35 @@ export default function parseTJA(tja) {
 
                 case 'MAKER':
                     headers.maker = parsed.value;
+                    break;
+				
+				case 'FONT':
+                    headers.font = parsed.value;
+                    break;
+				
+				case 'SPROLL':
+                    headers.spRoll = parsed.value.toLowerCase();
+                    break;
+				
+				case 'LEVELCOLOR':
+                    headers.levelColor = parseInt(parsed.value, 10);
+					if (isNaN(headers.levelColor)) {
+						headers.levelColor = 0;
+					}
+                    break;
+				
+				case 'LEVELURA':
+                    headers.levelUra = parseInt(parsed.value, 10);
+					if (isNaN(headers.levelUra)) {
+						headers.levelUra = 0;
+					}
+                    break;
+				
+				case 'TITLECOLOR':
+                    headers.titleColor = parseInt(parsed.value, 10);
+					if (isNaN(headers.titleColor)) {
+						headers.titleColor = 0;
+					}
                     break;
             }
         }
@@ -574,5 +1045,88 @@ export default function parseTJA(tja) {
     pushCourse();
 
     // Return
+	console.log(courses);
     return { headers, courses };
+}
+
+export function getCourseLines(tja, courseId) {
+	let result = [];
+	let write = false;
+	
+	const lines = tja.split(/(\r\n|\r|\n)/)
+        .map(line => line.trim());
+	
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i];
+        if (line === '') continue;
+		
+		const parsed = parseLine(line);
+		
+		if (parsed.type === 'header' && parsed.scope === 'global') {
+			result.push(line);
+		}
+		else if (parsed.type === 'header' && parsed.scope === 'course') {
+			if (parsed.name === 'COURSE') {
+				const courseValue = parsed.value.toLowerCase();
+				let course;
+				
+				switch (courseValue) {
+					case 'easy': case '0':
+						course = 0;
+						break;
+
+					case 'normal': case '1':
+						course = 1;
+						break;
+
+					case 'hard': case '2':
+						course = 2;
+						break;
+
+					case 'oni': case '3':
+						course = 3;
+						break;
+
+					case 'edit': case 'ura': case '4':
+						course = 4;
+						break;
+				}
+				
+				write = (course === parseInt(courseId)) ? true : false;
+			}
+			if (write) {
+				result.push(line);
+			}
+		}
+		else if (parsed.type === 'command') {
+			if (write) {
+				result.push(line);
+			}
+        }
+		else if (parsed.type === 'data') {
+			if (write) {
+				result.push(line);
+			}
+        }
+	}
+	
+	return result.join('\n');
+}
+
+export function getEnabledBranch(chart, courseId) {
+	const branchTypes = ['N','E','M'];
+	let result = [];
+	const course = chart.courses[courseId];
+	
+	for (let bt of branchTypes) {
+		let enabled = false;
+		for (let m of course.measures) {
+			if (m.data[bt] != null) {
+				result.push(bt);
+				break;
+			}
+		}
+	}
+	
+	return result;
 }
