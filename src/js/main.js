@@ -534,6 +534,12 @@ $editorProcess.on('click', () => {
     showPreview();
 });
 
+const editorLiveOnChange = () => {
+    $editorProcess.each(e => e.disabled = $editorLive.checked);
+};
+editorLiveOnChange();
+$editorLive.addEventListener('change', editorLiveOnChange);
+
 $rendaHead.on('click', () => {
     if (selectedDifficulty === '') return;
 

@@ -18,11 +18,9 @@
                         <label><input id="charset-utf-8" type="radio" name="charset">UTF-8</label>
                         <label><input id="charset-shift-jis" type="radio" name="charset">Shift-JIS</label>
                         <label><input id="charset-gb18030" type="radio" name="charset">GB18030</label>
-                        <label class="l10n"><input id="editor-live" type="checkbox" checked><span lang="en">Enable live-editing</span><span lang="ja">自動反映を有効にする</span></label>
-                        <label class="l10n"><input id="auto-scroll-to-bottom" type="checkbox"><span lang="en">Auto scroll-to-bottom</span><span lang="ja">下へ自動スクロールする</span></label>
-                        <label class="l10n"><input id="embed-donscore" type="checkbox" checked><span lang="en">Embed Donscore notation</span><span lang="ja">どんすこあ構文を埋め込む</span></label>
                     </div>
                     <div style="float:right">
+                        <label class="l10n"><input id="editor-live" type="checkbox" checked><span lang="en">Live-editing</span><span lang="ja">自動反映</span></label>
                         <button class="editor-process l10n"><span lang="en">Process</span><span lang="ja">反映</span></button>
                     </div>
                 </div>
@@ -58,6 +56,11 @@
                     <span class="button btn-page-preview l10n" data-value='preview'><span lang="en">Preview</span><span lang="ja">プレビュー</span></span>
                     <span class="button btn-page-statistics l10n" data-value='statistics'><span lang="en">Statistics</span><span lang="ja">統計</span></span>
                 </div>
+                <br />
+                <div class="controls">
+                    <label class="l10n"><input id="auto-scroll-to-bottom" type="checkbox"><span lang="en">Auto scroll-to-bottom</span><span lang="ja">下へ自動スクロールする</span></label>
+                    <label class="l10n"><input id="embed-donscore" type="checkbox" checked><span lang="en">Embed Donscore notation</span><span lang="ja">どんすこあ構文を埋め込む</span></label>
+                </div>
             </div>
             <div id="area-pages" class="area area-pages">
                 <div class="page page-preview"></div>
@@ -79,17 +82,17 @@
                     <h4 class="l10n"><span lang="en">Score</span><span lang="ja">配点</span></h4>
 					<div class="controls-score-system">
 					<p class="l10n">
-                    <input type="radio" class="radio" name="scoreSystem" value="CS" checked>AC15+<span lang="en">Shin-uchi</span><span lang="ja">真打</span>
-					<input type="radio" class="radio" name="scoreSystem" value="AC16Old">AC15+AC16
-					<input type="radio" class="radio" name="scoreSystem" value="AC16New">AC16
+                    <label><input type="radio" class="radio" name="scoreSystem" value="CS" checked>AC15+<span lang="en">Shin-uchi</span><span lang="ja">真打</span></label>
+                    <label><input type="radio" class="radio" name="scoreSystem" value="AC16Old">AC15+AC16</label>
+                    <label><input type="radio" class="radio" name="scoreSystem" value="AC16New">AC16</label>
 					</p>
 					<p>
-					<input type="radio" class="radio" name="gogoFloor" value="AC15" checked>AC15
-					<input type="radio" class="radio" name="gogoFloor" value="RC">RC
+                    <label><input type="radio" class="radio" name="gogoFloor" value="AC15" checked>AC15</label>
+                    <label><input type="radio" class="radio" name="gogoFloor" value="RC">RC</label>
 					</p>
 					<p class="l10n">
-                    <input type="radio" class="radio" name="calcMode" value="fromFile" checked><span lang="en">From TJA file</span><span lang="ja">配点をテキストから</span>
-                    <input type="radio" class="radio" name="calcMode" value="predict"><span lang="en">Calculate SCOREINIT and SCOREDIFF</span><span lang="ja">配点を予測する</span>
+                    <label><input type="radio" class="radio" name="calcMode" value="fromFile" checked><span lang="en">From TJA file</span><span lang="ja">配点をテキストから</span></label>
+                    <label><input type="radio" class="radio" name="calcMode" value="predict"><span lang="en">Calculate SCOREINIT and SCOREDIFF</span><span lang="ja">配点を予測する</span></label>
 					</p>
 					</div>
                     <p><code class="stat-max-score l10n"></code></p>

@@ -124,6 +124,10 @@ body {
     .controls {
         margin-bottom: 8px;
         font-size: 12px;
+
+        .editor-process {
+            margin-left: 4px;
+        }
     }
 
     .input {
@@ -160,6 +164,7 @@ body {
         }
 
         label {
+            cursor: inherit;
             vertical-align: middle;
         }
     }
@@ -188,6 +193,12 @@ body {
             font-weight: bold;
             background: #eee;
         }
+    }
+
+    .controls {
+        float: right;
+        font-size: 12px;
+        margin-top: 8px;
     }
 }
 
