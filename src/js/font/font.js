@@ -11,42 +11,64 @@ export async function loadAllFonts() {
 	await Promise.all(fontPromises);
 }
 
-export function callFontSetting(headerFont) {
+export function getFontSetting(headerFont) {
 	let result = {
 		titleText: '',
-		subTitleText: '',
-		x1: 8,
-		y1: 8,
-		x2: 8,
-		y2: 40,
-		stroke1: false,
-		stroke1: false,
+		subtitleText: '',
+		xTitle: 8,
+		xDifficulty: 8,
+		hPaddingTop: 8,
+		hTitle: 28,
+		hPaddingTitle: 4,
+		hSubtitle: 24,
+		strokeTitle: false,
+		strokeDifficulty: false,
 	};
 	
 	if (headerFont === 'sans-serif') {
 		result.titleText = 'bold 20px sans-serif';
-		result.subTitleText = 'bold 17px sans-serif';
+		result.subtitleText = 'bold 17px sans-serif';
 	}
 	else {
 		let ua = window.navigator.userAgent.toLowerCase();
 		if(ua.indexOf("windows nt") === -1) {
 			result.titleText = 'bold 21px "Roboto", "Zen Kaku Gothic New"';
-			result.subTitleText = 'bold 17px "Roboto", "Zen Kaku Gothic New"';
-			result.x1 = 11;
-			result.y1 = 10;
-			result.x2 = 10;
-			result.y2 = 41;
+			result.subtitleText = 'bold 17px "Roboto", "Zen Kaku Gothic New"';
 		}else {
 			result.titleText = 'bold 21px Arial, MS UI Gothic';
-			result.subTitleText = 'bold 17px Arial, MS UI Gothic';
-			result.x1 = 11;
-			result.y1 = 10;
-			result.x2 = 10;
-			result.y2 = 41;
+			result.subtitleText = 'bold 17px Arial, MS UI Gothic';
 		}
-
+		result.xTitle = 11;
+		result.xDifficulty = 10;
+		result.hPaddingTop = 10;
+		result.hTitle = 26;
+		result.hPaddingTitle = 5;
+		result.hSubtitle = 21;
 	}
 	
+	return result;
+}
+
+export function getTextPositionY(fontSetting, hasSubtitle, hasMaker) {
+	let result = {};
+	let textY = fontSetting.hPaddingTop;
+
+	result.title = textY;
+	textY += fontSetting.hTitle;
+	if (hasSubtitle) {
+		result.subtitle = textY;
+		textY += fontSetting.hSubtitle;
+	}
+	textY += fontSetting.hPaddingTitle;
+
+	if (hasMaker) {
+		result.maker = textY;
+		textY += fontSetting.hSubtitle;
+	}
+	result.difficulty = textY;
+	textY += fontSetting.hSubtitle;
+
+	result.paddingTop = textY;
 	return result;
 }
 

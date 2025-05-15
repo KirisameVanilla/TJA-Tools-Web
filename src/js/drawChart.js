@@ -1,12 +1,12 @@
 import { drawLine, drawCircle, drawCircleRightHalf, drawRect, drawText, drawPixelText, drawSprite, drawImageText, initSprites } from './canvasHelper';
 import { isRollSymbol, isBalloonSymbol } from './analyseChart';
 import { toFixedZero } from './main';
-import { callFontSetting, getUraSymbol } from './font/font';
+import { getFontSetting, getTextPositionY, getUraSymbol } from './font/font';
 
 //==============================================================================
 // Drawing config and helpers
 
-const CHART_PADDING_TOP = 110;
+const CHART_PADDING_TOP = {MIN: 62, current: 62};
 const CHART_PADDING_BOTTOM = -14;
 const CHART_BG = '#cccccc';
 
@@ -22,7 +22,7 @@ const BEAT_WIDTH = 48;
 
 const NOTE_RADIUS = 9;
 
-const GET_ROW_Y = row => CHART_PADDING_TOP + ((ROW_HEIGHT + ROW_MARGIN_BOTTOM) * row);
+const GET_ROW_Y = row => CHART_PADDING_TOP.current + ((ROW_HEIGHT + ROW_MARGIN_BOTTOM) * row);
 const GET_BEAT_X = beat => ROW_LEADING + (beat * BEAT_WIDTH);
 let rowDeltas = [];
 const branchTypes = ['N','E','M'];
@@ -371,8 +371,14 @@ export default function (chart, courseId) {
 		rowDeltas.push((rows[ridx].dataNum - 1) * 24);
 	}
 
+	const maker = (course.headers.maker !== null) ? course.headers.maker : chart.headers.maker;
+	const fontSetting = getFontSetting(chart.headers.font.toLowerCase());
+	const textPositionY = getTextPositionY(fontSetting, chart.headers.subtitle, maker !== null);
+	CHART_PADDING_TOP.current = textPositionY.paddingTop;
+
     const canvasWidth = ROW_LEADING + (BEAT_WIDTH * ttRowBeat) + ROW_TRAILING;
-    const canvasHeight = CHART_PADDING_TOP + ((ROW_HEIGHT + ROW_MARGIN_BOTTOM) * rows.length) + CHART_PADDING_BOTTOM + sumNums(rowDeltas);
+    const getCanvasHeight = () => CHART_PADDING_TOP.current + ((ROW_HEIGHT + ROW_MARGIN_BOTTOM) * rows.length) + CHART_PADDING_BOTTOM + sumNums(rowDeltas);
+    let canvasHeight = getCanvasHeight();
 
     const $canvas = document.createElement('canvas');
     $canvas.width = canvasWidth;
@@ -496,14 +502,15 @@ export default function (chart, courseId) {
 				break;
 		}
 		
-		let fontSetting = callFontSetting(chart.headers.font.toLowerCase());
-		
-		drawText(ctx, fontSetting.x1, fontSetting.y1, fixedTitle, fontSetting.titleText, titleTextColor, 'top', 'left', fontSetting.stroke1);
-		drawText(ctx, fontSetting.x2, fontSetting.y2, chart.headers.subtitle, fontSetting.subTitleText, titleTextColor, 'top', 'left', fontSetting.stroke1);
-		if (course.headers.maker !== null || chart.headers.maker !== null)
-			drawText(ctx, fontSetting.x1, fontSetting.y2 + (fontSetting.y2 - 2 * fontSetting.y1), `Charter: ${(course.headers.maker !== null) ? course.headers.maker : chart.headers.maker}`, fontSetting.subTitleText, levelTextColor, 'top', 'left', fontSetting.stroke2);
-		drawText(ctx, fontSetting.x2, fontSetting.y2 + 2 * (fontSetting.y2 - 2 * fontSetting.y1), difficultyText, fontSetting.subTitleText, levelTextColor, 'top', 'left', fontSetting.stroke2);
-		
+		drawText(ctx, fontSetting.xTitle, textPositionY.title, fixedTitle, fontSetting.titleText, titleTextColor, 'top', 'left', fontSetting.strokeTitle);
+		if (chart.headers.subtitle) {
+			drawText(ctx, fontSetting.xTitle, textPositionY.subtitle, chart.headers.subtitle, fontSetting.subtitleText, titleTextColor, 'top', 'left', fontSetting.strokeTitle);
+		}
+		if (maker !== null) {
+			drawText(ctx, fontSetting.xDifficulty, textPositionY.maker, `Charter: ${maker}`, fontSetting.subtitleText, levelTextColor, 'top', 'left', fontSetting.strokeTitle);
+		}
+		drawText(ctx, fontSetting.xDifficulty, textPositionY.difficulty, difficultyText, fontSetting.subtitleText, levelTextColor, 'top', 'left', fontSetting.strokeDifficulty);
+
         //============================================================================
         // 3. Go-go time, measure grid, events
 
