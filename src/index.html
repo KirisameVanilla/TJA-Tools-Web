@@ -10,8 +10,12 @@
     <body>
         <section class="pane-left">
             <div class="area is-titled area-editor">
-                <h2 class="title l10n"><span lang="en">Editor (Drag and drop a .TJA file)</span><span lang="ja">エディタ (tjaファイルをドラッグ＆ドロップしてください)</span></h2>
+                <h2 class="title l10n">
+                    <span lang="en">Editor (Drag and drop or <label for="tja-file">choose</label> a .TJA file)</span><span lang="ja">エディタ (tjaファイルをドラッグ＆ドロップするか<label for="tja-file">選択</label>してください)</span>
+                </h2>
                 <div class="controls">
+                    <input type="file" id="tja-file" accept=".tja, .txt">
+                    <br />
                     <div style="float:left">
                         <label class="l10n"><span lang="en">Encoding:</span><span lang="ja">文字コード: </span></label>
                         <label class="l10n"><input id="charset-auto" type="radio" name="charset" checked><span lang="en">Auto</span><span lang="ja">自動認識</span></label>

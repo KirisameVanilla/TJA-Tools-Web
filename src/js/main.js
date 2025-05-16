@@ -41,6 +41,7 @@ import '../css/font/Pixel-3x5.css';
 
 //==============================================================================
 
+const $tjaFile = $("#tja-file").first();
 const $charsetUtf8 = $('#charset-utf-8').first();
 const $charsetShiftjis = $('#charset-shift-jis').first();
 const $charsetGb18030 = $('#charset-gb18030').first();
@@ -167,6 +168,40 @@ function updateUI() {
 
     $('.controls-branch .button.is-active').removeClass('is-active');
     $(`.controls-branch .btn-branch-${selectedBranch.toLowerCase()}`).addClass('is-active');
+}
+
+function loadTJA(file) {
+    if (!file) {
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = readerEvt => {
+        const arrayBuffer = readerEvt.target.result;
+        const uintArray = new Uint8Array(arrayBuffer);
+        const buffer = Buffer.from(uintArray);
+
+        let encoding;
+        if ($charsetUtf8.checked) {
+            encoding = 'UTF-8';
+        } else if ($charsetShiftjis.checked) {
+            encoding = 'Shift-JIS';
+        } else if ($charsetGb18030.checked) {
+            encoding = 'GB18030';
+        } else {
+            encoding = chardet.detect(buffer);
+        }
+        const content = iconv.decode(buffer, encoding);
+
+        $input.first().value = content;
+        selectedDifficulty = '';
+
+        processTJA();
+        updateUI();
+    };
+
+    reader.readAsArrayBuffer(file);
 }
 
 function processTJA() {
@@ -571,39 +606,14 @@ $input.on('dragover', e => {
     e.dataTransfer.dropEffect = 'cppy';
 });
 
+$tjaFile.addEventListener('change', () => {
+    loadTJA($tjaFile.files[0]);
+});
+
 $input.on('drop', dropEvt => {
     dropEvt.stopPropagation();
     dropEvt.preventDefault();
-
-    const file = dropEvt.dataTransfer.files[0];
-
-    const reader = new FileReader();
-
-    reader.onload = readerEvt => {
-        const arrayBuffer = readerEvt.target.result;
-        const uintArray = new Uint8Array(arrayBuffer);
-        const buffer = Buffer.from(uintArray);
-
-        let encoding;
-        if ($charsetUtf8.checked) {
-            encoding = 'UTF-8';
-        } else if ($charsetShiftjis.checked) {
-            encoding = 'Shift-JIS';
-        } else if ($charsetGb18030.checked) {
-            encoding = 'GB18030';
-        } else {
-            encoding = chardet.detect(buffer);
-        }
-        const content = iconv.decode(buffer, encoding);
-
-        $input.first().value = content;
-        selectedDifficulty = '';
-
-        processTJA();
-        updateUI();
-    };
-
-    reader.readAsArrayBuffer(file);
+    loadTJA(dropEvt.dataTransfer.files[0]);
 });
 
 $('.controls-branch .button').on('click', evt => {
