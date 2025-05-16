@@ -183,6 +183,7 @@ function loadTJA(file) {
         const buffer = Buffer.from(uintArray);
 
         let encoding;
+        $('.charset-auto-detected').text('');
         if ($charsetUtf8.checked) {
             encoding = 'UTF-8';
         } else if ($charsetShiftjis.checked) {
@@ -191,6 +192,7 @@ function loadTJA(file) {
             encoding = 'GB18030';
         } else {
             encoding = chardet.detect(buffer);
+            $('.charset-auto-detected').text(`: ${encoding}`);
         }
         const content = iconv.decode(buffer, encoding);
 
