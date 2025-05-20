@@ -872,4 +872,4 @@ export default function (chart, courseId) {
 
 export async function initUsedSprite() {
 	await initSprites();
-}
+}

@@ -1,6 +1,6 @@
 import { arrayLCM, lcm, addZero } from './common';
 import { compareArray } from './drawChart';
-import { isRollType, isBalloonType } from './parseTJA';
+import { isRollType, isBalloonType } from './parseTJA';
 
 const aryMax = function (a, b) {return Math.max(a, b);}
 
