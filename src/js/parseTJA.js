@@ -1,5 +1,4 @@
 import { arrayLCM, addZero } from './common';
-import { isRollSymbol, isBalloonSymbol } from './analyseChart';
 
 export function difficultyTypeToString(difficultyType) {
     switch (difficultyType) {
@@ -50,6 +49,121 @@ function parseStyleValue(styleValue) {
             return 2;
     }
     return null;
+}
+
+function noteSymbolToNoteType(noteSymbol) {
+    switch (noteSymbol) {
+        case '0':
+            return 'blank';
+
+        case '1':
+            return 'don';
+
+        case '2':
+            return 'kat';
+
+        case '3':
+        case 'A':
+            return 'donBig';
+
+        case '4':
+        case 'B':
+            return 'katBig';
+
+        case '5':
+            return 'renda';
+
+        case '6':
+            return 'rendaBig';
+
+        case '7':
+            return 'balloon';
+
+        case '9':
+            return 'balloonEx';
+
+        case 'C':
+            return 'mine';
+
+        case 'D':
+            return 'fuse';
+
+        case 'F':
+            return 'adlib';
+
+        case 'G':
+            return 'kadon';
+    }
+    return null;
+}
+
+export function isRollType(noteType) {
+    switch (noteType) {
+        case 'renda':
+        case 'rendaBig':
+        case 'balloon':
+        case 'balloonEx':
+        case 'fuse':
+        case 'hakushu': // H: bongo clap applause
+        case 'rendaLeft': // I: bongo yellow/left roll
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+export function isBalloonType(noteType) {
+    switch (noteType) {
+        case 'balloon':
+        case 'balloonEx':
+        case 'fuse':
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+function getNotes(data, rollStates, balloon, midx, currentBranch) {
+    const notes = [];
+    notes.nDivisions = data.length || 1;
+    for (let d = 0; d < data.length; ++d) {
+        const ch = data.charAt(d);
+
+        let note = {
+            symbol: ch,
+            type: noteSymbolToNoteType(ch),
+            position: d,
+        };
+
+        if (isRollType(note.type)) {
+            if (rollStates.roll[currentBranch] !== null)
+                continue;
+            rollStates.roll[currentBranch] = {note: note, midx: midx, didx: notes.length};
+
+            if (isBalloonType(note.type)) {
+                const balloonBranch = (balloon.type === 0) ? 'all' : currentBranch;
+                note.count = balloon[balloonBranch][rollStates.balloonOffset[balloonBranch]++];
+                if (note.count === undefined)
+                    note.count = 0;
+            }
+        } else if (note.type !== 'blank' && rollStates.roll[currentBranch] !== null) {
+            let noteEnd = {
+                symbol: (ch == '8') ? ch : null,
+                type: (ch == '8') ? 'end' : 'endForced',
+                position: d,
+                start: rollStates.roll[currentBranch],
+            };
+            rollStates.roll[currentBranch].note.end = {note: noteEnd, midx: midx, didx: notes.length};
+            notes.push(noteEnd);
+            rollStates.roll[currentBranch] = null;
+        }
+
+        if (note.type !== null && note.type !== 'blank')
+            notes.push(note);
+    }
+    return notes;
 }
 
 function parseLine(line) {
@@ -232,9 +346,10 @@ function getCourse(tjaHeaders, lines) {
 	let branching = false;
 	let countBranchNum = 0;
 	let firstBranch = true;
-	let balloonOffset = 0;
-	let balloonBranchOffset = {'N':0,'E':0,'M':0};
-	let rolling = {'N': false, 'E': false, 'M': false};
+	let rollStates = {
+		balloonOffset: {N: 0, E: 0, M: 0, all: 0},
+		roll: {N: null, E: null, M: null},
+	};
 	let currentScroll = '1';
 	let currentScrollBranch = {'N':'1','E':'1','M':'1'};
 	
@@ -679,53 +794,13 @@ function getCourse(tjaHeaders, lines) {
                 initBalloonHeader();
             }
             let data = line.data;
-
-			// Balloon Count
-			if (headers.balloon.type === 0) {
-				for (let i = 0; i < data.length; i++) {
-					if (isRollSymbol(data.charAt(i))) {
-						if (rolling[currentBranch])
-							continue;
-						rolling[currentBranch] = true;
-
-						if (isBalloonSymbol(data.charAt(i))) {
-							if (headers.balloon.all.length <= balloonOffset) {
-								headers.balloon.all.push(0);
-							}
-							headers.balloon[currentBranch].push(headers.balloon.all[balloonOffset]);
-							balloonOffset++;
-						}
-					} else if (data.charAt(i) !== '0' & rolling[currentBranch]) {
-							rolling[currentBranch] = false;
-					}
-				}
-			}
-			else {
-				for (let i = 0; i < data.length; i++) {
-					if (isRollSymbol(data.charAt(i))) {
-						if (rolling[currentBranch])
-							continue;
-						rolling[currentBranch] = true;
-
-						if (isBalloonSymbol(data.charAt(i))) {
-							if (headers.balloon[currentBranch].length <= balloonBranchOffset[currentBranch]) {
-								headers.balloon[currentBranch].push(0);
-							}
-							balloonBranchOffset[currentBranch]++;
-						}
-					} else if (data.charAt(i) !== '0' & rolling[currentBranch]) {
-							rolling[currentBranch] = false;
-					}
-				}
-			}
-
             if (data.endsWith(',')) {
 				measureData += data.slice(0, -1);
-				measureData = measureData === '' ? '0' : measureData;
 				
 				if (firstBranch || !branching) {
 					let measureDatas = {N:null, E:null, M:null};
-					measureDatas[currentBranch] = measureData;
+					const measureNotes = getNotes(measureData, rollStates, headers.balloon, measures.length, currentBranch);
+					measureDatas[currentBranch] = measureNotes;
 
 					let measure = {
 						length: [measureDividend, measureDivisor],
@@ -740,7 +815,8 @@ function getCourse(tjaHeaders, lines) {
 				}
 				else {
 					if (countBranchNum > 0) {
-						measures[measures.length - countBranchNum].data[currentBranch] = measureData;
+						const measureNotes = getNotes(measureData, rollStates, headers.balloon, measures.length - countBranchNum, currentBranch);
+						measures[measures.length - countBranchNum].data[currentBranch] = measureNotes;
 						countBranchNum--;
 					}
 				}
@@ -776,31 +852,31 @@ function getCourse(tjaHeaders, lines) {
     }
 
     if (measureData) {
-		measureData = measureData === '' ? '0' : measureData;
+        const measureNotes = getNotes(measureData, rollStates, headers.balloon, measures.length, currentBranch);
         measures.push({
             length: [measureDividend, measureDivisor],
 			lengthNotes: [measureDividendNotes, measureDivisorNotes],
             properties: measureProperties,
-            data: {N:measureData, E:null, M:null},
+            data: {N:measureNotes, E:null, M:null},
             events: measureEvents,
 			dataNum: -1,
         });
     } else {
         for (let event of measureEvents) {
-            event.position = measures[measures.length - 1].data.length
+            event.position = measures[measures.length - 1].data.nDivisions;
             measures[measures.length - 1].events.push(event)
         }
     }
 
 	// After
 	for (let i = 0; i < measures.length; i++) {
-		// Add Zeros
+		// Add Zero
 		let lengths = [];
 		const branchs = ['N','E','M'];
 		
 		for (let b of branchs) {
 			if (measures[i].data[b] != null) {
-				lengths.push(measures[i].data[b].length);
+				lengths.push(measures[i].data[b].nDivisions);
 			}
 		}
 		
@@ -810,14 +886,14 @@ function getCourse(tjaHeaders, lines) {
 		
 		for (let j = 0; j < measures[i].events.length; j++) {
 			if (measures[i].data[measures[i].events[j].branch] != null) {
-				const rate = fixedMax / measures[i].data[measures[i].events[j].branch].length;
+				const rate = fixedMax / measures[i].data[measures[i].events[j].branch].nDivisions;
 				measures[i].events[j].position = measures[i].events[j].position * rate;
 			}
 		}
 		
 		for (let b of branchs) {
 			if (measures[i].data[b] != null) {
-				measures[i].data[b] = addZero(measures[i].data[b], fixedMax);
+				addZero(measures[i].data[b], fixedMax);
 			}
 		}
 		
@@ -843,6 +919,12 @@ function getCourse(tjaHeaders, lines) {
 			measures[i].events.splice(cd, 1);
 		}
 	}
+
+    for (let bt of ['N', 'E', 'M']) {
+        if (rollStates.roll[bt] !== null) {
+            // TODO: warn unended roll
+        }
+    }
 
     // Output
     //console.log(measures[measures.length - 1])

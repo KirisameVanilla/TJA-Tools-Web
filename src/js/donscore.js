@@ -1,6 +1,6 @@
 import { arrayLCM, lcm, addZero } from './common';
 import { compareArray } from './drawChart';
-import { isRollSymbol, isBalloonSymbol } from './analyseChart';
+import { isRollType, isBalloonType } from './parseTJA';
 
 const aryMax = function (a, b) {return Math.max(a, b);}
 
@@ -47,13 +47,11 @@ export function convertToDonscore(chart, courseId) {
 			if (measure.data[bt] === null) {
 				continue;
 			}
-			
+
 			const fixed48th = 48 / measure.length[1] * measure.length[0];
-			if (fixed48th > measure.data[bt].length && fixed48th % measure.data[bt].length === 0) {
-				tempData[bt] = addZero(measure.data[bt], fixed48th);
-			}
-			else {
-				tempData[bt] = measure.data[bt];
+			tempData[bt] = measure.data[bt];
+			if (fixed48th > measure.data[bt].nDivisions && fixed48th % measure.data[bt].nDivisions === 0) {
+				addZero(tempData[bt], fixed48th);
 			}
 		}
 		newData.push(tempData);
@@ -62,7 +60,6 @@ export function convertToDonscore(chart, courseId) {
 	// Add for Roll
 	for (let bt of branchTypes) {
 		let balloonIdx = 0;
-		let rollingStill = false;
 		for (let i = 0; i < newData.length; i++) {
 			if (newData[i][bt] === null) {
 				continue;
@@ -72,32 +69,30 @@ export function convertToDonscore(chart, courseId) {
 			let margin = -1;
 			let index = -1;
 			for (let j = 0; j < newData[i][bt].length; j++) {
-				const ch = newData[i][bt].charAt(j);
+				const note = newData[i][bt][j];
 
-				if (isRollSymbol(ch)) {
-					if (rollingStill)
-						continue;
-					index = j;
-					rolling = rollingStill = true;
+				if (isRollType(note.type)) {
+					index = note.position;
+					rolling = true;
 
-					if (isBalloonSymbol(ch))
-						margin = course.headers.balloon[bt][balloonIdx++].toString().length + 2; // `[@5`
+					if (isBalloonType(note.type))
+						margin = note.count.toString().length + 2; // `[@5`
 					else
 						margin = 1; // `<`
-				} else if (ch !== '0' && rollingStill) {
-					marginDiff.push(margin - (j - index - 1)); // `[@5` - (between `[` & `]`), or (between line start & `]`)
-					rolling = rollingStill = false;
+				} else if (note.type === 'end' || note.type === 'endForced') {
+					marginDiff.push(margin - (note.position - index - 1)); // `[@5` - (between `[` & `]`), or (between line start & `]`)
+					rolling = false;
 				}
 			}
 
 			if (rolling) {
-				marginDiff.push(margin - (newData[i][bt].length - index - 1)); // `[@5` - (between `[` & line end)
+				marginDiff.push(margin - (newData[i][bt].nDivisions - index - 1)); // `[@5` - (between `[` & line end)
 			}
 
 			if (marginDiff.length > 0) {
 				const marginMax = marginDiff.reduce(aryMax);
 				if (marginMax > 0) {
-					newData[i][bt] = addZero(newData[i][bt], newData[i][bt].length * (marginMax + 1));
+					addZero(newData[i][bt], newData[i][bt].nDivisions * (marginMax + 1));
 				}
 			}
 		}
@@ -108,9 +103,9 @@ export function convertToDonscore(chart, courseId) {
 			if (newData[i][bt] === null) {
 				continue;
 			}
-			const dataLCM = lcm(newData[i][bt].length, course.measures[i].length[0]);
-			if (dataLCM > newData[i][bt].length) {
-				newData[i][bt] = addZero(newData[i][bt], dataLCM);
+			const dataLCM = lcm(newData[i][bt].nDivisions, course.measures[i].length[0]);
+			if (dataLCM > newData[i][bt].nDivisions) {
+				addZero(newData[i][bt], dataLCM);
 			}
 		}
 	}
@@ -122,7 +117,7 @@ export function convertToDonscore(chart, courseId) {
 		let firstBranch = '';
 		for (let bt of branchTypes) {
 			if (newData[i][bt] != null) {
-				lengths.push(newData[i][bt].length);
+				lengths.push(newData[i][bt].nDivisions);
 				if (firstBranch === '') {
 					firstBranch = bt;
 				}
@@ -131,13 +126,13 @@ export function convertToDonscore(chart, courseId) {
 		const fixedMax = arrayLCM(lengths);
 		
 		for (let j = 0; j < newEvent[i].length; j++) {
-			const rate = fixedMax / measure.data[firstBranch].length;
+			const rate = fixedMax / measure.data[firstBranch].nDivisions;
 			newEvent[i][j].position = newEvent[i][j].position * rate;
 		}
 		
 		for (let bt of branchTypes) {
 			if (newData[i][bt] != null) {
-				newData[i][bt] = addZero(newData[i][bt], fixedMax);
+				addZero(newData[i][bt], fixedMax);
 			}
 		}
 	}
@@ -158,76 +153,82 @@ export function convertToDonscore(chart, courseId) {
 				continue;
 			}
 			let tempData = [];
-			
-			for (let j = 0; j < newData[i][bt].length; j++) {
-				let ch = newData[i][bt].charAt(j);
-				if (isRollSymbol(ch) && rolling)
-					ch = '0';
 
-				let balloonCount = 0;
-				if (isRollSymbol(ch)) {
-					rolling = true;
-					if (isBalloonSymbol(ch))
-						balloonCount = course.headers.balloon[bt][balloonIdx++];
-					else
-						balloonTextCount = 0;
-				} else if (ch !== '0' && rolling) {
-					tempData.push((ch === '8') ? endChar : '\\' + endChar);
-					rolling = false;
-					if (ch === '8')
-						continue;
-				} else if (rolling) {
-					if (balloonTextCount > 0) {
-						tempData.push(balloonText.charAt(balloonText.length - balloonTextCount--));
-					}
-					else {
-						tempData.push('=');
-					}
-					continue;
+			let didx = 0;
+			for (let pos = 0; pos < newData[i][bt].nDivisions; ++pos) {
+				let notes = [];
+				while (didx < newData[i][bt].length && newData[i][bt][didx].position <= pos) {
+					notes.push(newData[i][bt][didx++]);
 				}
-				
-				switch (ch) {
-					case '1':
-						tempData.push('o');
-						break;
-					case '2':
-						tempData.push('x');
-						break;
-					case '3':
-					case 'A':
-						tempData.push('O');
-						break;
-					case '4':
-					case 'B':
-						tempData.push('X');
-						break;
-					case '5':
-						tempData.push('<');
-						endChar = '>';
-						break;
-					case '6':
-						tempData.push('(');
-						endChar = ')';
-						break;
-					case '7':
-					case 'D':
-						tempData.push('[');
-						endChar = ']';
-						balloonText = '@' + balloonCount.toString();
-						balloonTextCount = balloonText.length;
-						break;
-					case '9':
-						tempData.push('[');
-						endChar = ']';
-						balloonText = spSymbol + balloonCount.toString();
-						balloonTextCount = balloonText.length;
-						break;
-					case 'C':
-						tempData.push('B');
-						break;
-					default:
-						tempData.push(' ');
-						break;
+				if (notes.length === 0) {
+					notes.push({type: 'blank'});
+				}
+
+				for (let j = 0; j < notes.length; ++j) {
+					const note = notes[j];
+					let balloonCount = 0;
+					if (isRollType(note.type)) {
+						rolling = true;
+						if (isBalloonType(note.type))
+							balloonCount = note.count;
+						else
+							balloonTextCount = 0;
+					} else if (note.type === 'end' || note.type === 'endForced') {
+						tempData.push((note.type === 'end') ? endChar : '\\' + endChar);
+						rolling = false;
+						if (note.type === 'end')
+							continue;
+					} else if (rolling) {
+						if (balloonTextCount > 0) {
+							tempData.push(balloonText.charAt(balloonText.length - balloonTextCount--));
+						}
+						else {
+							tempData.push('=');
+						}
+						continue;
+					}
+
+					switch (note.type) {
+						case 'don':
+							tempData.push('o');
+							break;
+						case 'kat':
+							tempData.push('x');
+							break;
+						case 'donBig':
+							tempData.push('O');
+							break;
+						case 'katBig':
+							tempData.push('X');
+							break;
+						case 'renda':
+							tempData.push('<');
+							endChar = '>';
+							break;
+						case 'rendaBig':
+							tempData.push('(');
+							endChar = ')';
+							break;
+						case 'balloon':
+						case 'fuse':
+							tempData.push('[');
+							endChar = ']';
+							balloonText = '@' + balloonCount.toString();
+							balloonTextCount = balloonText.length;
+							break;
+						case 'balloonEx':
+							tempData.push('[');
+							endChar = ']';
+							balloonText = spSymbol + balloonCount.toString();
+							balloonTextCount = balloonText.length;
+							break;
+						case 'mine':
+							tempData.push('B');
+							break;
+						default:
+							tempData.push(' ');
+							break;
+					}
 				}
 			}
 			

@@ -14,19 +14,14 @@ export function arrayLCM(arr) {
     return result;
 }
 
-export function addZero(lineStr, max) {
-	const addLength = (max - lineStr.length) / lineStr.length;
-	if (addLength < 1) {
-		return lineStr;
+export function addZero(notes, max) {
+	const rate = Math.trunc(max / notes.nDivisions);
+	if (rate > 1) {
+		notes.nDivisions *= rate;
+		for (let i = 0; i < notes.length; ++i) {
+			notes[i].position *= rate;
+		}
 	}
-
-	let newStr = '';
-	for (let i = 0; i < lineStr.length; i++) {
-		newStr += lineStr.charAt(i);
-		newStr += '0'.repeat(addLength)
-	}
-	
-	return newStr;
 }
 
 /*

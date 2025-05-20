@@ -34,59 +34,14 @@ function pulseToTime(events, objects) {
     return times;
 }
 
-export function isRollSymbol(sym) {
-    switch (sym) {
-        case '5':
-        case '6':
-        case '7':
-        case '9':
-        case 'D':
-        case 'H':
-        case 'I':
-            return true;
-
-        default:
-            return false;
-    }
-}
-
-export function isBalloonSymbol(sym) {
-    switch (sym) {
-        case '7':
-        case '9':
-        case 'D':
-            return true;
-
-        default:
-            return false;
-    }
-}
-
 function convertToTimed(course, branchType) {
     const events = [], notes = [];
-    let beat = 0, balloon = 0, roll = false;
+    let beat = 0, balloon = 0, roll = false, midxToNoteIdx = [];
 	
 	// Get Branch Data
 	let newData = [];
-	let newBalloon = [];
 	const branchTypes = ['N','E','M'];
 	let allBalloon = {'N':{},'E':{},'M':{}};
-	for (let bt of branchTypes) {
-		let tempCount = 0;
-		for (let i = 0; i < course.measures.length; i++) {
-			if (course.measures[i].data[bt] === null) {
-				continue;
-			}
-			let tempBalloon = {};
-			for (let j = 0; j < course.measures[i].data[bt].length; j++) {
-				const ch = course.measures[i].data[bt].charAt(j);
-				if (isBalloonSymbol(ch)) {
-					tempBalloon[j.toString()] = course.headers.balloon[bt][tempCount++];
-				}
-			}
-			allBalloon[bt][i.toString()] = tempBalloon;
-		}
-	}
 	
 	for (let i = 0; i < course.measures.length; i++) {
 		let selected = branchType;
@@ -137,13 +92,6 @@ function convertToTimed(course, branchType) {
 				}
 				break;
 		}
-		
-		for (let j = 0; j < selData.length; j++) {
-			const ch = selData.charAt(j);
-			if (isBalloonSymbol(ch)) {
-				newBalloon.push(allBalloon[selected][i.toString()][j.toString()]);
-			}
-		}
 		newData.push(selData);
 	}
 	
@@ -154,7 +102,7 @@ function convertToTimed(course, branchType) {
 
         for (let e = 0; e < measure.events.length; e++) {
             const event = measure.events[e];
-            const eBeat = length / (measure.data['N'].length || 1) * event.position;
+            const eBeat = length / (measure.data['N'].nDivisions) * event.position;
 
             if (event.name === 'bpm') {
                 events.push({
@@ -178,79 +126,19 @@ function convertToTimed(course, branchType) {
         }
 		
 		// Analyze Notes
+        midxToNoteIdx[m] = notes.length;
         for (let d = 0; d < newData[m].length; d++) {
-            const ch = newData[m].charAt(d);
-            const nBeat = length / newData[m].length * d;
+            const note = newData[m][d];
+            const nBeat = length / newData[m].nDivisions * note.position;
 
-            let note = { type: '', beat: beat + nBeat };
-
-            if (isRollSymbol(ch)) {
-                if (roll)
-                    continue;
-                roll = true;
-
-                if (isBalloonSymbol(ch)) {
-                    note.count = newBalloon[balloon++];
-                }
-            } else if (ch !== '0' && roll) {
-                let noteEnd = { type: (ch == '8') ? 'end' : 'endForced', beat: beat + nBeat };
-                notes.push(noteEnd);
-                roll = false;
+            if (note.type) {
+                notes.push({
+                    type: note.type,
+                    count: note.count,
+                    end: note.end,
+                    beat: beat + nBeat,
+                });
             }
-
-            switch (ch) {
-                case '1':
-                    note.type = 'don';
-                    break;
-
-                case '2':
-                    note.type = 'kat';
-                    break;
-
-                case '3':
-                case 'A':
-                    note.type = 'donBig';
-                    break;
-
-                case '4':
-                case 'B':
-                    note.type = 'katBig';
-                    break;
-
-                case '5':
-                    note.type = 'renda';
-                    break;
-
-                case '6':
-                    note.type = 'rendaBig';
-                    break;
-
-                case '7':
-                    note.type = 'balloon';
-                    break;
-
-                case '9':
-                    note.type = 'balloonEx';
-                    break;
-
-                 case 'C':
-                     note.type = 'mine';
-                     break;
-
-                 case 'D':
-                     note.type = 'fuse';
-                     break;
-
-                 case 'F':
-                     note.type = 'adlib';
-                     break;
-
-                 case 'G':
-                     note.type = 'kadon';
-                     break;
-            }
-
-            if (note.type) notes.push(note);
         }
 
         beat += length;
@@ -259,7 +147,7 @@ function convertToTimed(course, branchType) {
     const times = pulseToTime(events, notes.map(n => n.beat));
     times.forEach((t, idx) => { notes[idx].time = t; });
 
-    return { headers: course.headers, events, notes };
+    return { headers: course.headers, events, notes, midxToNoteIdx };
 }
 
 function getStatistics(course) {
@@ -270,8 +158,7 @@ function getStatistics(course) {
     const notes = [0, 0, 0, 0, 0], rendas = [], rendaExtends = [], balloons = [];
     let adlibs = 0, mines = 0;
     let start = 0, end = 0, combo = 0;
-    let rendaStart = false, rendaStartTime = 0, balloonStart = false, balloonStartTime = 0, balloonCount = 0, balloonGogo = 0, balloonType = "balloon";
-	let isBigRenda = false, isGoGoRenda = false, rendaGroup = 0;
+	let rendaGroup = 0;
     let scCurEventIdx = 0, scCurEvent = course.events[scCurEventIdx];
     let scGogo = 0;
     let scNotes = [[[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]],[[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]];
@@ -322,29 +209,17 @@ function getStatistics(course) {
         }
 
         if (note.type === 'renda' || note.type === 'rendaBig') {
-            rendaStartTime = note.time;
-			rendaStart = true;
-			isBigRenda = note.type === 'rendaBig' ? 1 : 0;
-			isGoGoRenda = scGogo;
-            continue;
-        }
-        else if (note.type === 'balloon' || note.type === 'balloonEx' || note.type === 'fuse') {
-            balloonStartTime = note.time;
-			balloonStart = true;
-            balloonCount = note.count;
-            balloonGogo = scGogo;
-            balloonType = note.type;
+            if (note.end !== undefined) {
+                const noteEnd = course.notes[course.midxToNoteIdx[note.end.midx] + note.end.didx];
+                const rendaLength = noteEnd.time - note.time;
+                const isBigRenda = note.type === 'rendaBig' ? 1 : 0;
+                const isGoGoRenda = scGogo;
+                rendas.push(rendaLength);
 
-            continue;
-        }
-        else if (note.type === 'end' || note.type === 'endForced') {
-            if (rendaStart) {
-                rendas.push(note.time - rendaStartTime);
-				
 				if (rendaExtends.length > 0) {
 					if (rendaExtends[rendaExtends.length - 1].isBigRenda != isBigRenda ||
 						rendaExtends[rendaExtends.length - 1].isGoGoRenda != isGoGoRenda ||
-						rendas[rendaExtends.length - 1].toFixed(3) != (note.time - rendaStartTime).toFixed(3)) {
+						rendas[rendaExtends.length - 1].toFixed(3) != rendaLength.toFixed(3)) {
 						rendaGroup += 1;
 					}
 				}
@@ -353,19 +228,25 @@ function getStatistics(course) {
 					isGoGoRenda: isGoGoRenda,
 					rendaGroup: rendaGroup
 				});
-                rendaStart = false;
             }
-            else if (balloonStart) {
-                const balloonLength = note.time - balloonStartTime;
-                const balloonSpeed = balloonCount / balloonLength;
-                balloons.push([balloonLength, balloonCount, balloonType, balloonGogo]);
-                balloonStart = false;
+            continue;
+        }
+        else if (note.type === 'balloon' || note.type === 'balloonEx' || note.type === 'fuse') {
+            if (note.end !== undefined) {
+                const noteEnd = course.notes[course.midxToNoteIdx[note.end.midx] + note.end.didx];
+                const balloonLength = noteEnd.time - note.time;
+                const balloonSpeed = note.count / balloonLength;
+                balloons.push([balloonLength, note.count, note.type, scGogo]);
 
                 if (balloonSpeed <= 60) {
-                    scBalloon[balloonGogo] += balloonCount - 1;
-                    scBalloonPop[balloonGogo] += 1;
+                    scBalloon[scGogo] += note.count - 1;
+                    scBalloonPop[scGogo] += 1;
                 }
             }
+            continue;
+        }
+        else if (note.type === 'end' || note.type === 'endForced') {
+            // do nothing
         }
         else if (note.type === 'adlib') {
             adlibs++;

@@ -1,5 +1,5 @@
 import { drawLine, drawCircle, drawCircleRightHalf, drawRect, drawText, drawPixelText, drawSprite, drawImageText, initSprites } from './canvasHelper';
-import { isRollSymbol, isBalloonSymbol } from './analyseChart';
+import { isRollType } from './parseTJA';
 import { toFixedZero } from './main';
 import { getFontSetting, getTextPositionY, getUraSymbol } from './font/font';
 
@@ -330,7 +330,7 @@ export default function (chart, courseId) {
     //============================================================================
     // 1. Calculate canvas size, split measures into rows
 
-    const rows = [];
+    const rows = [], midxToRmidx = [];
     let rowTemp = [], rowBeat = 0;
 	let preDataNum = 0;
 	let preBranch = [];
@@ -358,6 +358,7 @@ export default function (chart, courseId) {
             rowBeat = 0;
         }
 
+        midxToRmidx[midx] = [rows.length, rowTemp.length];
         rowTemp.push(measure);
         rowBeat += measureBeat;
 		preDataNum = measure.dataNum;
@@ -536,7 +537,7 @@ export default function (chart, courseId) {
                 // Go-go time
                 for (let i = 0; i < measure.events.length; i++) {
                     const event = measure.events[i];
-                    const eBeat = beat + (mBeat / (measure.data[row.branch[0]].length || 1) * event.position);
+                    const eBeat = beat + (mBeat / (measure.data[row.branch[0]].nDivisions) * event.position);
 
                     if (event.name === 'gogoStart' && !gogoStart) {
                         gogoStart = [ridx, eBeat];
@@ -612,7 +613,7 @@ export default function (chart, courseId) {
                 // Events
                 for (let i = 0; i < measure.events.length; i++) {
                     const event = measure.events[i];
-                    const eBeat = mBeat / (measure.data[row.branch[0]].length || 1) * event.position;
+                    const eBeat = mBeat / (measure.data[row.branch[0]].nDivisions) * event.position;
                     const ex = GET_BEAT_X(beat + eBeat);
 
                     if (event.name === 'scroll') {
@@ -766,56 +767,9 @@ export default function (chart, courseId) {
         // 4. Notes
 
 		for (let bt of branchTypes) {
-			// Pre-scan roll & balloon (forward scanning)
-
-			let balloonIdx = 0;
-			const rmdToBalloonCount = {};
-			let rmdLastRoll = null;
-			const rmdToRollEndRmd = {};
-			for (let ridx = 0; ridx < rows.length; ridx++) {
-				const mdToBalloonCount = rmdToBalloonCount[ridx] = {};
-				const mdToRollEndRmd = rmdToRollEndRmd[ridx] = {};
-				const measures = rows[ridx].measures;
-				if (!rows[ridx].branch.includes(bt)) {
-					continue;
-				}
-
-				for (let midx = 0; midx < measures.length; midx++) {
-					const dToBalloonCount = mdToBalloonCount[midx] = {};
-					const dToRollEndRmdx = mdToRollEndRmd[midx] = {};
-					const measure = measures[midx];
-
-					for (let didx = 0; didx < measure.data[bt].length; didx++) {
-						const note = measure.data[bt].charAt(didx);
-						if (isRollSymbol(note)) {
-							if (rmdLastRoll !== null)
-								continue;
-							rmdLastRoll = [ridx, midx, didx];
-
-							if (isBalloonSymbol(note)) {
-								dToBalloonCount[didx] = course.headers.balloon[bt][balloonIdx++];
-							}
-						} else if (note !== '0' && rmdLastRoll !== null) {
-							const ridxR = rmdLastRoll[0], midxR = rmdLastRoll[1], didxR = rmdLastRoll[2];
-							rmdToRollEndRmd[ridxR][midxR][didxR] = [ridx, midx, didx, note];
-							rmdLastRoll = null;
-						}
-					}
-				}
-			}
-
-			// Handle unended roll at chart end
-			if (rmdLastRoll !== null) {
-				const ridxR = rmdLastRoll[0], midxR = rmdLastRoll[1], didxR = rmdLastRoll[2];
-				rmdToRollEndRmd[ridxR][midxR][didxR] = [undefined, 0, 0, '#END'];
-				rmdLastRoll = null;
-			}
-
 			// Draw (backward scanning)
 
 			for (let ridx = rows.length; ridx-- > 0;) {
-				const mdToBalloonCount = rmdToBalloonCount[ridx];
-				const mdToRollEndRmd = rmdToRollEndRmd[ridx];
 				const row = rows[ridx], measures = row.measures;
 				let beat = 0;
 				if (!row.branch.includes(bt)) {
@@ -824,92 +778,82 @@ export default function (chart, courseId) {
 				const rowYDelta = row.branch.indexOf(bt) * 24;
 
 				for (let midx = measures.length; midx-- > 0;) {
-					const dToBalloonCount = mdToBalloonCount[midx];
-					const dToRollEndRmd = mdToRollEndRmd[midx];
 					const measure = measures[midx], mBeat = measure.lengthNotes[0] / measure.lengthNotes[1] * 4;
 
 					for (let didx = measure.data[bt].length; didx-- > 0;) {
-						const note = measure.data[bt].charAt(didx);
-						const nBeat = measure.rowBeat + (mBeat / measure.data[bt].length * didx);
+						const note = measure.data[bt][didx];
+						const nBeat = measure.rowBeat + (mBeat / measure.data[bt].nDivisions * note.position);
 
 						let longEnd = null;
-						let balloonCount = 0;
 
-						// look up the pre-scanning results for roll & balloon
-						if (isRollSymbol(note)) {
-							const rollEndRmd = dToRollEndRmd[didx];
-							if (rollEndRmd === undefined)
-								continue;
+						// look up the parsed results for roll & balloon
+						if (isRollType(note.type)) {
+							const rollEnd = note.end;
+							if (rollEnd === undefined) {
+								longEnd = [undefined, 0, true];
+							} else {
+								const rmidxE = midxToRmidx[rollEnd.midx];
+								const ridxE = rmidxE[0], midxE = rmidxE[1], positionE = rollEnd.note.position;
 
-							const ridxE = rollEndRmd[0], midxE = rollEndRmd[1], didxE = rollEndRmd[2], noteE = rollEndRmd[3];
-							const omitE = (noteE !== '8'); // omit forced roll ends for clarity
-							if (ridxE < rows.length) {
+								const omitE = (rollEnd.note.type !== 'end'); // omit forced roll ends for clarity
 								const measureE = rows[ridxE].measures[midxE];
 								const mBeatE = measureE.lengthNotes[0] / measureE.lengthNotes[1] * 4;
-								const nBeatE = measureE.rowBeat + (mBeatE / measureE.data[bt].length * didxE);
+								const nBeatE = measureE.rowBeat + (mBeatE / measureE.data[bt].nDivisions * positionE);
 								if (ridxE > 0 && nBeatE === 0) {
 									longEnd = [ridxE - 1, rows[ridxE - 1].beats, omitE];
 								}
 								else {
 									longEnd = [ridxE, nBeatE, omitE];
 								}
-							} else {
-								longEnd = [ridxE, 0, omitE];
-							}
-
-							if (isBalloonSymbol(note)) {
-								balloonCount = dToBalloonCount[didx];
 							}
 						}
 
-						switch (note) {
-							case '1':
+						switch (note.type) {
+							case 'don':
 								drawNoteSprite(ctx, ridx, rowYDelta, nBeat, 'don');
 								break;
 
-							case '2':
+							case 'kat':
 								drawNoteSprite(ctx, ridx, rowYDelta, nBeat, 'kat');
 								break;
 
-							case '3':
-							case 'A':
+							case 'donBig':
 								drawNoteSprite(ctx, ridx, rowYDelta, nBeat, 'bigDon');
 								break;
 
-							case '4':
-							case 'B':
+							case 'katBig':
 								drawNoteSprite(ctx, ridx, rowYDelta, nBeat, 'bigKat');
 								break;
 
-							case '5':
+							case 'renda':
 								drawRendaSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], 'roll');
 								break;
 
-							case '6':
+							case 'rendaBig':
 								drawRendaSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], 'bigRoll');
 								break;
 
-							case '7':
-								drawBalloonSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], balloonCount);
+							case 'balloon':
+								drawBalloonSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], note.count);
 								break;
 
-							case '9':
-								drawBalloonSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], balloonCount, true, chart.headers.spRoll);
+							case 'balloonEx':
+								drawBalloonSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], note.count, true, chart.headers.spRoll);
 								break;
 
-							case 'C':
+							case 'mine':
 								drawNoteSprite(ctx, ridx, rowYDelta, nBeat, 'bomb');
 								break;
 
-							case 'D':
-								drawFuseSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], balloonCount);
+							case 'fuse':
+								drawFuseSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], note.count);
 								break;
  
-							case 'F':
+							case 'adlib':
 								drawNoteSprite(ctx, ridx, rowYDelta, nBeat, 'adlib');
 								break;
 
-							case 'G':
+							case 'kadon':
 								drawNoteSprite(ctx, ridx, rowYDelta, nBeat, 'purple');
 								break;
 						}
