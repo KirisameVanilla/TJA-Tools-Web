@@ -212,9 +212,8 @@ function getCourse(tjaHeaders, lines) {
             return;
         }
         if (latestCourseHeaders.balloon !== undefined) {
-            // TODO: warn cross-course header fallback
-            headers.balloon = deepCopyBalloonData(latestCourseHeaders.balloon);
-            return;
+            // TODO: warn apparent cross-course header fallback
+            // No cross-course header fallbacks
         }
         headers.balloon = deepCopyBalloonData(defaultCourseHeaders.balloon);
     }
@@ -865,9 +864,8 @@ function getCourse(tjaHeaders, lines) {
             continue;
         }
         if (latestCourseHeaders[header] !== undefined) {
-            // TODO: warn cross-course header fallback
-            headers[header] = latestCourseHeaders[header];
-            continue;
+            // TODO: warn apparent cross-course header fallback
+            // No cross-course header fallbacks
         }
         headers[header] = defaultCourseHeaders[header];
     }
