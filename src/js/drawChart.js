@@ -813,7 +813,7 @@ export default function (chart, courseId) {
 
 			// Draw (backward scanning)
 
-			for (let ridx = rows.length - 1; ridx >= 0; ridx--) {
+			for (let ridx = rows.length; ridx-- > 0;) {
 				const mdToBalloonCount = rmdToBalloonCount[ridx];
 				const mdToRollEndRmd = rmdToRollEndRmd[ridx];
 				const row = rows[ridx], measures = row.measures;
@@ -823,12 +823,12 @@ export default function (chart, courseId) {
 				}
 				const rowYDelta = row.branch.indexOf(bt) * 24;
 
-				for (let midx = measures.length - 1; midx >= 0; midx--) {
+				for (let midx = measures.length; midx-- > 0;) {
 					const dToBalloonCount = mdToBalloonCount[midx];
 					const dToRollEndRmd = mdToRollEndRmd[midx];
 					const measure = measures[midx], mBeat = measure.lengthNotes[0] / measure.lengthNotes[1] * 4;
 
-					for (let didx = measure.data[bt].length; didx >= 0; didx--) {
+					for (let didx = measure.data[bt].length; didx-- > 0;) {
 						const note = measure.data[bt].charAt(didx);
 						const nBeat = measure.rowBeat + (mBeat / measure.data[bt].length * didx);
 
