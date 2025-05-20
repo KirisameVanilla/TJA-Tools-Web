@@ -336,22 +336,41 @@ function getCourse(tjaHeaders, lines) {
 
     // Process lines
     let hasStarted = false;
-    let measureDividend = 4, measureDivisor = 4;
-	let measureDividendNotes = 4, measureDivisorNotes = 4;
     let measureProperties = {}, measureData = '', measureEvents = [];
     let currentBranch = 'N';
     let targetBranch = 'N';
     let flagLevelhold = false;
-	let currentBranchNum = 0;
 	let branching = false;
-	let countBranchNum = 0;
-	let firstBranch = true;
+	let midxBranchPoint = 0;
+	let nBranchMeasures = 0;
+	let nBranchMeasuresMax = 0;
 	let rollStates = {
 		balloonOffset: {N: 0, E: 0, M: 0, all: 0},
 		roll: {N: null, E: null, M: null},
 	};
-	let currentScroll = '1';
-	let currentScrollBranch = {'N':'1','E':'1','M':'1'};
+	let currentScroll = {N: '1', E: '1', M: '1'};
+
+    function getMeasure(midx) {
+        while (midx >= measures.length) {
+            let measure = {
+                length: null,
+                lengthNotes: null,
+                properties: {},
+                data: {N: null, E: null, M: null},
+                events: [],
+                nDivisions: 1,
+                dataNum: -1,
+            };
+            measures.push(measure);
+        }
+        return measures[midx];
+    }
+
+    function pushMeasure() {
+        let midx = midxBranchPoint + nBranchMeasures++;
+        getMeasure(midx).data[currentBranch] = getNotes(measureData, rollStates, headers.balloon, midx, currentBranch);
+        measureData = '';
+    }
 	
     for (const line of lines) {
 		let balloons;
@@ -467,6 +486,7 @@ function getCourse(tjaHeaders, lines) {
                 hasStarted = true;
                 initBalloonHeader();
             }
+            const currentMeasure = getMeasure(midxBranchPoint + nBranchMeasures);
             switch (line.name) {
                 case 'BRANCHSTART':
 					/*
@@ -485,10 +505,14 @@ function getCourse(tjaHeaders, lines) {
                         else targetBranch = 'N';
                     }
 					*/
-					currentBranchNum = 0;
 					branching = true;
-					firstBranch = true;
-					measureEvents.push({
+					currentBranch = 'N';
+					if (nBranchMeasures > nBranchMeasuresMax)
+						nBranchMeasuresMax = nBranchMeasures;
+					midxBranchPoint = midxBranchPoint + nBranchMeasuresMax;
+					nBranchMeasuresMax = nBranchMeasures = 0;
+
+					currentMeasure.events.push({
 						name: 'branchStart',
 						position: measureData.length,
 						branch: currentBranch,
@@ -496,31 +520,14 @@ function getCourse(tjaHeaders, lines) {
                     break;
 
                 case 'BRANCHEND':
+                    branching = false;
                     currentBranch = 'N';
-					branching = false;
-					firstBranch = true;
-					
-					if (currentScroll != currentScrollBranch[currentBranch]) {
-						if (firstBranch || !branching) {
-							measureEvents.push({
-								name: 'scroll',
-								position: 0,
-								value: currentScroll,
-								branch: currentBranch,
-							});
-						}
-						else {
-							measures[measures.length - countBranchNum].events.push({
-								name: 'scroll',
-								position: 0,
-								value: currentScroll,
-								branch: currentBranch,
-							});
-						}
-						currentScrollBranch[currentBranch] = currentScroll;
-					}
-					
-					measureEvents.push({
+					if (nBranchMeasures > nBranchMeasuresMax)
+						nBranchMeasuresMax = nBranchMeasures;
+					midxBranchPoint = midxBranchPoint + nBranchMeasuresMax;
+					nBranchMeasuresMax = nBranchMeasures = 0;
+
+					currentMeasure.events.push({
 						name: 'branchEnd',
 						position: measureData.length,
 						branch: currentBranch,
@@ -528,90 +535,14 @@ function getCourse(tjaHeaders, lines) {
                     break;
 
                 case 'N':
-                    currentBranch = 'N';
-					if (currentBranchNum > 0) {
-						countBranchNum = currentBranchNum;
-						firstBranch = false;
-					}
-					
-					if (currentScroll != currentScrollBranch[currentBranch]) {
-						if (firstBranch || !branching) {
-							measureEvents.push({
-								name: 'scroll',
-								position: 0,
-								value: currentScroll,
-								branch: currentBranch,
-							});
-						}
-						else {
-							measures[measures.length - countBranchNum].events.push({
-								name: 'scroll',
-								position: 0,
-								value: currentScroll,
-								branch: currentBranch,
-							});
-						}
-						currentScrollBranch[currentBranch] = currentScroll;
-					}
-					
-                    break;
-
                 case 'E':
-                    currentBranch = 'E';
-					if (currentBranchNum > 0) {
-						countBranchNum = currentBranchNum;
-						firstBranch = false;
-					}
-					
-					if (currentScroll != currentScrollBranch[currentBranch]) {
-						if (firstBranch || !branching) {
-							measureEvents.push({
-								name: 'scroll',
-								position: 0,
-								value: currentScroll,
-								branch: currentBranch,
-							});
-						}
-						else {
-							measures[measures.length - countBranchNum].events.push({
-								name: 'scroll',
-								position: 0,
-								value: currentScroll,
-								branch: currentBranch,
-							});
-						}
-						currentScrollBranch[currentBranch] = currentScroll;
-					}
-					
-                    break;
-
                 case 'M':
-                    currentBranch = 'M';
-					if (currentBranchNum > 0) {
-						countBranchNum = currentBranchNum;
-						firstBranch = false;
+                    currentBranch = line.name;
+					if (branching) {
+						if (nBranchMeasures > nBranchMeasuresMax)
+							nBranchMeasuresMax = nBranchMeasures;
+						nBranchMeasures = 0;
 					}
-					
-					if (currentScroll != currentScrollBranch[currentBranch]) {
-						if (firstBranch || !branching) {
-							measureEvents.push({
-								name: 'scroll',
-								position: 0,
-								value: currentScroll,
-								branch: currentBranch,
-							});
-						}
-						else {
-							measures[measures.length - countBranchNum].events.push({
-								name: 'scroll',
-								position: 0,
-								value: currentScroll,
-								branch: currentBranch,
-							});
-						}
-						currentScrollBranch[currentBranch] = currentScroll;
-					}
-					
                     break;
 
                 case 'START':
@@ -622,29 +553,21 @@ function getCourse(tjaHeaders, lines) {
                             headers.startPlayer = startPlayer; // not a header but stored as such
                         }
                     }
-                    currentBranch = 'N';
-                    targetBranch = 'N';
-                    flagLevelhold = false;
                     break;
 
                 case 'END':
                     hasStarted = false;
-                    currentBranch = 'N';
-                    targetBranch = 'N';
-                    flagLevelhold = false;
                     break;
 
                 default:
-					/*
-                    if (currentBranch != targetBranch) {
-                        break;
-                    }
-					*/
                     switch (line.name) {
                         case 'MEASURE':
                             let matchMeasure = line.value.match(/(\d+)\/(\d+)/);
 							let matchMeasure2 = line.value.match(/(\d+)\/(\d+),\s*(\d+)\/(\d+)/);
                             if (!matchMeasure && !matchMeasure2) break;
+
+							let measureDividend = 4, measureDivisor = 4;
+							let measureDividendNotes = 4, measureDivisorNotes = 4;
 
 							if (matchMeasure2) {
 								measureDividend = parseInt(matchMeasure2[1], 10);
@@ -658,11 +581,13 @@ function getCourse(tjaHeaders, lines) {
 								measureDividendNotes = parseInt(matchMeasure[1], 10);
 								measureDivisorNotes = parseInt(matchMeasure[2], 10);
 							}
-							
+
+							currentMeasure.length = [measureDividend, measureDivisor];
+							currentMeasure.lengthNotes = [measureDividendNotes, measureDivisorNotes];
                             break;
 
                         case 'GOGOSTART':
-                            measureEvents.push({
+                            currentMeasure.events.push({
                                 name: 'gogoStart',
                                 position: measureData.length,
 								branch: currentBranch,
@@ -670,7 +595,7 @@ function getCourse(tjaHeaders, lines) {
                             break;
 
                         case 'GOGOEND':
-                            measureEvents.push({
+                            currentMeasure.events.push({
                                 name: 'gogoEnd',
                                 position: measureData.length,
 								branch: currentBranch,
@@ -678,7 +603,7 @@ function getCourse(tjaHeaders, lines) {
                             break;
 
                         case 'BARLINEON':
-                            measureEvents.push({
+                            currentMeasure.events.push({
                                 name: 'barlineon',
                                 position: measureData.length,
 								branch: currentBranch,
@@ -686,7 +611,7 @@ function getCourse(tjaHeaders, lines) {
                             break;
 
                         case 'BARLINEOFF':
-                            measureEvents.push({
+                            currentMeasure.events.push({
                                 name: 'barlineoff',
                                 position: measureData.length,
 								branch: currentBranch,
@@ -694,30 +619,19 @@ function getCourse(tjaHeaders, lines) {
                             break;
 
                         case 'SCROLL':
-							if (firstBranch || !branching) {
-								measureEvents.push({
-									name: 'scroll',
-									position: measureData.length,
-									value: line.value,
-									branch: currentBranch,
-								});
-							}
-							else {
-								measures[measures.length - countBranchNum].events.push({
-									name: 'scroll',
-									position: measureData.length,
-									value: line.value,
-									branch: currentBranch,
-								});
-							}
-							
-							currentScroll = line.value;
-							currentScrollBranch[currentBranch] = line.value;
+							currentMeasure.events.push({
+								name: 'scroll',
+								position: measureData.length,
+								value: line.value,
+								branch: currentBranch,
+							});
+							for (let bt of (branching ? [currentBranch] : ['N', 'E', 'M']))
+								currentScroll[bt] = line.value;
 
                             break;
 
                         case 'BPMCHANGE':
-                            measureEvents.push({
+                            currentMeasure.events.push({
                                 name: 'bpm',
                                 position: measureData.length,
                                 value: line.value,
@@ -726,7 +640,7 @@ function getCourse(tjaHeaders, lines) {
                             break;
 
 						case 'MOVEEVENT':
-                            measureEvents.push({
+                            currentMeasure.events.push({
                                 name: 'moveEvent',
                                 position: measureData.length,
                                 value: parseInt(line.value),
@@ -735,7 +649,7 @@ function getCourse(tjaHeaders, lines) {
                             break;
 
 						case 'COUNTCHANGE':
-                            measureEvents.push({
+                            currentMeasure.events.push({
                                 name: 'countChange',
                                 position: measureData.length,
                                 value: parseInt(line.value),
@@ -744,7 +658,7 @@ function getCourse(tjaHeaders, lines) {
                             break;
 
                         case 'AVOIDTEXTON':
-                            measureEvents.push({
+                            currentMeasure.events.push({
                                 name: 'avoidtexton',
                                 position: measureData.length,
 								branch: currentBranch,
@@ -752,7 +666,7 @@ function getCourse(tjaHeaders, lines) {
                             break;
 
                         case 'AVOIDTEXTOFF':
-                            measureEvents.push({
+                            currentMeasure.events.push({
                                 name: 'avoidtextoff',
                                 position: measureData.length,
 								branch: currentBranch,
@@ -760,11 +674,11 @@ function getCourse(tjaHeaders, lines) {
                             break;
 
 						case 'DELAY':
-                            measureProperties['delay'] = parseFloat(line.value);
+                            currentMeasure.properties['delay'] = parseFloat(line.value);
                             break;
 
 						case 'SECTION':
-                            measureEvents.push({
+                            currentMeasure.events.push({
                                 name: 'section',
                                 position: measureData.length,
 								branch: currentBranch,
@@ -772,12 +686,12 @@ function getCourse(tjaHeaders, lines) {
                             break;
 
 						case 'MOVELINE':
-							measureProperties['moveLine'] = parseInt(line.value);
+							currentMeasure.properties['moveLine'] = parseInt(line.value);
 							break;
 
                         case 'TTBREAK':
 						case 'NEWLINE':
-                            measureProperties['ttBreak'] = true;
+                            currentMeasure.properties['ttBreak'] = true;
                             break;
 
 						/*
@@ -796,37 +710,20 @@ function getCourse(tjaHeaders, lines) {
             let data = line.data;
             if (data.endsWith(',')) {
 				measureData += data.slice(0, -1);
-				
-				if (firstBranch || !branching) {
-					let measureDatas = {N:null, E:null, M:null};
-					const measureNotes = getNotes(measureData, rollStates, headers.balloon, measures.length, currentBranch);
-					measureDatas[currentBranch] = measureNotes;
-
-					let measure = {
-						length: [measureDividend, measureDivisor],
-						lengthNotes: [measureDividendNotes, measureDivisorNotes],
-						properties: measureProperties,
-						data: measureDatas,
-						events: measureEvents,
-						nDivisions: 1,
-						dataNum: -1,
-					};
-					measures.push(measure);
-					currentBranchNum++;
-				}
-				else {
-					if (countBranchNum > 0) {
-						const measureNotes = getNotes(measureData, rollStates, headers.balloon, measures.length - countBranchNum, currentBranch);
-						measures[measures.length - countBranchNum].data[currentBranch] = measureNotes;
-						countBranchNum--;
-					}
-				}
-				
-                measureData = '';
-                measureEvents = [];
-                measureProperties = {};
+				pushMeasure();
             }
             else measureData += data;
+        }
+    }
+
+    // handle notes past the last `,`
+    if (measureData) {
+        pushMeasure();
+    }
+
+    for (let bt of ['N', 'E', 'M']) {
+        if (rollStates.roll[bt] !== null) {
+            // TODO: warn unended roll
         }
     }
 
@@ -852,26 +749,14 @@ function getCourse(tjaHeaders, lines) {
         }
     }
 
-    if (measureData) {
-        const measureNotes = getNotes(measureData, rollStates, headers.balloon, measures.length, currentBranch);
-        measures.push({
-            length: [measureDividend, measureDivisor],
-			lengthNotes: [measureDividendNotes, measureDivisorNotes],
-            properties: measureProperties,
-            data: {N:measureNotes, E:null, M:null},
-            events: measureEvents,
-			nDivisions: 1,
-			dataNum: -1,
-        });
-    } else {
-        for (let event of measureEvents) {
-            event.position = measures[measures.length - 1].data.nDivisions;
-            measures[measures.length - 1].events.push(event)
-        }
-    }
-
 	// After
 	for (let i = 0; i < measures.length; i++) {
+		// Calculate MEASURE progressively in case some measures were skipped
+		if (measures[i].length === null)
+			measures[i].length = (i > 0) ? measures[i - 1].length : [4, 4];
+		if (measures[i].lengthNotes === null)
+			measures[i].lengthNotes = (i > 0) ? measures[i - 1].lengthNotes : [4, 4];
+
 		// Add Zero
 		let lengths = [];
 		const branchs = ['N','E','M'];
@@ -881,7 +766,7 @@ function getCourse(tjaHeaders, lines) {
 				lengths.push(measures[i].data[b].nDivisions);
 			}
 		}
-		
+
 		measures[i].dataNum = lengths.length;
 		
 		const fixedMax = measures[i].nDivisions = arrayLCM(lengths);
@@ -922,9 +807,22 @@ function getCourse(tjaHeaders, lines) {
 		}
 	}
 
-    for (let bt of ['N', 'E', 'M']) {
-        if (rollStates.roll[bt] !== null) {
-            // TODO: warn unended roll
+    // handle events past the last `,` without notes
+    if (measures.length !== 0) {
+        const measure = measures[measures.length - 1];
+        if (measure.dataNum === 0) {
+            if (measure.events.length === 0) { // no events; can simply remove
+                measures.pop();
+            } else if (measures.length > 1) { // move to the back of the previous measure
+                measures.pop();
+                const lastMeasure = measures[measures.length - 1];
+                for (let event of measure.events) {
+                    event.position = lastMeasure.nDivisions;
+                    lastMeasure.events.push(event);
+                }
+            } else { // add blank measure data
+                measure.data['N'] = getNotes(''); // other arguments unused
+            }
         }
     }
 
