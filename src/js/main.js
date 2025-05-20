@@ -479,7 +479,7 @@ function buildStatisticsPage(data) {
         graphHeight = 200;
     const x = d3.scaleBand().rangeRound([0, graphWidth]);
     const y = d3.scaleLinear().rangeRound([graphHeight, 0]);
-    const yMax = Math.ceil(graph.max / 5) * 5;
+    const yMax = Math.max(1, Math.ceil(graph.max / 5)) * 5;
     const yTickValues = [...Array(yMax / 5 + 1).keys()].map(i => i * 5);
 
     $('.stat-graph').empty();
@@ -492,7 +492,7 @@ function buildStatisticsPage(data) {
     const layers = d3.stack().keys(['kadon', 'don', 'kat'])(graph.data);
 
     x.domain(layers[0].map((d, idx) => idx));
-    y.domain([0, Math.ceil(graph.max / 5) * 5]);
+    y.domain([0, Math.max(1, Math.ceil(graph.max / 5)) * 5]);
 
     const makeAxisY = () => d3.axisLeft(y).ticks(5).tickValues(yTickValues);
 
@@ -512,8 +512,8 @@ function buildStatisticsPage(data) {
         .data(d => d)
         .enter().append('rect')
         .attr('x', (d, idx) => x(idx))
-        .attr('y', d => y(d[1]))
-        .attr('height', d => y(d[0]) - y(d[1]))
+        .attr('y', d => y(d[1] / graph.timeframe))
+        .attr('height', d => y(d[0] / graph.timeframe) - y(d[1] / graph.timeframe))
         .attr('width', x.bandwidth);
 
     graphSvg.append('g')

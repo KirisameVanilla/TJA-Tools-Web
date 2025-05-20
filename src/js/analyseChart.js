@@ -278,8 +278,8 @@ function getGraph(course) {
     const data = [];
     let datum = { don: 0, kat: 0, kadon: 0 }, max = 0;
 
-    const dataCount = 100,
-        length = course.notes[course.notes.length - 1].time,
+    const length = ((course.notes.length !== 0) ? course.notes[course.notes.length - 1].time : 0),
+        dataCount = Math.max(1, Math.min(100, Math.ceil(length))),
         timeframe = Math.max(1, length / dataCount);
 
     const typeNote = ['don', 'kat', 'donBig', 'katBig', 'kadon'];
@@ -290,8 +290,8 @@ function getGraph(course) {
         const v1 = typeNote.indexOf(note.type);
         if (v1 !== -1) {
             while ((data.length + 1) * timeframe <= note.time) {
-                const sum = datum.don + datum.kat + datum.kadon;
-                if (max < sum) max = sum;
+                const density = (datum.don + datum.kat + datum.kadon) / timeframe;
+                if (max < density) max = density;
 
                 data.push(datum);
                 datum = { don: 0, kat: 0, kadon: 0 };
