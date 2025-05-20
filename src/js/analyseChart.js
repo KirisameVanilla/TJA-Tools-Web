@@ -280,7 +280,7 @@ function getGraph(course) {
 
     const dataCount = 100,
         length = course.notes[course.notes.length - 1].time,
-        timeframe = length / dataCount;
+        timeframe = Math.max(1, length / dataCount);
 
     const typeNote = ['don', 'kat', 'donBig', 'katBig', 'kadon'];
 
