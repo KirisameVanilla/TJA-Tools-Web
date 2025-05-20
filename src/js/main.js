@@ -63,7 +63,7 @@ let selectedGogoFloor = 'AC15';
 let selectedCalcMode = 'fromFile';
 
 const downloadNewUniqueId = async () => {
-    if (!tjaParsed === null) {
+    if (tjaParsed === null) {
         alert("Please select a chart");
         return;
     }
@@ -81,8 +81,12 @@ const downloadNewUniqueId = async () => {
 };
 
 const downloadStatisticsAsImage = async () => {
-    if (!tjaParsed === null || selectedDifficulty === "") {
+    if (tjaParsed === null || selectedDifficulty === "") {
         alert("Please select a chart and difficulty");
+        return;
+    }
+    if (tjaParsed.courses[selectedDifficulty] === undefined) {
+        alert("Please select an existent difficulty");
         return;
     }
 
@@ -106,8 +110,12 @@ const downloadStatisticsAsImage = async () => {
 };
 
 const downloadPreviewImage = async () => {
-    if (!tjaParsed === null || selectedDifficulty === "") {
+    if (tjaParsed === null || selectedDifficulty === "") {
         alert("Please select a chart and difficulty");
+        return;
+    }
+    if (tjaParsed.courses[selectedDifficulty] === undefined) {
+        alert("Please select an existent difficulty");
         return;
     }
 
@@ -231,7 +239,8 @@ function processTJA() {
 }
 
 function showPreview() {
-    if (selectedDifficulty === '') return;
+    if (tjaParsed === null || tjaParsed.courses[selectedDifficulty] === undefined)
+        return;
 
     $('#tja-preview').remove();
 
@@ -261,7 +270,8 @@ function hidePreview() {
 }
 
 function showStatistics() {
-    if (selectedDifficulty === '') return;
+    if (tjaParsed === null || tjaParsed.courses[selectedDifficulty] === undefined)
+        return;
 
     const enabledBranch = getEnabledBranch(tjaParsed, selectedDifficulty);
 

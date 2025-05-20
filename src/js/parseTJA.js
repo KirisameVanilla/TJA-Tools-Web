@@ -1199,6 +1199,8 @@ export function getEnabledBranch(chart, courseId) {
 	const branchTypes = ['N','E','M'];
 	let result = [];
 	const course = chart.courses[courseId];
+	if (course === undefined)
+		return result;
 	
 	for (let bt of branchTypes) {
 		let enabled = false;
