@@ -303,8 +303,10 @@ function getGraph(course) {
         }
     }
 
-    while (data.length < dataCount)
-        data.push({ don: 0, kat: 0, kadon: 0 });
+    while (data.length < dataCount) {
+        data.push(datum);
+        datum = { don: 0, kat: 0, kadon: 0 };
+    }
 
     return { timeframe, max, data };
 }
