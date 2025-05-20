@@ -176,8 +176,7 @@ export function convertToDonscore(chart, courseId) {
 					} else if (note.type === 'end' || note.type === 'endForced') {
 						tempData.push((note.type === 'end') ? endChar : '\\' + endChar);
 						rolling = false;
-						if (note.type === 'end')
-							continue;
+						continue;
 					} else if (rolling) {
 						if (balloonTextCount > 0) {
 							tempData.push(balloonText.charAt(balloonText.length - balloonTextCount--));
