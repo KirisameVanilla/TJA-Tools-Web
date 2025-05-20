@@ -808,6 +808,7 @@ function getCourse(tjaHeaders, lines) {
 						properties: measureProperties,
 						data: measureDatas,
 						events: measureEvents,
+						nDivisions: 1,
 						dataNum: -1,
 					};
 					measures.push(measure);
@@ -859,6 +860,7 @@ function getCourse(tjaHeaders, lines) {
             properties: measureProperties,
             data: {N:measureNotes, E:null, M:null},
             events: measureEvents,
+			nDivisions: 1,
 			dataNum: -1,
         });
     } else {
@@ -882,7 +884,7 @@ function getCourse(tjaHeaders, lines) {
 		
 		measures[i].dataNum = lengths.length;
 		
-		const fixedMax = arrayLCM(lengths);
+		const fixedMax = measures[i].nDivisions = arrayLCM(lengths);
 		
 		for (let j = 0; j < measures[i].events.length; j++) {
 			if (measures[i].data[measures[i].events[j].branch] != null) {

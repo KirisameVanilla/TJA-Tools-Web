@@ -102,7 +102,7 @@ function convertToTimed(course, branchType) {
 
         for (let e = 0; e < measure.events.length; e++) {
             const event = measure.events[e];
-            const eBeat = length / (measure.data['N'].nDivisions) * event.position;
+            const eBeat = length / measure.nDivisions * event.position;
 
             if (event.name === 'bpm') {
                 events.push({

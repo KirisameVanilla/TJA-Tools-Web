@@ -537,7 +537,7 @@ export default function (chart, courseId) {
                 // Go-go time
                 for (let i = 0; i < measure.events.length; i++) {
                     const event = measure.events[i];
-                    const eBeat = beat + (mBeat / (measure.data[row.branch[0]].nDivisions) * event.position);
+                    const eBeat = beat + (mBeat / measure.nDivisions * event.position);
 
                     if (event.name === 'gogoStart' && !gogoStart) {
                         gogoStart = [ridx, eBeat];
@@ -613,7 +613,7 @@ export default function (chart, courseId) {
                 // Events
                 for (let i = 0; i < measure.events.length; i++) {
                     const event = measure.events[i];
-                    const eBeat = mBeat / (measure.data[row.branch[0]].nDivisions) * event.position;
+                    const eBeat = mBeat / measure.nDivisions * event.position;
                     const ex = GET_BEAT_X(beat + eBeat);
 
                     if (event.name === 'scroll') {
@@ -782,7 +782,7 @@ export default function (chart, courseId) {
 
 					for (let didx = measure.data[bt].length; didx-- > 0;) {
 						const note = measure.data[bt][didx];
-						const nBeat = measure.rowBeat + (mBeat / measure.data[bt].nDivisions * note.position);
+						const nBeat = measure.rowBeat + (mBeat / measure.nDivisions * note.position);
 
 						let longEnd = null;
 
@@ -798,7 +798,7 @@ export default function (chart, courseId) {
 								const omitE = (rollEnd.note.type !== 'end'); // omit forced roll ends for clarity
 								const measureE = rows[ridxE].measures[midxE];
 								const mBeatE = measureE.lengthNotes[0] / measureE.lengthNotes[1] * 4;
-								const nBeatE = measureE.rowBeat + (mBeatE / measureE.data[bt].nDivisions * positionE);
+								const nBeatE = measureE.rowBeat + (mBeatE / measureE.nDivisions * positionE);
 								if (ridxE > 0 && nBeatE === 0) {
 									longEnd = [ridxE - 1, rows[ridxE - 1].beats, omitE];
 								}

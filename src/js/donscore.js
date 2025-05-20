@@ -116,19 +116,15 @@ export function convertToDonscore(chart, courseId) {
 	for (let i = 0; i < course.measures.length; i++) {
 		const measure = course.measures[i];
 		let lengths = [];
-		let firstBranch = '';
 		for (let bt of branchTypes) {
 			if (newData[i][bt] != null) {
 				lengths.push(newData[i][bt].nDivisions);
-				if (firstBranch === '') {
-					firstBranch = bt;
-				}
 			}
 		}
 		const fixedMax = arrayLCM(lengths);
 		
 		for (let j = 0; j < newEvent[i].length; j++) {
-			const rate = fixedMax / measure.data[firstBranch].nDivisions;
+			const rate = fixedMax / measure.nDivisions;
 			newEvent[i][j].position = newEvent[i][j].position * rate;
 		}
 		
