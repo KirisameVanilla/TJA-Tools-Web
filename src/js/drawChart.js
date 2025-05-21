@@ -96,106 +96,36 @@ function drawNoteSprite(ctx, row, yDelta, beat, type) {
 //==============================================================================
 // Long notes
 
-function drawLong(ctx, rows, sRow, sBeat, eRow, eBeat, color, type = 'body') {
-    let { x: sx, y: sy } = getNoteCenter(sRow, sBeat);
-    let { x: ex, y: ey } = getNoteCenter(eRow, eBeat);
-
-    const isGogo = type === 'gogo';
-    const isBig = type === 'bodyBig';
-
-    const yDelta = isGogo ? ROW_OFFSET_NOTE_CENTER : (NOTE_RADIUS + (isBig ? 3 : 0));
-    sy -= yDelta;
-    ey -= yDelta;
-
-    const h = isGogo ? ROW_HEIGHT_INFO : (NOTE_RADIUS * 2 + (isBig ? 6 : 0));
-	
-	const startOffset = sBeat === 0 ? 24 : 0;
-	
-    if (sRow === eRow) {
-        const w = ex - sx;
-
-        if (isGogo) {
-            drawRect(ctx, sx - startOffset, sy, w + startOffset, h, color);
-        }
-        else {
-            drawRect(ctx, sx, sy, w, h, '#000');
-            drawRect(ctx, sx, sy + 1, w, h - 2, '#fff');
-            drawRect(ctx, sx, sy + 2, w, h - 4, color);
-        }
-    }
-    else {
-        // start to end-of-row
-        const endOfStartRow = rows[sRow].totalBeat,
-            sw = GET_BEAT_X(endOfStartRow) - sx + ROW_TRAILING;
-
-        if (isGogo) {
-            drawRect(ctx, sx - startOffset, sy, sw + startOffset, h, color);
-        }
-        else {
-            drawRect(ctx, sx, sy, sw - 24, h, '#000');
-            drawRect(ctx, sx, sy + 1, sw - 24, h - 2, '#fff');
-            drawRect(ctx, sx, sy + 2, sw - 24, h - 4, color);
-        }
-
-        // full rows
-        for (let r = sRow + 1; r < eRow; r++) {
-            let ry = GET_ROW_Y(r) + sumNums(rowDeltas, r);
-            let rw = GET_BEAT_X(rows[r].totalBeat) + ROW_TRAILING;
-
-            if (isGogo) {
-                drawRect(ctx, 0, ry, rw, h, color);
-            }
-            else {
-                ry += ROW_OFFSET_NOTE_CENTER - NOTE_RADIUS - (isBig ? 3 : 0)
-                drawRect(ctx, 24, ry, rw - 48, h, '#000');
-                drawRect(ctx, 24, ry + 1, rw - 48, h - 2, '#fff');
-                drawRect(ctx, 24, ry + 2, rw - 48, h - 4, color);
-            }
-        }
-
-        // start-of-row to end
-        let ew = GET_BEAT_X(eBeat);
-		if (isNaN(eBeat)) {
-			ew = GET_BEAT_X(rows[eRow].totalBeat) + ROW_TRAILING;
-		}
-
-        if (isGogo) {
-			const fixedew = eBeat === 0 ? 0 : ew;
-            drawRect(ctx, 0, ey, fixedew, h, color);
-        }
-        else {
-            drawRect(ctx, 24, ey, ew - 24, h, '#000');
-            drawRect(ctx, 24, ey + 1, ew - 24, h - 2, '#fff');
-            drawRect(ctx, 24, ey + 2, ew - 24, h - 4, color);
-        }
-    }
-}
+const COLOR_GOGO = '#ffc0c0';
 
 function drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, type) {
     let { x: sx, y: sy } = getNoteCenter(sRow, sBeat);
     let { x: ex, y: ey } = getNoteCenter(eRow, eBeat);
-	sy += (rows[sRow].branch.indexOf(bt) * 24);
-	if (eRow != undefined) {
-		ey += (rows[eRow].branch.indexOf(bt) * 24);
-	}
-	else {
-		ey += (rows[rows.length - 1].branch.indexOf(bt) * 24);
+
+    const isGogo = type === 'gogo';
+	if (!isGogo) {
+		sy += (rows[sRow].branch.indexOf(bt) * 24);
+		if (eRow != undefined) {
+			ey += (rows[eRow].branch.indexOf(bt) * 24);
+		}
+		else {
+			ey += (rows[rows.length - 1].branch.indexOf(bt) * 24);
+		}
 	}
 	
-    const isGogo = false;
-    const isBig = false;
-
-    const yDelta = 12;
+    const yDelta = isGogo ? ROW_OFFSET_NOTE_CENTER : 12;
     sy -= yDelta;
     ey -= yDelta;
 
-    const h = 0;
+    const h = isGogo ? ROW_HEIGHT_INFO : 0;
+
+	const startOffset = sBeat === 0 ? 24 : 0;
 
     if (sRow === eRow) {
         const w = ex - sx;
 
         if (isGogo) {
-            drawRect(ctx, sx, sy, w, h, color);
+            drawRect(ctx, sx - startOffset, sy, w + startOffset, h, COLOR_GOGO);
         }
         else {
 			drawRectSprite(ctx, sx, sy, w, type)
@@ -208,7 +138,7 @@ function drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, type) {
 
         if (isGogo) {
 			const startOffset = sBeat === 0 ? 24 : 0;
-            drawRect(ctx, sx - startOffset, sy, sw + startOffset, h, color);
+            drawRect(ctx, sx - startOffset, sy, sw + startOffset, h, COLOR_GOGO);
         }
         else {
 			drawRectSprite(ctx, sx, sy, sw - 24, type)
@@ -216,19 +146,19 @@ function drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, type) {
 
         // full rows
         for (let r = sRow + 1; r < eRow; r++) {
-            let ry;
-			if (r != undefined) {
-				ry = GET_ROW_Y(r) + sumNums(rowDeltas, r) + (rows[r].branch.indexOf(bt) * 24);
-			}
-			else {
-				ry = GET_ROW_Y(r) + sumNums(rowDeltas, r) + (rows[rows.length - 1].branch.indexOf(bt) * 24);
-			}
+            let ry = GET_ROW_Y(r) + sumNums(rowDeltas, r);
             let rw = GET_BEAT_X(rows[r].totalBeat) + ROW_TRAILING;
 
             if (isGogo) {
-                drawRect(ctx, 0, ry, rw, h, color);
+                drawRect(ctx, 0, ry, rw, h, COLOR_GOGO);
             }
             else {
+				if (r != undefined) {
+					ry += rows[r].branch.indexOf(bt) * 24;
+				}
+				else {
+					ry += rows[rows.length - 1].branch.indexOf(bt) * 24;
+				}
                 ry += ROW_OFFSET_NOTE_CENTER - yDelta;
 				drawRectSprite(ctx, 24, ry, rw - 48, type);
             }
@@ -238,11 +168,14 @@ function drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, type) {
         let ew = GET_BEAT_X(eBeat);
 		if (isNaN(eBeat)) {
 			ew = GET_BEAT_X(rows[eRow].totalBeat);
+			if (isgogo) {
+				ew += ROW_TRAILING;
+			}
 		}
 
         if (isGogo) {
 			const fixedew = eBeat === 0 ? 0 : ew;
-            drawRect(ctx, 0, ey, fixedew, h, color);
+            drawRect(ctx, 0, ey, fixedew, h, COLOR_GOGO);
         }
         else {
 			drawRectSprite(ctx, 24, ey, ew - 24, type)
@@ -543,7 +476,7 @@ export default function (chart, courseId) {
                         gogoStart = [ridx, eBeat];
                     }
                     else if (event.name === 'gogoEnd' && gogoStart) {
-                        drawLong(ctx, rows, gogoStart[0], gogoStart[1], ridx, eBeat, '#ffc0c0', 'gogo');
+                        drawLongSprite(ctx, rows, 'N', gogoStart[0], gogoStart[1], ridx, eBeat, 'gogo');
                         gogoStart = false;
                     }
                 }
@@ -552,7 +485,7 @@ export default function (chart, courseId) {
             }
 			
 			if (ridx == rows.length - 1 && gogoStart) {
-				drawLong(ctx, rows, gogoStart[0], gogoStart[1], ridx, beat + 0.5, '#ffc0c0', 'gogo');
+				drawLongSprite(ctx, rows, 'N', gogoStart[0], gogoStart[1], ridx, beat + 0.5, 'gogo');
 			}
         }
 
