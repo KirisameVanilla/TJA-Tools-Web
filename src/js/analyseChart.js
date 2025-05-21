@@ -6,9 +6,9 @@ function pulseToTime(events, objects) {
     let times = [];
 
     while (oidx < objects.length) {
-        let event = events[eidx], objBeat = objects[oidx];
+        let event = events[eidx], obj = objects[oidx];
 
-        while (event && event.beat <= objBeat) {
+        while (event && event.absBeat <= obj.absBeat) {
             if (event.type === 'bpm') {
                 let beat = event.beat - passedBeat;
                 let time = 60 / bpm * beat;
@@ -22,7 +22,7 @@ function pulseToTime(events, objects) {
             event = events[eidx];
         }
 
-        let beat = objBeat - passedBeat;
+        let beat = obj.beat - passedBeat;
         let time = 60 / bpm * beat;
         times.push(passedTime + time);
 
@@ -36,7 +36,7 @@ function pulseToTime(events, objects) {
 
 function convertToTimed(course, branchType) {
     const events = [], notes = [];
-    let beat = 0, balloon = 0, roll = false, midxToNoteIdx = [];
+    let beat = 0, absBeat = 0, balloon = 0, roll = false, midxToNoteIdx = [];
 	
 	// Get Branch Data
 	let newData = [];
@@ -109,18 +109,21 @@ function convertToTimed(course, branchType) {
                     type: 'bpm',
                     value: event.value,
                     beat: beat + eBeat,
+                    absBeat: absBeat + Math.abs(eBeat),
                 });
             }
             else if (event.name === 'gogoStart') {
                 events.push({
                     type: 'gogoStart',
                     beat: beat + eBeat,
+                    absBeat: absBeat + Math.abs(eBeat),
                 });
             }
             else if (event.name === 'gogoEnd') {
                 events.push({
                     type: 'gogoEnd',
                     beat: beat + eBeat,
+                    absBeat: absBeat + Math.abs(eBeat),
                 });
             }
         }
@@ -137,14 +140,16 @@ function convertToTimed(course, branchType) {
                     count: note.count,
                     end: note.end,
                     beat: beat + nBeat,
+                    absBeat: absBeat + Math.abs(nBeat),
                 });
             }
         }
 
         beat += length;
+        absBeat += Math.abs(length);
     }
 
-    const times = pulseToTime(events, notes.map(n => n.beat));
+    const times = pulseToTime(events, notes.map(n => ({beat: n.beat, absBeat: n.absBeat})));
     times.forEach((t, idx) => { notes[idx].time = t; });
 
     return { headers: course.headers, events, notes, midxToNoteIdx };

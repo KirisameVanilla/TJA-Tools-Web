@@ -48,7 +48,7 @@ export function convertToDonscore(chart, courseId) {
 				continue;
 			}
 
-			const fixed48th = 48 / measure.length[1] * measure.length[0];
+			const fixed48th = Math.abs(48 / measure.length[1] * measure.length[0]);
 			tempData[bt] = [];
 			Object.assign(tempData[bt], measure.data[bt]); // shallow array copy to modify nDivisions
 			for (let j = 0; j < tempData[bt].length; ++j)
@@ -106,7 +106,7 @@ export function convertToDonscore(chart, courseId) {
 			if (newData[i][bt] === null) {
 				continue;
 			}
-			const dataLCM = lcm(newData[i][bt].nDivisions, course.measures[i].length[0]);
+			const dataLCM = lcm(newData[i][bt].nDivisions, Math.ceil(Math.abs(course.measures[i].length[0])));
 			if (dataLCM > newData[i][bt].nDivisions) {
 				addZero(newData[i][bt], dataLCM);
 			}
@@ -325,14 +325,17 @@ export function convertToDonscore(chart, courseId) {
 			result.push('#newline');
 		}
 		
-		// Meter
+		// Meter & BeatChar
 		let nowMeter = [measure.length[1], measure.length[0]];
+		if (nowMeter[0] < 0)
+			nowMeter = nowMeter.map(x => -x);
+		let nowBeatChar = converted[m][nowBranch[0]].length / measure.length[0];
+		if (!isFinite(nowBeatChar)) {
+			nowBeatChar = converted[m][nowBranch[0]].length;
+		}
 		if (!compareArray(preMeter, nowMeter)) {
 			result.push(`#meter ${nowMeter[0]} ${nowMeter[1]}`);
 		}
-		
-		// BeatChar
-		let nowBeatChar = converted[m][nowBranch[0]].length / measure.length[0];
 		if (preBeatChar != nowBeatChar) {
 			result.push(`#beatchar ${nowBeatChar}`);
 		}
@@ -343,9 +346,9 @@ export function convertToDonscore(chart, courseId) {
 				continue;
 			}
 			const event = newEvent[m][i];
-			const fixedMeasure = lcm(measure.length[1], 4);
-			const fixedPosition = event.position * (fixedMeasure / measure.length[1]);
-			const splitNum = converted[m][nowBranch[0]].length / measure.length[0] * (fixedMeasure / 4);
+			const fixedMeasure = lcm(Math.abs(measure.length[1]), 4);
+			const fixedPosition = event.position * (fixedMeasure / Math.abs(measure.length[1]));
+			const splitNum = converted[m][nowBranch[0]].length / Math.abs(measure.length[0]) * (fixedMeasure / 4);
 			let eventText = '';
 			
 			switch (event.name) {

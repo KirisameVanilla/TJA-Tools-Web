@@ -562,24 +562,31 @@ function getCourse(tjaHeaders, lines) {
                 default:
                     switch (line.name) {
                         case 'MEASURE':
-                            let matchMeasure = line.value.match(/(\d+)\/(\d+)/);
-							let matchMeasure2 = line.value.match(/(\d+)\/(\d+),\s*(\d+)\/(\d+)/);
-                            if (!matchMeasure && !matchMeasure2) break;
+							let divs = line.value.replace(/,$/, '').split(',');
+							if (divs.length === 0 || divs.length > 2)
+								break;
 
-							let measureDividend = 4, measureDivisor = 4;
-							let measureDividendNotes = 4, measureDivisorNotes = 4;
+							let div = divs[0].split('/').map(s => s.trim());
+							if (!(div.length === 2 && div[0] && !isNaN(div[0]) && div[1] && !isNaN(div[1])))
+								break;
+							let measureDividend = parseFloat(div[0], 10);
+							let measureDivisor = parseFloat(div[1], 10);
+							if (!isFinite(measureDividend / measureDivisor))
+								break;
 
-							if (matchMeasure2) {
-								measureDividend = parseInt(matchMeasure2[1], 10);
-								measureDivisor = parseInt(matchMeasure2[2], 10);
-								measureDividendNotes = parseInt(matchMeasure2[3], 10);
-								measureDivisorNotes = parseInt(matchMeasure2[4], 10);
-							}
-							else {
-								measureDividend = parseInt(matchMeasure[1], 10);
-								measureDivisor = parseInt(matchMeasure[2], 10);
-								measureDividendNotes = parseInt(matchMeasure[1], 10);
-								measureDivisorNotes = parseInt(matchMeasure[2], 10);
+							let measureDividendNotes;
+							let measureDivisorNotes;
+							if (divs[1] === undefined) {
+								measureDividendNotes = measureDividend;
+								measureDivisorNotes = measureDivisor;
+							} else {
+								let divNote = divs[1].split('/').map(s => s.trim());
+								if (!(divNote.length === 2 && divNote[0] && !isNaN(divNote[0]) && divNote[1] && !isNaN(divNote[1])))
+									break;
+								measureDividendNotes = parseFloat(matchMeasure2[3], 10);
+								measureDivisorNotes = parseFloat(matchMeasure2[4], 10);
+								if (!isFinite(measureDividendNotes / measureDivisorNotes))
+									break;
 							}
 
 							currentMeasure.length = [measureDividend, measureDivisor];

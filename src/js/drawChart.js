@@ -263,8 +263,8 @@ export default function (chart, courseId) {
 
     for (let midx = 0; midx < course.measures.length; midx++) {
         const measure = course.measures[midx];
-        const measureBeat = measure.nBeats = measure.length[0] / measure.length[1] * 4;
-        measure.nBeatNotes = measure.lengthNotes[0] / measure.lengthNotes[1] * 4;
+        const measureBeat = measure.nBeats = Math.abs(measure.length[0] / measure.length[1] * 4);
+        measure.nBeatNotes = Math.abs(measure.lengthNotes[0] / measure.lengthNotes[1] * 4);
 
 		let nRowBranches = measure.dataBranches.length;
 
@@ -491,9 +491,9 @@ export default function (chart, courseId) {
                 const ny = y + ROW_HEIGHT_INFO;
 
                 const isRowEnd = (midx == measures.length - 1);
-                const nGrids = measure.length[0] * 2 + (isRowEnd ? 1 : 0);
+                const nGrids = Math.abs(measure.length[0]) * 2 + (isRowEnd ? 1 : 0);
                 for (let i = 0; i < nGrids; i++) {
-                    const subBeat = i / measure.length[1] * 2;
+                    const subBeat = i / Math.abs(measure.length[1]) * 2;
                     const subx = GET_BEAT_X(measure.rowBeat + subBeat);
                     const style = '#fff' + (i % 2 ? '4' : '8');
 
