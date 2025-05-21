@@ -98,88 +98,43 @@ function drawNoteSprite(ctx, row, yDelta, beat, type) {
 
 const COLOR_GOGO = '#ffc0c0';
 
-function drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, type) {
-    let { x: sx, y: sy } = getNoteCenter(sRow, sBeat);
-    let { x: ex, y: ey } = getNoteCenter(eRow, eBeat);
-
+function drawLongOnRow(ctx, rows, bt, ridx, sBeat, eBeat, type) {
     const isGogo = type === 'gogo';
-	if (!isGogo) {
-		sy += (rows[sRow].branch.indexOf(bt) * 24);
-		if (eRow != undefined) {
-			ey += (rows[eRow].branch.indexOf(bt) * 24);
-		}
-		else {
-			ey += (rows[rows.length - 1].branch.indexOf(bt) * 24);
-		}
-	}
-	
-    const yDelta = isGogo ? ROW_OFFSET_NOTE_CENTER : 12;
-    sy -= yDelta;
-    ey -= yDelta;
+    const sx = (sBeat > 0) ? GET_BEAT_X(sBeat)
+        : isGogo ? 0
+        : ROW_LEADING;
+    const ex = !isNaN(eBeat) ? GET_BEAT_X(eBeat)
+        : isGogo ? GET_BEAT_X(rows[ridx].totalBeat) + ROW_TRAILING
+        : GET_BEAT_X(rows[ridx].totalBeat);
+    let y = GET_ROW_Y(ridx) + sumNums(rowDeltas, ridx);
+    if (isGogo) {
+        drawRect(ctx, sx, y, ex - sx, ROW_HEIGHT_INFO, COLOR_GOGO);
+    }
+    else {
+        if (ridx !== undefined)
+            y += rows[ridx].branch.indexOf(bt) * 24;
+        else
+            y += rows[rows.length - 1].branch.indexOf(bt) * 24;
+        y += ROW_OFFSET_NOTE_CENTER - 12;
+        drawRectSprite(ctx, sx, y, ex - sx, type)
+    }
+}
 
-    const h = isGogo ? ROW_HEIGHT_INFO : 0;
-
-	const startOffset = sBeat === 0 ? 24 : 0;
-
+function drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, type) {
     if (sRow === eRow) {
-        const w = ex - sx;
-
-        if (isGogo) {
-            drawRect(ctx, sx - startOffset, sy, w + startOffset, h, COLOR_GOGO);
-        }
-        else {
-			drawRectSprite(ctx, sx, sy, w, type)
-        }
+        drawLongOnRow(ctx, rows, bt, sRow, sBeat, eBeat, type);
     }
     else {
         // start to end-of-row
-        const endOfStartRow = rows[sRow].totalBeat,
-            sw = GET_BEAT_X(endOfStartRow) - sx + ROW_TRAILING;
-
-        if (isGogo) {
-			const startOffset = sBeat === 0 ? 24 : 0;
-            drawRect(ctx, sx - startOffset, sy, sw + startOffset, h, COLOR_GOGO);
-        }
-        else {
-			drawRectSprite(ctx, sx, sy, sw - 24, type)
-        }
+        drawLongOnRow(ctx, rows, bt, sRow, sBeat, undefined, type);
 
         // full rows
         for (let r = sRow + 1; r < eRow; r++) {
-            let ry = GET_ROW_Y(r) + sumNums(rowDeltas, r);
-            let rw = GET_BEAT_X(rows[r].totalBeat) + ROW_TRAILING;
-
-            if (isGogo) {
-                drawRect(ctx, 0, ry, rw, h, COLOR_GOGO);
-            }
-            else {
-				if (r != undefined) {
-					ry += rows[r].branch.indexOf(bt) * 24;
-				}
-				else {
-					ry += rows[rows.length - 1].branch.indexOf(bt) * 24;
-				}
-                ry += ROW_OFFSET_NOTE_CENTER - yDelta;
-				drawRectSprite(ctx, 24, ry, rw - 48, type);
-            }
+            drawLongOnRow(ctx, rows, bt, r, 0, undefined, type);
         }
 
         // start-of-row to end
-        let ew = GET_BEAT_X(eBeat);
-		if (isNaN(eBeat)) {
-			ew = GET_BEAT_X(rows[eRow].totalBeat);
-			if (isgogo) {
-				ew += ROW_TRAILING;
-			}
-		}
-
-        if (isGogo) {
-			const fixedew = eBeat === 0 ? 0 : ew;
-            drawRect(ctx, 0, ey, fixedew, h, COLOR_GOGO);
-        }
-        else {
-			drawRectSprite(ctx, 24, ey, ew - 24, type)
-        }
+        drawLongOnRow(ctx, rows, bt, eRow, 0, eBeat, type);
     }
 }
 
