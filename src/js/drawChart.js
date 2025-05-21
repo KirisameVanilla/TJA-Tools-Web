@@ -111,16 +111,15 @@ function drawLongOnRow(ctx, rows, bt, ridx, sBeat, eBeat, type) {
         drawRect(ctx, sx, y, ex - sx, ROW_HEIGHT_INFO, COLOR_GOGO);
     }
     else {
-        if (ridx !== undefined)
-            y += rows[ridx].branch.indexOf(bt) * 24;
-        else
-            y += rows[rows.length - 1].branch.indexOf(bt) * 24;
-        y += ROW_OFFSET_NOTE_CENTER - 12;
+        y += rows[ridx].branch.indexOf(bt) * 24 + ROW_OFFSET_NOTE_CENTER - 12;
         drawRectSprite(ctx, sx, y, ex - sx, type)
     }
 }
 
 function drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, type) {
+    if (eRow === undefined)
+        eRow = rows.length - 1;
+
     if (sRow === eRow) {
         drawLongOnRow(ctx, rows, bt, sRow, sBeat, eBeat, type);
     }
@@ -155,13 +154,7 @@ function drawRendaSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, omitEnd, type)
 	if (eRow != undefined && !omitEnd) {
 		drawNoteSprite(ctx, eRow, rows[eRow].branch.indexOf(bt) * 24, eBeat, type + 'End');
 	}
-	let feRow = eRow;
-	let feBeat = eBeat;
-	if (eRow == undefined) {
-		feRow = rows.length - 1;
-		feBeat = rows[rows.length - 1].totalBeat;
-	}
-	drawLongSprite(ctx, rows, bt, sRow, sBeat, feRow, feBeat, type + 'Middle');
+	drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, type + 'Middle');
 	drawNoteSprite(ctx, sRow, rows[sRow].branch.indexOf(bt) * 24, sBeat, type + 'Start');
 }
 
@@ -680,7 +673,7 @@ export default function (chart, courseId) {
 						if (isRollType(note.type)) {
 							const rollEnd = note.end;
 							if (rollEnd === undefined) {
-								longEnd = [undefined, 0, true];
+								longEnd = [undefined, undefined, true];
 							} else {
 								const rmidxE = midxToRmidx[rollEnd.midx];
 								const ridxE = rmidxE[0], midxE = rmidxE[1], positionE = rollEnd.note.position;
