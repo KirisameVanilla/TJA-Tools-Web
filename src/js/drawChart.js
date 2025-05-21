@@ -673,7 +673,7 @@ export default function (chart, courseId) {
 				
 				if (barlineTemp) {
 					if (midx + 1 === measures.length) {
-						const mx2 = GET_BEAT_X(measure.rowBeat);
+						const mx2 = GET_BEAT_X(row.totalBeat);
 						drawLine(ctx, mx2, y, mx2, y + ROW_HEIGHT + rowDeltas[ridx], 2, '#fff', eventCover, avoidText);
 					}
 				}
