@@ -572,7 +572,9 @@ export default function (chart, courseId) {
                 // Sub grid
                 const ny = y + ROW_HEIGHT_INFO;
 
-                for (let i = 0; i < measure.length[0] * 2 + 1; i++) {
+                const isRowEnd = (midx == measures.length - 1);
+                const nGrids = measure.length[0] * 2 + (isRowEnd ? 1 : 0);
+                for (let i = 0; i < nGrids; i++) {
                     const subBeat = i / measure.length[1] * 2;
                     const subx = GET_BEAT_X(beat + subBeat);
                     const style = '#fff' + (i % 2 ? '4' : '8');
