@@ -49,8 +49,9 @@ export function convertToDonscore(chart, courseId) {
 			}
 
 			const fixed48th = 48 / measure.length[1] * measure.length[0];
-			tempData[bt] = {...measure.data[bt]}; // shallow copy to modify nDivisions
-			for (let j = 0; j < tempData[bt]; ++j)
+			tempData[bt] = [];
+			Object.assign(tempData[bt], measure.data[bt]); // shallow array copy to modify nDivisions
+			for (let j = 0; j < tempData[bt].length; ++j)
 				tempData[bt][j] = {...tempData[bt][j]}; // shallow copy to modify position
 			if (fixed48th > tempData[bt].nDivisions && fixed48th % tempData[bt].nDivisions === 0) {
 				addZero(tempData[bt], fixed48th);
