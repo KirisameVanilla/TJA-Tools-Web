@@ -359,7 +359,7 @@ function getCourse(tjaHeaders, lines) {
                 data: {N: null, E: null, M: null},
                 events: [],
                 nDivisions: 1,
-                dataNum: -1,
+                dataBranches: [],
             };
             measures.push(measure);
         }
@@ -764,11 +764,10 @@ function getCourse(tjaHeaders, lines) {
 		for (let b of branchs) {
 			if (measures[i].data[b] != null) {
 				lengths.push(measures[i].data[b].nDivisions);
+				measures[i].dataBranches.push(b);
 			}
 		}
 
-		measures[i].dataNum = lengths.length;
-		
 		const fixedMax = measures[i].nDivisions = arrayLCM(lengths);
 		
 		for (let j = 0; j < measures[i].events.length; j++) {
@@ -810,7 +809,7 @@ function getCourse(tjaHeaders, lines) {
     // handle events past the last `,` without notes
     if (measures.length !== 0) {
         const measure = measures[measures.length - 1];
-        if (measure.dataNum === 0) {
+        if (measure.dataBranches.length === 0) {
             if (measure.events.length === 0) { // no events; can simply remove
                 measures.pop();
             } else if (measures.length > 1) { // move to the back of the previous measure

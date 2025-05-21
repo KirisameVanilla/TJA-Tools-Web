@@ -387,7 +387,7 @@ export function convertToDonscore(chart, courseId) {
 						if (event.position > 0) {
 							eventText += ` ${splitNum} ${fixedPosition}`;
 						}
-						if (scrollsTemp.length != 1 || sTemp.branch.length != measure.dataNum) {
+						if (scrollsTemp.length != 1 || sTemp.branch.length != measure.dataBranches.length) {
 							eventText += ' ';
 							for (let bt of branchTypes) {
 								eventText += sTemp.branch.includes(bt) ? 'o' : 'x';
