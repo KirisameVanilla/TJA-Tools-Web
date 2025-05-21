@@ -28,6 +28,8 @@ const GET_BEAT_X = beat => ROW_LEADING + (beat * BEAT_WIDTH);
 const GET_MEASURE_POS_BEAT = (measure, position) => measure.rowBeat + (measure.nBeats / measure.nDivisions * position);
 const GET_MEASURE_POS_BEAT_NOTE = (measure, position) => measure.rowBeat + (measure.nBeatNotes / measure.nDivisions * position);
 
+const GET_BEAT_ROW_MIDX = (row, beat) => row.measures.findLastIndex(m => (m.rowBeat <= beat));
+
 let rowDeltas = [];
 const branchTypes = ['N','E','M'];
 
@@ -102,7 +104,7 @@ function drawNoteSprite(ctx, row, yDelta, beat, type) {
 
 const COLOR_GOGO = '#ffc0c0';
 
-function drawLongOnRow(ctx, rows, bt, ridx, sBeat, eBeat, type) {
+function drawLongOnMeasure(ctx, rows, bt, ridx, midx, sBeat, eBeat, type) {
     const isGogo = type === 'gogo';
     const sx = (sBeat > 0) ? GET_BEAT_X(sBeat)
         : isGogo ? 0
@@ -120,6 +122,26 @@ function drawLongOnRow(ctx, rows, bt, ridx, sBeat, eBeat, type) {
             y += bidx * 24 + ROW_OFFSET_NOTE_CENTER - 12;
             drawRectSprite(ctx, sx, y, ex - sx, type)
         }
+    }
+}
+
+function drawLongOnRow(ctx, rows, bt, ridx, sBeat, eBeat, type) {
+    const sMidx = GET_BEAT_ROW_MIDX(rows[ridx], sBeat);
+    const eMidx = !isNaN(eBeat) ? GET_BEAT_ROW_MIDX(rows[ridx], eBeat)
+        : rows[ridx].measures.length - 1;
+    if (sMidx === eMidx) {
+        drawLongOnMeasure(ctx, rows, bt, ridx, sMidx, sBeat, eBeat, type);
+    } else {
+        // start to end-of-measure
+        drawLongOnMeasure(ctx, rows, bt, ridx, sMidx, sBeat, rows[ridx].measures[sMidx + 1].rowBeat, type);
+
+        // full measures
+        for (let m = sMidx + 1; m < eMidx; ++m) {
+            drawLongOnMeasure(ctx, rows, bt, ridx, m, rows[ridx].measures[m].rowBeat, rows[ridx].measures[m + 1].rowBeat, type);
+        }
+
+        // start-of-measure to end
+        drawLongOnMeasure(ctx, rows, bt, ridx, eMidx, rows[ridx].measures[eMidx].rowBeat, eBeat, type);
     }
 }
 
@@ -298,44 +320,50 @@ export default function (chart, courseId) {
             const measures = row.measures;
 
             const rowWidth = ROW_LEADING + (BEAT_WIDTH * row.totalBeat) + ROW_TRAILING;
-
             const y = GET_ROW_Y(ridx) + sumNums(rowDeltas, ridx);
 
-			let rowOffset = 0;
 			const rowColor1 = {'N':'#d4d4d4','E':'#c9dede','M':'#dec9c9'};
 			const rowColor2 = {'N':'#aaaaaa','E':'#94bfbf','M':'#bf9494'};
 			const rowColor3 = {'N':'#808080','E':'#609f9f','M':'#9f6060'};
-            drawRect(ctx, 0, y + ROW_HEIGHT_INFO, rowWidth, 2, '#000');
-            drawRect(ctx, 0, y + ROW_HEIGHT_INFO + 2, rowWidth, 2, '#fff');
-			drawRect(ctx, 0, y + ROW_HEIGHT_INFO + 4, rowWidth, 1, rowColor1[row.branch[0]]);
-            drawRect(ctx, 0, y + ROW_HEIGHT_INFO + 5, rowWidth, 1, rowColor2[row.branch[0]]);
-			rowOffset += 6;
-			
-			switch (row.dataNum) {
-				case 1:
-					drawRect(ctx, 0, y + ROW_HEIGHT_INFO + rowOffset, rowWidth, ROW_HEIGHT_NOTE - 12, rowColor3[row.branch[0]]);
-					rowOffset += ROW_HEIGHT_NOTE - 12;
-					break;
-				case 2:
-					drawRect(ctx, 0, y + ROW_HEIGHT_INFO + rowOffset, rowWidth, ROW_HEIGHT_NOTE - 10, rowColor3[row.branch[0]]);
-					rowOffset += ROW_HEIGHT_NOTE - 10;
-					drawRect(ctx, 0, y + ROW_HEIGHT_INFO + rowOffset, rowWidth, ROW_HEIGHT_NOTE - 10, rowColor3[row.branch[1]]);
-					rowOffset += ROW_HEIGHT_NOTE - 10;
-					break;
-				case 3:
-					drawRect(ctx, 0, y + ROW_HEIGHT_INFO + rowOffset, rowWidth, ROW_HEIGHT_NOTE - 10, rowColor3[row.branch[0]]);
-					rowOffset += ROW_HEIGHT_NOTE - 10;
-					drawRect(ctx, 0, y + ROW_HEIGHT_INFO + rowOffset, rowWidth, ROW_HEIGHT_NOTE - 8, rowColor3[row.branch[1]]);
-					rowOffset += ROW_HEIGHT_NOTE - 8;
-					drawRect(ctx, 0, y + ROW_HEIGHT_INFO + rowOffset, rowWidth, ROW_HEIGHT_NOTE - 10, rowColor3[row.branch[2]]);
-					rowOffset += ROW_HEIGHT_NOTE - 10;
-					break;
+
+			for (let midx = 0; midx < measures.length; ++midx) {
+                const sx = (midx === 0) ? 0 : GET_BEAT_X(row.measures[midx].rowBeat);
+                const ex = (midx + 1 >= measures.length) ? rowWidth : GET_BEAT_X(row.measures[midx + 1].rowBeat);
+                const w = ex - sx;
+				let rowOffset = 0;
+
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO, w, 2, '#000');
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + 2, w, 2, '#fff');
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + 4, w, 1, rowColor1[row.branch[0]]);
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + 5, w, 1, rowColor2[row.branch[0]]);
+				rowOffset += 6;
+
+				switch (row.dataNum) {
+					case 1:
+						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 12, rowColor3[row.branch[0]]);
+						rowOffset += ROW_HEIGHT_NOTE - 12;
+						break;
+					case 2:
+						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 10, rowColor3[row.branch[0]]);
+						rowOffset += ROW_HEIGHT_NOTE - 10;
+						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 10, rowColor3[row.branch[1]]);
+						rowOffset += ROW_HEIGHT_NOTE - 10;
+						break;
+					case 3:
+						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 10, rowColor3[row.branch[0]]);
+						rowOffset += ROW_HEIGHT_NOTE - 10;
+						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 8, rowColor3[row.branch[1]]);
+						rowOffset += ROW_HEIGHT_NOTE - 8;
+						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 10, rowColor3[row.branch[2]]);
+						rowOffset += ROW_HEIGHT_NOTE - 10;
+						break;
+				}
+
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, 1, rowColor2[row.branch[row.branch.length - 1]]);
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset + 1, w, 1, rowColor1[row.branch[row.branch.length - 1]]);
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset + 2, w, 2, '#fff');
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset + 4, w, 2, '#000');
 			}
-			
-			drawRect(ctx, 0, y + ROW_HEIGHT_INFO + rowOffset, rowWidth, 1, rowColor2[row.branch[row.branch.length - 1]]);
-			drawRect(ctx, 0, y + ROW_HEIGHT_INFO + rowOffset + 1, rowWidth, 1, rowColor1[row.branch[row.branch.length - 1]]);
-			drawRect(ctx, 0, y + ROW_HEIGHT_INFO + rowOffset + 2, rowWidth, 2, '#fff');
-			drawRect(ctx, 0, y + ROW_HEIGHT_INFO + rowOffset + 4, rowWidth, 2, '#000');
         }
 		
 		let uraSymbols = getUraSymbol(chart.headers.font.toLowerCase());
