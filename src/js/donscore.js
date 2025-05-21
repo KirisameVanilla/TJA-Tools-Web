@@ -250,6 +250,15 @@ export function convertToDonscore(chart, courseId) {
 				if (rollEndSymbol.includes(ch) && (i > 0 || j > 0)) {
 					if (j === 0) {
 						converted[i][bt][j] = ' ';
+						if (converted[i - 1][bt] === null) {
+							// A branch X roll ends at branch point but the previous branch section has no branch X
+							for (let btp of branchTypes) {
+								if (converted[i - 1][btp] !== null) {
+									converted[i - 1][bt] = Array(...Array(converted[i - 1][btp].length)).map(() => '=');
+									break;
+								}
+							}
+						}
 						converted[i - 1][bt][converted[i - 1][bt].length - 1] = ch;
 					}
 					else {
@@ -285,7 +294,7 @@ export function convertToDonscore(chart, courseId) {
 		// Change Branch
 		let nowBranch = [];
 		for (let bt of branchTypes) {
-			if (measure.data[bt] != null) {
+			if (converted[m][bt] != null) {
 				nowBranch.push(bt);
 			}
 		}
