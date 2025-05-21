@@ -111,8 +111,11 @@ function drawLongOnRow(ctx, rows, bt, ridx, sBeat, eBeat, type) {
         drawRect(ctx, sx, y, ex - sx, ROW_HEIGHT_INFO, COLOR_GOGO);
     }
     else {
-        y += rows[ridx].branch.indexOf(bt) * 24 + ROW_OFFSET_NOTE_CENTER - 12;
-        drawRectSprite(ctx, sx, y, ex - sx, type)
+        const bidx = rows[ridx].branch.indexOf(bt);
+        if (bidx >= 0) {
+            y += bidx * 24 + ROW_OFFSET_NOTE_CENTER - 12;
+            drawRectSprite(ctx, sx, y, ex - sx, type)
+        }
     }
 }
 
@@ -152,7 +155,9 @@ function drawRectSprite(ctx, x, y, w, type) {
 
 function drawRendaSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, omitEnd, type) {
 	if (eRow != undefined && !omitEnd) {
-		drawNoteSprite(ctx, eRow, rows[eRow].branch.indexOf(bt) * 24, eBeat, type + 'End');
+		const bidxE = rows[eRow].branch.indexOf(bt);
+		if (bidxE >= 0)
+			drawNoteSprite(ctx, eRow, bidxE * 24, eBeat, type + 'End');
 	}
 	drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, type + 'Middle');
 	drawNoteSprite(ctx, sRow, rows[sRow].branch.indexOf(bt) * 24, sBeat, type + 'Start');
@@ -176,7 +181,9 @@ function drawBalloonSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, omitEnd, cou
 	}
 	
 	if (eRow != undefined && !omitEnd) {
-		drawNoteSprite(ctx, eRow, rows[eRow].branch.indexOf(bt) * 24, eBeat, 'spRollEnd');
+		const bidxE = rows[eRow].branch.indexOf(bt);
+		if (bidxE >= 0)
+			drawNoteSprite(ctx, eRow, bidxE * 24, eBeat, 'spRollEnd');
 	}
 	drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, 'spRollMiddle');
 	drawNoteSprite(ctx, sRow, rows[sRow].branch.indexOf(bt) * 24, sBeat, 'spRollStart');
@@ -189,7 +196,9 @@ function drawBalloonSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, omitEnd, cou
 
 function drawFuseSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, omitEnd, count) {
 	if (eRow != undefined && !omitEnd) {
-		drawNoteSprite(ctx, eRow, rows[eRow].branch.indexOf(bt) * 24, eBeat, 'fuseEnd');
+		const bidxE = rows[eRow].branch.indexOf(bt);
+		if (bidxE >= 0)
+			drawNoteSprite(ctx, eRow, bidxE * 24, eBeat, 'fuseEnd');
 	}
 	drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, 'fuseMiddle');
 	drawNoteSprite(ctx, sRow, rows[sRow].branch.indexOf(bt) * 24, sBeat, 'fuse');
