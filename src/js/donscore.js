@@ -298,11 +298,24 @@ export function convertToDonscore(chart, courseId) {
 				nowBranch.push(bt);
 			}
 		}
-		
-		if (!compareArray(preBranch, nowBranch)) {
-			let branchText = '#branch ';
-			for (let bt of branchTypes) {
-				branchText += nowBranch.includes(bt) ? 'o' : 'x';
+
+		// Branch Start
+		let hasBranchStart = false;
+		for (let event of measure.events) {
+			if (event.name === 'branchStart') {
+				hasBranchStart = true;
+				break;
+			}
+		}
+
+		const diffBranches = !compareArray(preBranch, nowBranch);
+		if (hasBranchStart || diffBranches) {
+			let branchText = '#branch';
+			if (diffBranches) {
+				branchText += ' ';
+				for (let bt of branchTypes) {
+					branchText += nowBranch.includes(bt) ? 'o' : 'x';
+				}
 			}
 			result.push(branchText);
 		}
