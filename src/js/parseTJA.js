@@ -583,8 +583,8 @@ function getCourse(tjaHeaders, lines) {
 								let divNote = divs[1].split('/').map(s => s.trim());
 								if (!(divNote.length === 2 && divNote[0] && !isNaN(divNote[0]) && divNote[1] && !isNaN(divNote[1])))
 									break;
-								measureDividendNotes = parseFloat(matchMeasure2[3], 10);
-								measureDivisorNotes = parseFloat(matchMeasure2[4], 10);
+								measureDividendNotes = parseFloat(divNote[0], 10);
+								measureDivisorNotes = parseFloat(divNote[1], 10);
 								if (!isFinite(measureDividendNotes / measureDivisorNotes))
 									break;
 							}
