@@ -265,24 +265,25 @@ export default function (chart, courseId) {
         const measure = course.measures[midx];
         const measureBeat = measure.nBeats = Math.abs(measure.length[0] / measure.length[1] * 4);
         measure.nBeatNotes = Math.abs(measure.lengthNotes[0] / measure.lengthNotes[1] * 4);
-
-		let nRowBranches = measure.dataBranches.length;
+        measure.rowDelta = (measure.dataBranches.length - 1) * 24;
 
 		if (measure.properties.moveLine != undefined && !isNaN(measure.properties.moveLine)) {
 			moveLineTemp = measure.properties.moveLine;
 		}
 
-        if (ttRowBeat < rowBeats[rowBeats.length - 1] + measureBeat || measure.properties.ttBreak || (midx > 0 && nPrevBranches !== nRowBranches)) {
+        if (ttRowBeat < rowBeats[rowBeats.length - 1] + measureBeat || measure.properties.ttBreak) {
             rows.push({ totalBeat: rowBeats[rowBeats.length - 1], measures: rowTemp, nBranches: nPrevBranches, moveLine: moveLineTemp});
             rowTemp = [];
             rowBeats = [0];
+            nPrevBranches = 0;
         }
 
         midxToRmidx[midx] = [rows.length, rowTemp.length];
         rowTemp.push(measure);
         measure.rowBeat = rowBeats[rowBeats.length - 1];
         rowBeats.push(rowBeats[rowBeats.length - 1] + measureBeat);
-		nPrevBranches = measure.dataBranches.length;
+        if (measure.dataBranches.length > nPrevBranches)
+            nPrevBranches = measure.dataBranches.length;
     }
 
     if (rowTemp.length)
@@ -318,54 +319,78 @@ export default function (chart, courseId) {
         drawRect(ctx, 0, 0, canvasWidth, canvasHeight, CHART_BG);
 
         for (let ridx = 0; ridx < rows.length; ridx++) {
+			const rowColor1 = {'N':'#d4d4d4','E':'#c9dede','M':'#dec9c9'};
+			const rowColor2 = {'N':'#aaaaaa','E':'#94bfbf','M':'#bf9494'};
+			const rowColor3 = {'N':'#808080','E':'#609f9f','M':'#9f6060'};
+
+            function drawLaneRow(ctx, y, sx, ex, branches) {
+                const w = ex - sx;
+				let rowOffset = 0;
+
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO, w, 2, '#000');
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + 2, w, 2, '#fff');
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + 4, w, 1, rowColor1[branches[0]]);
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + 5, w, 1, rowColor2[branches[0]]);
+				rowOffset += 6;
+
+				switch (branches.length) {
+					case 1:
+						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 12, rowColor3[branches[0]]);
+						rowOffset += ROW_HEIGHT_NOTE - 12;
+						break;
+					case 2:
+						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 10, rowColor3[branches[0]]);
+						rowOffset += ROW_HEIGHT_NOTE - 10;
+						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 10, rowColor3[branches[1]]);
+						rowOffset += ROW_HEIGHT_NOTE - 10;
+						break;
+					case 3:
+						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 10, rowColor3[branches[0]]);
+						rowOffset += ROW_HEIGHT_NOTE - 10;
+						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 8, rowColor3[branches[1]]);
+						rowOffset += ROW_HEIGHT_NOTE - 8;
+						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 10, rowColor3[branches[2]]);
+						rowOffset += ROW_HEIGHT_NOTE - 10;
+						break;
+				}
+
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, 1, rowColor2[branches[branches.length - 1]]);
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset + 1, w, 1, rowColor1[branches[branches.length - 1]]);
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset + 2, w, 2, '#fff');
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset + 4, w, 2, '#000');
+            }
+
             const row = rows[ridx];
             const measures = row.measures;
 
             const rowWidth = ROW_LEADING + (BEAT_WIDTH * row.totalBeat) + ROW_TRAILING;
             const y = GET_ROW_Y(ridx) + sumNums(rowDeltas, ridx);
 
-			const rowColor1 = {'N':'#d4d4d4','E':'#c9dede','M':'#dec9c9'};
-			const rowColor2 = {'N':'#aaaaaa','E':'#94bfbf','M':'#bf9494'};
-			const rowColor3 = {'N':'#808080','E':'#609f9f','M':'#9f6060'};
-
 			for (let midx = 0; midx < measures.length; ++midx) {
                 const measure = row.measures[midx];
                 const sx = (midx === 0) ? 0 : GET_BEAT_X(measure.rowBeat);
                 const ex = (midx + 1 >= measures.length) ? rowWidth : GET_BEAT_X(row.measures[midx + 1].rowBeat);
-                const w = ex - sx;
-				let rowOffset = 0;
-
-				drawRect(ctx, sx, y + ROW_HEIGHT_INFO, w, 2, '#000');
-				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + 2, w, 2, '#fff');
-				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + 4, w, 1, rowColor1[measure.dataBranches[0]]);
-				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + 5, w, 1, rowColor2[measure.dataBranches[0]]);
-				rowOffset += 6;
-
-				switch (measure.dataBranches.length) {
-					case 1:
-						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 12, rowColor3[measure.dataBranches[0]]);
-						rowOffset += ROW_HEIGHT_NOTE - 12;
-						break;
-					case 2:
-						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 10, rowColor3[measure.dataBranches[0]]);
-						rowOffset += ROW_HEIGHT_NOTE - 10;
-						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 10, rowColor3[measure.dataBranches[1]]);
-						rowOffset += ROW_HEIGHT_NOTE - 10;
-						break;
-					case 3:
-						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 10, rowColor3[measure.dataBranches[0]]);
-						rowOffset += ROW_HEIGHT_NOTE - 10;
-						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 8, rowColor3[measure.dataBranches[1]]);
-						rowOffset += ROW_HEIGHT_NOTE - 8;
-						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 10, rowColor3[measure.dataBranches[2]]);
-						rowOffset += ROW_HEIGHT_NOTE - 10;
-						break;
-				}
-
-				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, 1, rowColor2[measure.dataBranches[measure.dataBranches.length - 1]]);
-				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset + 1, w, 1, rowColor1[measure.dataBranches[measure.dataBranches.length - 1]]);
-				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset + 2, w, 2, '#fff');
-				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset + 4, w, 2, '#000');
+                const branches = measure.dataBranches;
+                const branchesPrev = (midx === 0) ? branches : row.measures[midx - 1].dataBranches;
+                const branchesNext = (midx + 1 >= measures.length) ? branches : row.measures[midx + 1].dataBranches;
+                const padPrev = (branchesPrev.length > branches.length);
+                const padNext = (branchesNext.length > branches.length);
+                let sxNoPad = padPrev ? Math.min(ex, sx + ROW_TRAILING) : sx;
+                let exNoPad = padNext ? Math.max(sx, ex - ROW_LEADING) : ex;
+                if (padPrev && padNext && sxNoPad >= exNoPad) {
+                    // space is not enough; do not pad
+                    sxNoPad = sx;
+                    exNoPad = ex;
+                }
+                if (padPrev) {
+                    const branchesPad = branchesPrev.map((e, i) => (branches[i] || e));
+                    drawLaneRow(ctx, y, sx, sxNoPad, branchesPad);
+                }
+                drawLaneRow(ctx, y, sxNoPad, exNoPad, measure.dataBranches);
+                if (padNext) {
+                    const branchesPad = branchesNext.map((e, i) => (branches[i] || e));
+                    drawLaneRow(ctx, y, exNoPad, ex, branchesPad);
+                }
 			}
         }
 		
@@ -497,8 +522,10 @@ export default function (chart, courseId) {
                     const subBeat = (i >= nGridsBody) ? measure.nBeats : i / Math.abs(measure.length[1]) * 2;
                     const subx = GET_BEAT_X(measure.rowBeat + subBeat);
                     const style = '#fff' + ((i % 2 === 0 || i >= nGridsBody) ? '8' : '4');
-
-                    drawLine(ctx, subx, ny, subx, ny + ROW_HEIGHT_NOTE + rowDeltas[ridx], 2, style);
+                    // Measure-end grid for just-"merged" branch lanes
+                    const rowDelta = (i === 0 && midx > 0) ? Math.max(row.measures[midx - 1].rowDelta, measure.rowDelta)
+                        : measure.rowDelta;
+                    drawLine(ctx, subx, ny, subx, ny + ROW_HEIGHT_NOTE + rowDelta, 2, style);
                 }
 
 				// Events Pre
@@ -559,7 +586,7 @@ export default function (chart, courseId) {
 						}
 						
 						if (barlineTemp || event.position > 0) {
-							drawLine(ctx, ex, y + moveEvent - ((scrollsTemp.length - 1) * 6), ex, y + ROW_HEIGHT + rowDeltas[ridx], 2, '#444', eventCover, avoidText);
+							drawLine(ctx, ex, y + moveEvent - ((scrollsTemp.length - 1) * 6), ex, y + ROW_HEIGHT + measure.rowDelta, 2, '#444', eventCover, avoidText);
 						}
                         //drawPixelText(ctx, ex + 2, y + ROW_HEIGHT_INFO - 13, 'HS ' + toFixedZero(event.value.toFixed(2)), '#f00', 'bottom', 'left');
 						
@@ -595,7 +622,7 @@ export default function (chart, courseId) {
                     }
                     else if (event.name === 'bpm') {
 						if (barlineTemp || event.position > 0) {
-							drawLine(ctx, ex, y + moveEvent, ex, y + ROW_HEIGHT + rowDeltas[ridx], 2, '#444', eventCover, avoidText);
+							drawLine(ctx, ex, y + moveEvent, ex, y + ROW_HEIGHT + measure.rowDelta, 2, '#444', eventCover, avoidText);
 						}
                         //drawPixelText(ctx, ex + 2, y + ROW_HEIGHT_INFO - 7, 'BPM ' + toFixedZero(event.value.toFixed(2)), '#00f', 'bottom', 'left');
 						
@@ -626,7 +653,7 @@ export default function (chart, courseId) {
 					firstScrollCount++;
 				}
 				if (barlineTemp) {
-					drawLine(ctx, mx, y + moveEventTemp - ((firstScrollCount - 1) * 6), mx, y + ROW_HEIGHT + rowDeltas[ridx], 2, firstLineColor, eventCover, avoidText);
+					drawLine(ctx, mx, y + moveEventTemp - ((firstScrollCount - 1) * 6), mx, y + ROW_HEIGHT + measure.rowDelta, 2, firstLineColor, eventCover, avoidText);
 				}
 				else if (branchStartTemp) {
 					drawLine(ctx, mx, y + moveEventTemp - ((firstScrollCount - 1) * 6), mx, y + ROW_HEIGHT_INFO, 2, firstLineColor, eventCover, avoidText);
@@ -675,7 +702,7 @@ export default function (chart, courseId) {
 				if (barlineTemp) {
 					if (midx + 1 === measures.length) {
 						const mx2 = GET_BEAT_X(row.totalBeat);
-						drawLine(ctx, mx2, y, mx2, y + ROW_HEIGHT + rowDeltas[ridx], 2, '#fff', eventCover, avoidText);
+						drawLine(ctx, mx2, y, mx2, y + ROW_HEIGHT + measure.rowDelta, 2, '#fff', eventCover, avoidText);
 					}
 				}
                 
