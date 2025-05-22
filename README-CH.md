@@ -134,6 +134,8 @@ npm run build
     在指令所在的小节开头换行。
     除了原先已有的 `#TTBREAK` 外，
     现在还支持 Donscore 的 `#newline`。
+    - `#MOVELINE` ([Dannal65535](https://github.com/Dannal65535)、[Wei-Cheng Yeh (IID)](https://github.com/IepIweidieng))
+    移动此指令所在的行与之后的行的垂直位置（Y 坐标）。
     - `#MOVEEVENT` ([Dannal65535](https://github.com/Dannal65535))
     移动此指令后的 BPM 和 HS 信息的垂直位置（Y 坐标）。
     - `#COUNTCHANGE` ([Dannal65535](https://github.com/Dannal65535))

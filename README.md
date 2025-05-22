@@ -135,6 +135,8 @@ npm run build
 	このコマンドがある小節の先頭で改行させることが出来ます。
 	元々`#TTBREAK`は存在していましたが、
 	どんすこあで使用されている`#newline`にも対応しました。
+	- `#MOVELINE`（[Dannal65535](https://github.com/Dannal65535)様、[Wei-Cheng Yeh (IID)](https://github.com/IepIweidieng) 様）
+	このコマンドがあるの行と以降の行の縦位置(Y座標)をずらすことが出来ます。
 	- `#MOVEEVENT`（[Dannal65535](https://github.com/Dannal65535)様）
 	このコマンド以降のBPMやHSの情報の縦位置(Y座標)をずらすことが出来ます。
 	- `#COUNTCHANGE`（[Dannal65535](https://github.com/Dannal65535)様）

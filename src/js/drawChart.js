@@ -22,7 +22,10 @@ const BEAT_WIDTH = 48;
 
 const NOTE_RADIUS = 9;
 
-const GET_ROW_Y = row => CHART_PADDING_TOP.current + ((ROW_HEIGHT + ROW_MARGIN_BOTTOM) * row);
+const rowDeltaSums = [];
+const getRowDeltaSums = (offset = -1) => rowDeltaSums[(offset < 0 || offset >= rowDeltaSums.length) ? rowDeltaSums.length - 1 : offset];
+
+const GET_ROW_Y = row => CHART_PADDING_TOP.current + ((ROW_HEIGHT + ROW_MARGIN_BOTTOM) * row) + getRowDeltaSums(row);
 const GET_BEAT_X = beat => ROW_LEADING + (beat * BEAT_WIDTH);
 
 const GET_MEASURE_POS_BEAT = (measure, position) => measure.rowBeat + (measure.nBeats / measure.nDivisions * position);
@@ -30,24 +33,7 @@ const GET_MEASURE_POS_BEAT_NOTE = (measure, position) => measure.rowBeat + (meas
 
 const GET_BEAT_ROW_MIDX = (row, beat) => row.measures.findLastIndex(m => (m.rowBeat <= beat));
 
-let rowDeltas = [];
 const branchTypes = ['N','E','M'];
-
-function sumNums(array, offset = -1) {
-	let result = 0;
-	if (offset === -1) {
-		offset = array.length;
-	}
-	
-	for (let i = 0; i < array.length; i++) {
-		if (i === offset) {
-			break;
-		}
-		result += array[i];
-	}
-	
-	return result;
-}
 
 export function compareArray(array1, array2) {
     if (array1.length !== array2.length) {
@@ -69,7 +55,7 @@ export function compareArray(array1, array2) {
 function getNoteCenter(row, beat) {
     return {
         x: GET_BEAT_X(beat),
-        y: GET_ROW_Y(row) + ROW_OFFSET_NOTE_CENTER + sumNums(rowDeltas, row),
+        y: GET_ROW_Y(row) + ROW_OFFSET_NOTE_CENTER,
     };
 }
 
@@ -112,7 +98,7 @@ function drawLongOnMeasure(ctx, rows, bt, ridx, midx, sBeat, eBeat, type) {
     const ex = !isNaN(eBeat) ? GET_BEAT_X(eBeat)
         : isGogo ? GET_BEAT_X(rows[ridx].totalBeat) + ROW_TRAILING
         : GET_BEAT_X(rows[ridx].totalBeat);
-    let y = GET_ROW_Y(ridx) + sumNums(rowDeltas, ridx);
+    let y = GET_ROW_Y(ridx);
     if (isGogo) {
         drawRect(ctx, sx, y, ex - sx, ROW_HEIGHT_INFO, COLOR_GOGO);
     }
@@ -258,7 +244,6 @@ export default function (chart, courseId) {
     const rows = [], midxToRmidx = [];
     let rowTemp = [], rowBeats = [0];
 	let nPrevBranches = 0;
-	rowDeltas = [];
 	let moveLineTemp = 0;
 
     for (let midx = 0; midx < course.measures.length; midx++) {
@@ -276,6 +261,7 @@ export default function (chart, courseId) {
             rowTemp = [];
             rowBeats = [0];
             nPrevBranches = 0;
+            moveLineTemp = 0;
         }
 
         midxToRmidx[midx] = [rows.length, rowTemp.length];
@@ -289,8 +275,14 @@ export default function (chart, courseId) {
     if (rowTemp.length)
         rows.push({ totalBeat: rowBeats[rowBeats.length - 1], measures: rowTemp, nBranches: nPrevBranches, moveLine: moveLineTemp });
 
+    rowDeltaSums.length = 0;
+    rowDeltaSums.push(0);
 	for (let ridx = 0; ridx < rows.length; ridx++) {
-		rowDeltas.push((rows[ridx].nBranches - 1) * 24);
+		const moveDelta = rows[ridx].moveLine;
+		rowDeltaSums[ridx] += moveDelta;
+
+		const branchDelta = (rows[ridx].nBranches - 1) * 24;
+		rowDeltaSums.push(rowDeltaSums[ridx] + branchDelta);
 	}
 
 	const maker = (course.headers.maker !== null) ? course.headers.maker : chart.headers.maker;
@@ -299,7 +291,7 @@ export default function (chart, courseId) {
 	CHART_PADDING_TOP.current = textPositionY.paddingTop;
 
     const canvasWidth = ROW_LEADING + (BEAT_WIDTH * ttRowBeat) + ROW_TRAILING;
-    const getCanvasHeight = () => CHART_PADDING_TOP.current + ((ROW_HEIGHT + ROW_MARGIN_BOTTOM) * rows.length) + CHART_PADDING_BOTTOM + sumNums(rowDeltas);
+    const getCanvasHeight = () => GET_ROW_Y(rows.length) + CHART_PADDING_BOTTOM;
     let canvasHeight = getCanvasHeight();
 
     const $canvas = document.createElement('canvas');
@@ -364,7 +356,7 @@ export default function (chart, courseId) {
             const measures = row.measures;
 
             const rowWidth = ROW_LEADING + (BEAT_WIDTH * row.totalBeat) + ROW_TRAILING;
-            const y = GET_ROW_Y(ridx) + sumNums(rowDeltas, ridx);
+            const y = GET_ROW_Y(ridx);
 
 			for (let midx = 0; midx < measures.length; ++midx) {
                 const measure = row.measures[midx];
@@ -505,7 +497,7 @@ export default function (chart, courseId) {
             const row = rows[ridx], measures = row.measures;
 			let eventCover = [];
 
-            const y = GET_ROW_Y(ridx) + sumNums(rowDeltas, ridx);
+            const y = GET_ROW_Y(ridx);
 
             for (let midx = 0; midx < measures.length; midx++) {
                 const measure = measures[midx];

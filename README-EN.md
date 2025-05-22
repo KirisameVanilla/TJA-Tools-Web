@@ -134,6 +134,8 @@ You shall then open `webpack-dist/index.html` (not `src/index.html`) with your w
     Wrap the line at the start of the bar with this command.
     Apart from the previously existing `#TTBREAK`,
     it now also supports `#newline` used in Donscore.
+    - `#MOVELINE` ([Dannal65535](https://github.com/Dannal65535), [Wei-Cheng Yeh (IID)](https://github.com/IepIweidieng))
+    Shift the vertical position (Y coordinate) of the row with this command and following rows.
     - `#MOVEEVENT` ([Dannal65535](https://github.com/Dannal65535))
     Shift the vertical position (Y coordinate) of the BPM and HS information after this command.
     - `#COUNTCHANGE` ([Dannal65535](https://github.com/Dannal65535))
