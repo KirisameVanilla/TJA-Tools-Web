@@ -141,7 +141,7 @@ You shall then open `webpack-dist/index.html` (not `src/index.html`) with your w
     - `#COUNTCHANGE` ([Dannal65535](https://github.com/Dannal65535))
     Change the number of the next bar and on after this command.
     - `#AVOIDTEXTOFF`, `#AVOIDTEXTON` ([Dannal65535](https://github.com/Dannal65535))
-    Prevent the vertical lines from overlapping the BPM and HS information after this command.
+    Prevent the vertical lines from overlapping the BPM and HS information after this command. (Enabled by default)
 
 ## Features
 

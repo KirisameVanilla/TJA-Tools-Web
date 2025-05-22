@@ -465,7 +465,7 @@ export default function (chart, courseId) {
 		let moveEvent = 0;
 		let moveEventTemp;
 		let branchStartTemp = false;
-		let avoidText = false;
+		let avoidText = true;
 
         for (let ridx = 0; ridx < rows.length; ridx++) {
             const row = rows[ridx], measures = row.measures;

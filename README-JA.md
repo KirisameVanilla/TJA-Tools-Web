@@ -142,7 +142,7 @@ npm run build
 	- `#COUNTCHANGE`（[Dannal65535](https://github.com/Dannal65535)様）
 	このコマンドの次の小節数を変更することが出来ます。
 	- `#AVOIDTEXTOFF`、`#AVOIDTEXTON`（[Dannal65535](https://github.com/Dannal65535)様）
-	このコマンド以降のBPMやHSの情報に縦線が被らないように出来ます。
+	このコマンド以降のBPMやHSの情報に縦線が被らないように出来ます。（デフォルトはON）
 
 ## 仕様
 

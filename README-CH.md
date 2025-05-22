@@ -141,7 +141,7 @@ npm run build
     - `#COUNTCHANGE` ([Dannal65535](https://github.com/Dannal65535))
     更改此指令后下一小节起的编号。
     - `#AVOIDTEXTOFF`、`#AVOIDTEXTON` ([Dannal65535](https://github.com/Dannal65535))
-    此指令后的垂直线会避免与 BPM 和 HS 信息重叠。
+    此指令后的垂直线会避免与 BPM 和 HS 信息重叠。（默认启用）
 
 ## 功能
 
