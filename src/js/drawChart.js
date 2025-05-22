@@ -491,11 +491,12 @@ export default function (chart, courseId) {
                 const ny = y + ROW_HEIGHT_INFO;
 
                 const isRowEnd = (midx == measures.length - 1);
-                const nGrids = Math.abs(measure.length[0]) * 2 + (isRowEnd ? 1 : 0);
+                const nGridsBody = Math.ceil(Math.abs(measure.length[0]) * 2);
+                const nGrids = nGridsBody + (isRowEnd ? 1 : 0);
                 for (let i = 0; i < nGrids; i++) {
-                    const subBeat = i / Math.abs(measure.length[1]) * 2;
+                    const subBeat = (i >= nGridsBody) ? measure.nBeats : i / Math.abs(measure.length[1]) * 2;
                     const subx = GET_BEAT_X(measure.rowBeat + subBeat);
-                    const style = '#fff' + (i % 2 ? '4' : '8');
+                    const style = '#fff' + ((i % 2 === 0 || i >= nGridsBody) ? '8' : '4');
 
                     drawLine(ctx, subx, ny, subx, ny + ROW_HEIGHT_NOTE + rowDeltas[ridx], 2, style);
                 }
