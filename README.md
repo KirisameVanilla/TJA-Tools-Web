@@ -2,22 +2,21 @@
 
 English [日本語](README-JA.md) [中文](README-CH.md)
 
-A tool to visualize `.tja` chart files.
-Forked from [Snack](https://github.com/Snack-X)'s [tja-tools](https://github.com/Snack-X/tja-tools);
-based on [WHMHammer](https://github.com/WHMHammer)'s [tja-tools](https://github.com/WHMHammer/tja-tools) (this fork);
-based on [Dannal65535](https://github.com/Dannal65535)'s [tja-tools](https://github.com/Dannal65535/tja-tools);
+A tool to visualize `.tja` chart files. \
+Forked from [Snack](https://github.com/Snack-X)'s [tja-tools](https://github.com/Snack-X/tja-tools); \
+based on [WHMHammer](https://github.com/WHMHammer)'s [tja-tools](https://github.com/WHMHammer/tja-tools) (this fork); \
+based on [Dannal65535](https://github.com/Dannal65535)'s [tja-tools](https://github.com/Dannal65535/tja-tools); \
 based on [sakurada0291](https://github.com/sakurada0291)'s [tja-tools-tl](https://github.com/sakurada0291/tja-tools-tl).
-
 
 ## Run
 
-Visit https://whmhammer.github.io/tja-tools
+Visit <https://whmhammer.github.io/tja-tools>
 
 ## Build
 
-Install Node: https://nodejs.org/en/download, and then execute the following commands:
+Install Node: <https://nodejs.org/en/download>, and then execute the following commands:
 
-```
+```shell
 git clone https://github.com/WHMHammer/tja-tools
 cd tja-tools
 npm i
@@ -101,60 +100,60 @@ You shall then open `webpack-dist/index.html` (not `src/index.html`) with your w
 ## Additional Commands
 
 - Meta (common)
-    - `FONT` ([Dannal65535](https://github.com/Dannal65535))
-    Change the font for the song title and difficulty.
-        - `sans-serif`
-        The font originally used in TJA Tools. Specified as `sans-serif`.
-    - `TITLECOLOR` ([Dannal65535](https://github.com/Dannal65535))
-    Set this to 1 or 2 to change the color of the song title according to the genre.
-    1 for the darker color, and 2 for the lighter color.
-    - `LEVELCOLOR` ([Dannal65535](https://github.com/Dannal65535))
-    Set this to 1 or 2 to change the color of the difficulty text to match the difficulty.
-    For 1, the Inner Oni difficulty will be in the same color as the Oni difficulty.
-    - `LEVELURA` ([Dannal65535](https://github.com/Dannal65535))
-    Set to 1 to change the combination of texts for Inner Oni difficulty.
-    By default, `(裏譜面)` (Inner chart) is appended to the song title and the difficulty is `おに` (Oni).
-    By setting the value of this command to 1, the original song title will be kept and the difficulty will be `おに裏` (Inner Oni).
-    - `SPROLL` ([Dannal65535](https://github.com/Dannal65535))
-    Change the head of the Kusudama note into another special note.
-        - `potato`
-        Into a potato note.
-        - `denden`
-        Into a pellet drum (den-den) note.
-        - `suzudon`
-        Into a bell (suzu) note.
+    - `FONT` ([Dannal65535](https://github.com/Dannal65535)) \
+      Change the font for the song title and difficulty.
+        - `sans-serif` \
+          The font originally used in TJA Tools. Specified as `sans-serif`.
+    - `TITLECOLOR` ([Dannal65535](https://github.com/Dannal65535)) \
+      Set this to 1 or 2 to change the color of the song title according to the genre. \
+      1 for the darker color, and 2 for the lighter color.
+    - `LEVELCOLOR` ([Dannal65535](https://github.com/Dannal65535)) \
+      Set this to 1 or 2 to change the color of the difficulty text to match the difficulty. \
+      For 1, the Inner Oni difficulty will be in the same color as the Oni difficulty.
+    - `LEVELURA` ([Dannal65535](https://github.com/Dannal65535)) \
+      Set to 1 to change the combination of texts for Inner Oni difficulty. \
+      By default, `(裏譜面)` (Inner chart) is appended to the song title and the difficulty is `おに` (Oni). \
+      By setting the value of this command to 1, the original song title will be kept and the difficulty will be `おに裏` (Inner Oni).
+    - `SPROLL` ([Dannal65535](https://github.com/Dannal65535)) \
+      Change the head of the Kusudama note into another special note.
+        - `potato` \
+          Into a potato note.
+        - `denden` \
+          Into a pellet drum (den-den) note.
+        - `suzudon` \
+          Into a bell (suzu) note.
 
 - Meta (varing per-course)
-    - `TTROWBEAT` ([Snack](https://github.com/Snack-X))
-    Change the maximum number of beats per line from the default of 16.
+    - `TTROWBEAT` ([Snack](https://github.com/Snack-X)) \
+      Change the maximum number of beats per line from the default of 16.
 
 - Commands
-    - `#TTBREAK` ([Snack](https://github.com/Snack-X)), \
-    `#NEWLINE` ([Dannal65535](https://github.com/Dannal65535))
-    Wrap the line at the start of the bar with this command.
-    Apart from the previously existing `#TTBREAK`,
-    it now also supports `#newline` used in Donscore.
-    - `#MOVELINE` ([Dannal65535](https://github.com/Dannal65535), [Wei-Cheng Yeh (IID)](https://github.com/IepIweidieng))
-    Shift the vertical position (Y coordinate) of the row with this command and following rows.
-    - `#MOVEEVENT` ([Dannal65535](https://github.com/Dannal65535))
-    Shift the vertical position (Y coordinate) of the BPM and HS information after this command.
-    - `#COUNTCHANGE` ([Dannal65535](https://github.com/Dannal65535))
-    Change the number of the next bar and on after this command.
-    - `#AVOIDTEXTOFF`, `#AVOIDTEXTON` ([Dannal65535](https://github.com/Dannal65535))
-    Prevent the vertical lines from overlapping the BPM and HS information after this command. (Enabled by default)
+    - `#TTBREAK` ([Snack](https://github.com/Snack-X)),
+      `#NEWLINE` ([Dannal65535](https://github.com/Dannal65535)) \
+      Wrap the line at the start of the bar with this command. \
+      Apart from the previously existing `#TTBREAK`,
+      it now also supports `#newline` used in Donscore.
+    - `#MOVELINE` ([Dannal65535](https://github.com/Dannal65535), [Wei-Cheng Yeh (IID)](https://github.com/IepIweidieng)) \
+      Shift the vertical position (Y coordinate) of the row with this command and following rows.
+    - `#MOVEEVENT` ([Dannal65535](https://github.com/Dannal65535)) \
+      Shift the vertical position (Y coordinate) of the BPM and HS information after this command.
+    - `#COUNTCHANGE` ([Dannal65535](https://github.com/Dannal65535)) \
+      Change the number of the next bar and on after this command.
+    - `#AVOIDTEXTOFF`, `#AVOIDTEXTON` ([Dannal65535](https://github.com/Dannal65535)) \
+      Prevent the vertical lines from overlapping the BPM and HS information after this command. (Enabled by default)
 
 ## Features
 
 - Editor
-    - Live editing ([Snack](https://github.com/Snack-X))
-    If enabled, editing the TJA text will automatically update the preview and statistics tabs without the need to click the process button.
-    - Auto scrolling to bottom ([WHMHammer](https://github.com/WHMHammer))
-    If enabled, editing the TJA text will automatically scroll the preview and statistics tabs to the bottom.
+    - Live editing ([Snack](https://github.com/Snack-X)) \
+      If enabled, editing the TJA text will automatically update the preview and statistics tabs without the need to click the process button.
+    - Auto scrolling to bottom ([WHMHammer](https://github.com/WHMHammer)) \
+      If enabled, editing the TJA text will automatically scroll the preview and statistics tabs to the bottom.
     - Manually selecting or auto detecting file encoding ([WHMHammer](https://github.com/WHMHammer))
-    - Embedding Donscore notation ([Dannal65535](https://github.com/Dannal65535))
-    Embed the Donscore notation in the header of the chart image in the preview.
-    If unchecked, the TJA notation for the selected difficulty will be embedded instead.
-    In either case, you can extract it as a text file with `reverse.exe`.
+    - Embedding Donscore notation ([Dannal65535](https://github.com/Dannal65535)) \
+      Embed the Donscore notation in the header of the chart image in the preview. \
+      If unchecked, the TJA notation for the selected difficulty will be embedded instead. \
+      In either case, you can extract it as a text file with `reverse.exe`.
     - Switching language ([Wei-Cheng Yeh (IID)](https://github.com/IepIweidieng))
 
 - Preview
@@ -162,32 +161,32 @@ You shall then open `webpack-dist/index.html` (not `src/index.html`) with your w
     - Saving images on phones ([申しコミ](https://github.com/0auBSQ), [Dannal65535](https://github.com/Dannal65535))
 
 - Statistics
-    - Saving Donscore notation ([Dannal65535](https://github.com/Dannal65535))
-    Saves Donscore text as a file.
+    - Saving Donscore notation ([Dannal65535](https://github.com/Dannal65535)) \
+      Saves Donscore text as a file.
 
-    - Difficulty star ([Dannal65535](https://github.com/Dannal65535))
-    Difficulty star is displayed in the statistics.
+    - Difficulty star ([Dannal65535](https://github.com/Dannal65535)) \
+      Difficulty star is displayed in the statistics.
 
-    - Support of chart branching ([Dannal65535](https://github.com/Dannal65535))
-    You can now select each branch to view its statistics.
+    - Support of chart branching ([Dannal65535](https://github.com/Dannal65535)) \
+      You can now select each branch to view its statistics.
 
-    - BPM ([Dannal65535](https://github.com/Dannal65535))
-    Min BPM&ndash;Max BPM are displayed.
+    - BPM ([Dannal65535](https://github.com/Dannal65535)) \
+      Min BPM&ndash;Max BPM are displayed.
 
-    - Scoring ([Snack](https://github.com/Snack-X))
-    In addition to AC15 scoring, it now supports Shin-uchi and AC16 scoring. ([Dannal65535](https://github.com/Dannal65535))
-    You can now choose between the AC15 and RC score rounding methods for Go-Go Time sections. ([Dannal65535](https://github.com/Dannal65535))
-    It now supports scoring parameter prediction. ([Dannal65535](https://github.com/Dannal65535))
+    - Scoring ([Snack](https://github.com/Snack-X)) \
+      In addition to AC15 scoring, it now supports Shin-uchi and AC16 scoring. ([Dannal65535](https://github.com/Dannal65535)) \
+      You can now choose between the AC15 and RC score rounding methods for Go-Go Time sections. ([Dannal65535](https://github.com/Dannal65535)) \
+      It now supports scoring parameter prediction. ([Dannal65535](https://github.com/Dannal65535))
 
-    - Average density ([Snack](https://github.com/Snack-X))
-    The original formula for calculating average density in TJA Tools was "(number of notes)/playing time",
-    but it has now been changed to "(number of notes - 1)/playing time" used in the [譜面とかWiki (Chart and on Wiki)](https://wikiwiki.jp/taiko-fumen). ([Dannal65535](https://github.com/Dannal65535))
+    - Average density ([Snack](https://github.com/Snack-X)) \
+      The original formula for calculating average density in TJA Tools was "(number of notes)/playing time",
+      but it has now been changed to "(number of notes - 1)/playing time" used in the [譜面とかWiki (Chart and on Wiki)](https://wikiwiki.jp/taiko-fumen). ([Dannal65535](https://github.com/Dannal65535))
 
-    - Copying drumroll texts ([Dannal65535](https://github.com/Dannal65535))
-    Clicking the copy button next to the heading
-    will copy the text of drumroll lengths in the format used in the [譜面とかWiki (Chart and on Wiki)](https://wikiwiki.jp/taiko-fumen).
+    - Copying drumroll texts ([Dannal65535](https://github.com/Dannal65535)) \
+      Clicking the copy button next to the heading
+      will copy the text of drumroll lengths in the format used in the [譜面とかWiki (Chart and on Wiki)](https://wikiwiki.jp/taiko-fumen).
 
-# Acknowledgement
+## Acknowledgement
 
 - [Snack](https://github.com/Snack-X): The original author of the project
 - [WHMHammer](https://github.com/WHMHammer): The main maintainer of this fork version. Added initial English translation.
