@@ -279,6 +279,7 @@ export function convertToDonscore(chart, courseId) {
 	const fixedTitle = (course.headers.course === 4 && chart.headers.levelUra != 1) ? chart.headers.title + titleUraSymbol : chart.headers.title;
 	const difficulty = ['かんたん', 'ふつう', 'むずかしい', 'おに', 'おに' + (chart.headers.levelUra === 1 ? levelUraSymbol : '')];
 	
+	result.push(`;converted by TJA Tools <https://whmhammer.github.io/tja-tools>`);
 	result.push(`#title ${fixedTitle}`);
 	result.push(`#difficulty ${difficulty[course.headers.course]}`);
 	result.push(`#level ${course.headers.level}`);
