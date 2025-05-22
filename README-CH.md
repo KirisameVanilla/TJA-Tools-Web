@@ -1,6 +1,6 @@
 # TJA工具
 
-[日本語](README.md) 中文 [English](README-EN.md)
+[English](README.md) [日本語](README-JA.md) 中文
 
 将 `.tja` 文件转化为图片。
 由 [Snack](https://github.com/Snack-X) 的 [tja-tools](https://github.com/Snack-X/tja-tools) 分叉，
