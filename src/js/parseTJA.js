@@ -486,7 +486,7 @@ function getCourse(tjaHeaders, lines) {
                 hasStarted = true;
                 initBalloonHeader();
             }
-            const currentMeasure = getMeasure(midxBranchPoint + nBranchMeasures);
+            let currentMeasure = getMeasure(midxBranchPoint + nBranchMeasures);
             switch (line.name) {
                 case 'BRANCHSTART':
 					/*
@@ -512,6 +512,7 @@ function getCourse(tjaHeaders, lines) {
 					midxBranchPoint = midxBranchPoint + nBranchMeasuresMax;
 					nBranchMeasuresMax = nBranchMeasures = 0;
 
+					currentMeasure = getMeasure(midxBranchPoint);
 					currentMeasure.events.push({
 						name: 'branchStart',
 						position: measureData.length,
@@ -527,6 +528,7 @@ function getCourse(tjaHeaders, lines) {
 					midxBranchPoint = midxBranchPoint + nBranchMeasuresMax;
 					nBranchMeasuresMax = nBranchMeasures = 0;
 
+					currentMeasure = getMeasure(midxBranchPoint);
 					currentMeasure.events.push({
 						name: 'branchEnd',
 						position: measureData.length,
@@ -542,6 +544,7 @@ function getCourse(tjaHeaders, lines) {
 						if (nBranchMeasures > nBranchMeasuresMax)
 							nBranchMeasuresMax = nBranchMeasures;
 						nBranchMeasures = 0;
+						currentMeasure = getMeasure(midxBranchPoint);
 					}
                     break;
 
