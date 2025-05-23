@@ -1,6 +1,6 @@
 {
   "name": "tja-tools",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "author": {
     "name": "WHMHammer",
     "email": "whmhammer@gmail.com",
@@ -45,6 +45,7 @@
     "babel-loader": "^9.2.1",
     "css-loader": "^7.1.2",
     "cssnano": "^7.0.6",
+    "file-loader": "^6.2.0",
     "html-webpack-harddisk-plugin": "^2.0.0",
     "html-webpack-plugin": "^5.6.3",
     "mini-css-extract-plugin": "^2.9.2",
@@ -53,6 +54,7 @@
     "sass": "^1.83.1",
     "sass-loader": "^16.0.4",
     "style-loader": "^4.0.0",
+    "url-loader": "^4.1.1",
     "webpack": "^5.97.1",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.0"
