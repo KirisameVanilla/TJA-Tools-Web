@@ -191,5 +191,8 @@ npm run build
 - [Snack](https://github.com/Snack-X)：项目的原作者
 - [WHMHammer](https://github.com/WHMHammer)：此分叉版本的主要维护者，添加了初始英文翻译
 - [申しコミ](https://github.com/0auBSQ)：添加了对`A`、`B`、`C`、`D`、`F`、`G`音符的支持，添加了次标题与谱面制作者的显示
-- [Dannal65535](https://github.com/Dannal65535)：添加了并列显示不同分歧轨道的支持，使预览图片与 Donscore 兼容，添加了日语翻译
+- [Dannal65535](https://github.com/Dannal65535)：添加了并列显示不同分歧轨道的支持，使预览图片与 Donscore 兼容，添加了日语翻译，添加了额外的 Donscore 图像
 - [sakurada0291](https://github.com/sakurada0291)：添加了英文翻译
+- わの人：Donscore 原项目作者
+- rocktyt：Donscore 原项目再开发者
+- aestivalis(あきら氏)：Donscore 原项目图像提供者

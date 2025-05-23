@@ -192,5 +192,8 @@ npm run build
 - [Snack](https://github.com/Snack-X)様：ツールの製作者
 - [WHMHammer](https://github.com/WHMHammer)様：このフォーク版の主な製作者、初期の英語翻訳の追加
 - [申しコミ](https://github.com/0auBSQ)様：`A`、`B`、`C`、`D`、`F`、`G`の音符の追加、サブタイトルと譜面製作者の表示の追加
-- [Dannal65535](https://github.com/Dannal65535)様：異なる分岐を並べて表示の機能の追加、どんすこあとのプレビュー画像の互換性の追加、日本語翻訳の追加
+- [Dannal65535](https://github.com/Dannal65535)様：異なる分岐を並べて表示の機能の追加、どんすこあとのプレビュー画像の互換性の追加、日本語翻訳の追加、どんすこあ風の画像の追加
 - [sakurada0291](https://github.com/sakurada0291)様：英語翻訳の追加
+- わの人 様：どんすこあの製作者
+- rocktyt 様：どんすこあの再開発
+- aestivalis(あきら氏) 様：どんすこあへの画像提供

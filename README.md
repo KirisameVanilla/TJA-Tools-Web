@@ -191,5 +191,8 @@ You shall then open `webpack-dist/index.html` (not `src/index.html`) with your w
 - [Snack](https://github.com/Snack-X): The original author of the project
 - [WHMHammer](https://github.com/WHMHammer): The main maintainer of this fork version. Added initial English translation.
 - [申しコミ](https://github.com/0auBSQ): Added support to `A`, `B`, `C`, `D`, `F`, and `G` notes. Added display of subtitle and chart maker
-- [Dannal65535](https://github.com/Dannal65535)：Added Support of showing different branches side-by-side. Made preview image compatible with Donscore. Added Japanese translation.
+- [Dannal65535](https://github.com/Dannal65535)：Added Support of showing different branches side-by-side. Made preview image compatible with Donscore. Added Japanese translation. Added additional Donscore sprite images.
 - [sakurada0291](https://github.com/sakurada0291): Added English translation
+- わの人: The original author of Donscore
+- rocktyt: The later developer of Donscore
+- aestivalis(あきら氏): The original sprite image provider of Donscore
