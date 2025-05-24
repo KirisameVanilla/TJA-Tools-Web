@@ -348,8 +348,8 @@ export default function (chart, courseId) {
                 const branchesNext = (midx + 1 >= measures.length) ? branches : row.measures[midx + 1].dataBranches;
                 const padPrev = (branchesPrev.length > branches.length);
                 const padNext = (branchesNext.length > branches.length);
-                let sxNoPad = padPrev ? Math.min(ex, sx + ROW_TRAILING) : sx;
-                let exNoPad = padNext ? Math.max(sx, ex - ROW_LEADING) : ex;
+                let sxNoPad = measure.sxNoPad = (padPrev ? Math.min(ex, sx + ROW_TRAILING) : sx);
+                let exNoPad = measure.exNoPad = (padNext ? Math.max(sx, ex - ROW_LEADING) : ex);
                 if (padPrev && padNext && sxNoPad >= exNoPad) {
                     // space is not enough; do not pad
                     sxNoPad = sx;
@@ -498,7 +498,8 @@ export default function (chart, courseId) {
                     // Measure-end grid for just-"merged" branch lanes
                     const rowDelta = (i === 0 && midx > 0) ? Math.max(row.measures[midx - 1].rowDelta, measure.rowDelta)
                         : measure.rowDelta;
-                    drawLine(ctx, subx, ny, subx, ny + ROW_HEIGHT_NOTE + rowDelta, 2, style);
+                    const edgeDelta = (subx < measure.sxNoPad || subx > measure.exNoPad) ? -4 : 0;
+                    drawLine(ctx, subx, ny, subx, ny + ROW_HEIGHT_NOTE + rowDelta + edgeDelta, 2, style);
                 }
 
 				// Events Pre
@@ -536,6 +537,7 @@ export default function (chart, courseId) {
                     const event = measure.events[i];
                     const eBeat = GET_MEASURE_POS_BEAT(measure, event.position);
                     const ex = GET_BEAT_X(eBeat);
+                    const edgeDelta = (ex < measure.sxNoPad || ex > measure.exNoPad) ? -4 : 0;
 
                     if (event.name === 'scroll') {
 						let scrollsTemp = [];
@@ -559,7 +561,7 @@ export default function (chart, courseId) {
 						}
 
 						if (barlineTemp || event.position > 0) {
-							drawLine(ctx, ex, y + moveEvent - ((scrollsTemp.length - 1) * 6), ex, y + ROW_HEIGHT + measure.rowDelta, 2, '#444', eventCover, avoidText);
+							drawLine(ctx, ex, y + moveEvent - ((scrollsTemp.length - 1) * 6), ex, y + ROW_HEIGHT + measure.rowDelta + edgeDelta, 2, '#444', eventCover, avoidText);
 						}
                         //drawPixelText(ctx, ex + 2, y + ROW_HEIGHT_INFO - 13, 'HS ' + toFixedZero(event.value.toFixed(2)), '#f00', 'bottom', 'left');
 
@@ -595,7 +597,7 @@ export default function (chart, courseId) {
                     }
                     else if (event.name === 'bpm') {
 						if (barlineTemp || event.position > 0) {
-							drawLine(ctx, ex, y + moveEvent, ex, y + ROW_HEIGHT + measure.rowDelta, 2, '#444', eventCover, avoidText);
+							drawLine(ctx, ex, y + moveEvent, ex, y + ROW_HEIGHT + measure.rowDelta + edgeDelta, 2, '#444', eventCover, avoidText);
 						}
                         //drawPixelText(ctx, ex + 2, y + ROW_HEIGHT_INFO - 7, 'BPM ' + toFixedZero(event.value.toFixed(2)), '#00f', 'bottom', 'left');
 
@@ -626,7 +628,8 @@ export default function (chart, courseId) {
 					firstScrollCount++;
 				}
 				if (barlineTemp) {
-					drawLine(ctx, mx, y + moveEventTemp - ((firstScrollCount - 1) * 6), mx, y + ROW_HEIGHT + measure.rowDelta, 2, firstLineColor, eventCover, avoidText);
+					const edgeDelta = (mx < measure.sxNoPad || mx > measure.exNoPad) ? -4 : 0;
+					drawLine(ctx, mx, y + moveEventTemp - ((firstScrollCount - 1) * 6), mx, y + ROW_HEIGHT + measure.rowDelta + edgeDelta, 2, firstLineColor, eventCover, avoidText);
 				}
 				else if (branchStartTemp) {
 					drawLine(ctx, mx, y + moveEventTemp - ((firstScrollCount - 1) * 6), mx, y + ROW_HEIGHT_INFO, 2, firstLineColor, eventCover, avoidText);
@@ -675,7 +678,8 @@ export default function (chart, courseId) {
 				if (barlineTemp) {
 					if (midx + 1 === measures.length) {
 						const mx2 = GET_BEAT_X(row.totalBeat);
-						drawLine(ctx, mx2, y, mx2, y + ROW_HEIGHT + measure.rowDelta, 2, '#fff', eventCover, avoidText);
+						const edgeDelta = (mx2 < measure.sxNoPad || mx2 > measure.exNoPad) ? -4 : 0;
+						drawLine(ctx, mx2, y, mx2, y + ROW_HEIGHT + measure.rowDelta + edgeDelta, 2, '#fff', eventCover, avoidText);
 					}
 				}
 
