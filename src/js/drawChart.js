@@ -17,6 +17,7 @@ const ROW_HEIGHT = ROW_HEIGHT_INFO + ROW_HEIGHT_NOTE;
 const ROW_OFFSET_NOTE_CENTER = ROW_HEIGHT_INFO + (ROW_HEIGHT_NOTE / 2);
 const ROW_LEADING = 24;
 const ROW_TRAILING = 24;
+const ROW_COLOR = {'N':'#808080','E':'#609f9f','M':'#9f6060'};
 
 const BEAT_WIDTH = 48;
 
@@ -311,45 +312,25 @@ export default function (chart, courseId) {
         drawRect(ctx, 0, 0, canvasWidth, canvasHeight, CHART_BG);
 
         for (let ridx = 0; ridx < rows.length; ridx++) {
-			const rowColor1 = {'N':'#d4d4d4','E':'#c9dede','M':'#dec9c9'};
-			const rowColor2 = {'N':'#aaaaaa','E':'#94bfbf','M':'#bf9494'};
-			const rowColor3 = {'N':'#808080','E':'#609f9f','M':'#9f6060'};
-
             function drawLaneRow(ctx, y, sx, ex, branches) {
                 const w = ex - sx;
-				let rowOffset = 0;
+				const rowOffsetTop = 4;
+				const rowOffsetBottom = rowOffsetTop + branches.length * 24;
+
+				for (let bidx = 0; bidx < branches.length; ++bidx) {
+					drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffsetTop + bidx * 24, w, 24, ROW_COLOR[branches[bidx]]);
+				}
 
 				drawRect(ctx, sx, y + ROW_HEIGHT_INFO, w, 2, '#000');
 				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + 2, w, 2, '#fff');
-				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + 4, w, 1, rowColor1[branches[0]]);
-				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + 5, w, 1, rowColor2[branches[0]]);
-				rowOffset += 6;
 
-				switch (branches.length) {
-					case 1:
-						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 12, rowColor3[branches[0]]);
-						rowOffset += ROW_HEIGHT_NOTE - 12;
-						break;
-					case 2:
-						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 10, rowColor3[branches[0]]);
-						rowOffset += ROW_HEIGHT_NOTE - 10;
-						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 10, rowColor3[branches[1]]);
-						rowOffset += ROW_HEIGHT_NOTE - 10;
-						break;
-					case 3:
-						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 10, rowColor3[branches[0]]);
-						rowOffset += ROW_HEIGHT_NOTE - 10;
-						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 8, rowColor3[branches[1]]);
-						rowOffset += ROW_HEIGHT_NOTE - 8;
-						drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, ROW_HEIGHT_NOTE - 10, rowColor3[branches[2]]);
-						rowOffset += ROW_HEIGHT_NOTE - 10;
-						break;
-				}
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffsetTop, w, 1, '#ffffffa8');
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffsetTop + 1, w, 1, '#ffffff54');
 
-				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset, w, 1, rowColor2[branches[branches.length - 1]]);
-				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset + 1, w, 1, rowColor1[branches[branches.length - 1]]);
-				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset + 2, w, 2, '#fff');
-				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffset + 4, w, 2, '#000');
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffsetBottom - 2, w, 1, '#ffffff54');
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffsetBottom - 1, w, 1, '#ffffffa8');
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffsetBottom, w, 2, '#fff');
+				drawRect(ctx, sx, y + ROW_HEIGHT_INFO + rowOffsetBottom + 2, w, 2, '#000');
             }
 
             const row = rows[ridx];
