@@ -494,7 +494,7 @@ export default function (chart, courseId) {
                 for (let i = 0; i < nGrids; i++) {
                     const subBeat = (i >= nGridsBody) ? measure.nBeats : i / Math.abs(measure.length[1]) * 2;
                     const subx = GET_BEAT_X(measure.rowBeat + subBeat);
-                    const style = '#fff' + ((i % 2 === 0 || i >= nGridsBody) ? '8' : '4');
+                    const style = '#ffffff' + ((i % 2 === 0 || i >= nGridsBody) ? '7f' : '3f');
                     // Measure-end grid for just-"merged" branch lanes
                     const rowDelta = (i === 0 && midx > 0) ? Math.max(row.measures[midx - 1].rowDelta, measure.rowDelta)
                         : measure.rowDelta;
