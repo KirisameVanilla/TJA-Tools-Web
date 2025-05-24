@@ -4,7 +4,7 @@ export function drawLine(ctx, sx, sy, ex, ey, width, stroke, eventCover = null, 
     if (avoidText && eventCover) {
         // Check if the line intersects with any of the eventCover regions
         let points = [{ x: sx, y: sy }, { x: ex, y: ey }];
-        let intersections = [];
+        let avoideds = [];
 
         eventCover.forEach(region => {
             const { stx, sty, enx, eny } = region;
@@ -15,39 +15,52 @@ export function drawLine(ctx, sx, sy, ex, ey, width, stroke, eventCover = null, 
                 { x: stx, y: eny }
             ];
 
+            let intersections = [];
             for (let i = 0; i < coverPoints.length; i++) {
                 let p1 = coverPoints[i];
                 let p2 = coverPoints[(i + 1) % coverPoints.length];
                 let intersection = getLineIntersection(points[0], points[1], p1, p2);
                 if (intersection) intersections.push(intersection);
             }
+            if (intersections.length <= 1)
+                return;
+            intersections.sort((a, b) => a.t - b.t);
+            let avoided = [intersections[0], intersections[intersections.length - 1]];
+            if (avoided[1].t <= 0 || avoided[0].t >= 1)
+                return;
+            avoideds.push(avoided);
         });
 
-        if (intersections.length === 0) {
-            drawSimpleLine(ctx, sx, sy, ex, ey, width, stroke);
-        } else {
-            intersections.sort((a, b) => distance(points[0], a) - distance(points[0], b));
+        avoideds.sort((a, b) => a[0].t - b[0].t);
 
-            ctx.lineWidth = width;
-            ctx.strokeStyle = stroke;
-            ctx.beginPath();
-            ctx.moveTo(sx, sy);
-            intersections.forEach((point, index) => {
-                if (index % 2 === 0) {
-                    ctx.lineTo(point.x, point.y);
-                    ctx.stroke();
-                    ctx.beginPath();
-                } else {
-                    ctx.moveTo(point.x, point.y);
+        ctx.lineWidth = width;
+        ctx.strokeStyle = stroke;
+        ctx.beginPath();
+
+        let t = 0;
+        ctx.moveTo(sx, sy); // |t
+
+        avoideds.forEach(points => {
+            if (points[1].t <= t) // [ ] t
+                return;
+            if (points[0].t > t) { // t [ ] => --[t ]
+                t = points[0].t;
+                if (t > 1) {
+                    ctx.lineTo(ex, ex);
+                    return;
                 }
-            });
-
-            if (intersections.length % 2 === 0) {
-                ctx.lineTo(ex, ey);
+                ctx.lineTo(points[0].x, points[0].y);
             }
-            ctx.stroke();
-            ctx.closePath();
+            // [ t ] => [ ]t
+            t = points[1].t;
+            ctx.moveTo(points[1].x, points[1].y);
+        });
+
+        if (t <= 1) { // t | => --|t
+            ctx.lineTo(ex, ey);
         }
+        ctx.stroke();
+        ctx.closePath();
     } else {
         drawSimpleLine(ctx, sx, sy, ex, ey, width, stroke);
     }
@@ -72,10 +85,11 @@ function getLineIntersection(p0, p1, p2, p3) {
     const s = (-s1_y * (p0.x - p2.x) + s1_x * (p0.y - p2.y)) / (-s2_x * s1_y + s1_x * s2_y);
     const t = ( s2_x * (p0.y - p2.y) - s2_y * (p0.x - p2.x)) / (-s2_x * s1_y + s1_x * s2_y);
 
-    if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
+    if (s >= 0 && s <= 1) {
         return {
             x: p0.x + (t * s1_x),
-            y: p0.y + (t * s1_y)
+            y: p0.y + (t * s1_y),
+            t: t,
         };
     }
     return null;
