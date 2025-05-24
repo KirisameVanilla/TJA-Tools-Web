@@ -18,6 +18,7 @@ const ROW_OFFSET_NOTE_CENTER = ROW_HEIGHT_INFO + (ROW_HEIGHT_NOTE / 2);
 const ROW_LEADING = 24;
 const ROW_TRAILING = 24;
 const ROW_COLOR = {'N':'#808080','E':'#609f9f','M':'#9f6060'};
+const LINE_COLOR = {normal: '#fff', branch: '#ffe400', event: '#444'};
 
 const BEAT_WIDTH = 48;
 
@@ -442,10 +443,7 @@ export default function (chart, courseId) {
         let gogoStart = false;
         let measureNumber = 1;
 		let barline = true;
-		let barlineTemp;
 		let moveEvent = 0;
-		let moveEventTemp;
-		let branchStartTemp = false;
 		let avoidText = true;
 
         for (let ridx = 0; ridx < rows.length; ridx++) {
@@ -483,7 +481,6 @@ export default function (chart, courseId) {
             for (let midx = 0; midx < measures.length; midx++) {
                 const measure = measures[midx];
                 const mx = GET_BEAT_X(measure.rowBeat);
-				let firstScrollCount = 0;
 
                 // Sub grid
                 const ny = y + ROW_HEIGHT_INFO;
@@ -502,42 +499,82 @@ export default function (chart, courseId) {
                     drawLine(ctx, subx, ny, subx, ny + ROW_HEIGHT_NOTE + rowDelta + edgeDelta, 2, style);
                 }
 
-				// Events Pre
-				barlineTemp = barline;
-				moveEventTemp = moveEvent;
-				branchStartTemp = false;
-				for (let i = 0; i < measure.events.length; i++) {
-					const event = measure.events[i];
-                    if (event.name === 'barlineon') {
-						barline = true;
-						if (event.position === 0) {
-							barlineTemp = true;
-						}
-					}
-					else if (event.name === 'barlineoff') {
-						barline = false;
-						if (event.position === 0) {
-							barlineTemp = false;
-						}
-					}
-					else if (event.name === 'moveEvent') {
-						if (event.position === 0) {
-							moveEventTemp = isNaN(event.value) ? moveEvent : event.value;
-						}
-					}
-					else if (event.name === 'branchStart') {
-						if (event.position === 0) {
-							branchStartTemp = true;
-						}
-					}
+                // Measure number
+                //drawPixelText(ctx, mx + 2, y + ROW_HEIGHT_INFO - 1, measureNumber.toString(), '#000', 'bottom', 'left');
+                drawImageText(ctx, mx, y + ROW_HEIGHT_INFO - 6, measureNumber.toString(), 'num');
+                measureNumber += 1;
+
+                // Measure lines
+                let barlineDrawn = false;
+                let branchStart = {};
+                let lastUpperLinePosition = null;
+                let lastLowerLinePosition = null;
+                function drawBarline(ex, position, isEvent, scrollCount = 1) {
+                    const edgeDelta = (ex < measure.sxNoPad || ex > measure.exNoPad) ? -4 : 0;
+                    if (position !== lastUpperLinePosition) {
+                        const lineColorUpper = (position === branchStart.position) ? LINE_COLOR.branch
+                            : (position !== 0) ? (isEvent ? LINE_COLOR.event : null)
+                            : !barline ? null
+                            : LINE_COLOR.normal;
+                        if (lineColorUpper !== null) {
+                            drawLine(ctx, ex, y + moveEvent - ((scrollCount - 1) * 6), ex, y + ROW_HEIGHT_INFO, 2, lineColorUpper, eventCover, avoidText);
+                            lastUpperLinePosition = position;
+                        }
+                    }
+                    if (position !== lastLowerLinePosition) {
+                        const lineColorLower = (position !== 0) ? (isEvent ? LINE_COLOR.event : null)
+                            : !barline ? null
+                            : (position === branchStart.position) ? LINE_COLOR.branch
+                            : LINE_COLOR.normal;
+                        if (lineColorLower !== null) {
+                            drawLine(ctx, ex, y + ROW_HEIGHT_INFO, ex, y + ROW_HEIGHT + measure.rowDelta + edgeDelta, 2, lineColorLower, eventCover, avoidText);
+                            lastLowerLinePosition = position;
+                        }
+                        if (ridx > 0 && midx === 0 && position === 0 && barline) {
+                            // Draw last measure line
+                            const lastRow = rows[ridx - 1];
+                            const y2 = GET_ROW_Y(ridx - 1);
+                            const mx2 = GET_BEAT_X(lastRow.totalBeat);
+                            const lastMeasure = lastRow.measures[lastRow.measures.length - 1];
+                            const edgeDelta2 = (mx2 < lastMeasure.sxNoPad || mx2 > lastMeasure.exNoPad) ? -4 : 0;
+                            drawLine(ctx, mx2, y2, mx2, y2 + ROW_HEIGHT + lastMeasure.rowDelta + edgeDelta2, 2, LINE_COLOR.normal, eventCover, avoidText);
+                        }
+                    }
+                    if (position === 0) {
+                        barlineDrawn = true;
+                    }
+                    if (position === branchStart.position) {
+                        branchStart.position = undefined;
+                        branchStart.ex = undefined;
+                    }
                 }
 
                 // Events
-                for (let i = 0; i < measure.events.length; i++) {
-                    const event = measure.events[i];
+                function eventProcessOrder(event) {
+                    switch (event.name) {
+                        default: // no lines
+                            return 0;
+                        case 'scroll': // has line, highest
+                            return 1;
+                        case 'bpm':
+                            return 2;
+                    }
+                }
+                const events = measure.events.map((e, i) => ({e, i}))
+                    .sort((a, b) => a.e.position - b.e.position
+                        || eventProcessOrder(a.e) - eventProcessOrder(b.e)
+                        || a.i - b.i)
+                    .map(e => e.e);
+
+                for (let event of events) {
                     const eBeat = GET_MEASURE_POS_BEAT(measure, event.position);
                     const ex = GET_BEAT_X(eBeat);
-                    const edgeDelta = (ex < measure.sxNoPad || ex > measure.exNoPad) ? -4 : 0;
+
+                    if (event.position !== 0 && !barlineDrawn) {
+                        drawBarline(mx, 0, false);
+                    } else if (event.position > branchStart.position) {
+                        drawBarline(branchStart.ex, branchStart.position, false);
+                    }
 
                     if (event.name === 'scroll') {
 						let scrollsTemp = [];
@@ -560,9 +597,7 @@ export default function (chart, courseId) {
 							}
 						}
 
-						if (barlineTemp || event.position > 0) {
-							drawLine(ctx, ex, y + moveEvent - ((scrollsTemp.length - 1) * 6), ex, y + ROW_HEIGHT + measure.rowDelta + edgeDelta, 2, '#444', eventCover, avoidText);
-						}
+						drawBarline(ex, event.position, true, scrollsTemp.length);
                         //drawPixelText(ctx, ex + 2, y + ROW_HEIGHT_INFO - 13, 'HS ' + toFixedZero(event.value.toFixed(2)), '#f00', 'bottom', 'left');
 
 						let scrollCount = 0;
@@ -590,15 +625,10 @@ export default function (chart, courseId) {
 								enx:ex + (6 * scrollText.length) - 1, eny:y + ROW_HEIGHT_INFO - 18 + moveEvent - (scrollCount * 6) + 5,
 							});
 							scrollCount++;
-							if (event.position === 0) {
-								firstScrollCount++;
-							}
 						}
                     }
                     else if (event.name === 'bpm') {
-						if (barlineTemp || event.position > 0) {
-							drawLine(ctx, ex, y + moveEvent, ex, y + ROW_HEIGHT + measure.rowDelta + edgeDelta, 2, '#444', eventCover, avoidText);
-						}
+						drawBarline(ex, event.position, true);
                         //drawPixelText(ctx, ex + 2, y + ROW_HEIGHT_INFO - 7, 'BPM ' + toFixedZero(event.value.toFixed(2)), '#00f', 'bottom', 'left');
 
 						let bpmText = 'BPM' + toFixedZero(parseFloat(event.value).toFixed(2));
@@ -608,6 +638,16 @@ export default function (chart, courseId) {
 							enx:ex + (6 * bpmText.length) - 1, eny:y + ROW_HEIGHT_INFO - 12 + moveEvent + 5,
 						});
                     }
+                    else if (event.name === 'barlineon') {
+						barline = true;
+					}
+					else if (event.name === 'barlineoff') {
+						barline = false;
+					}
+					else if (event.name === 'branchStart') {
+						branchStart.position = event.position;
+						branchStart.ex = ex;
+					}
 					else if (event.name === 'moveEvent') {
 						moveEvent = isNaN(event.value) ? moveEvent : event.value;
 					}
@@ -622,67 +662,11 @@ export default function (chart, courseId) {
 					}
                 }
 
-                // Measure lines, number
-				const firstLineColor = branchStartTemp ? '#ffe400' : '#fff';
-				if (firstScrollCount === 0) {
-					firstScrollCount++;
-				}
-				if (barlineTemp) {
-					const edgeDelta = (mx < measure.sxNoPad || mx > measure.exNoPad) ? -4 : 0;
-					drawLine(ctx, mx, y + moveEventTemp - ((firstScrollCount - 1) * 6), mx, y + ROW_HEIGHT + measure.rowDelta + edgeDelta, 2, firstLineColor, eventCover, avoidText);
-				}
-				else if (branchStartTemp) {
-					drawLine(ctx, mx, y + moveEventTemp - ((firstScrollCount - 1) * 6), mx, y + ROW_HEIGHT_INFO, 2, firstLineColor, eventCover, avoidText);
-				}
-                //drawPixelText(ctx, mx + 2, y + ROW_HEIGHT_INFO - 1, measureNumber.toString(), '#000', 'bottom', 'left');
-				drawImageText(ctx, mx, y + ROW_HEIGHT_INFO - 6, measureNumber.toString(), 'num');
-                measureNumber += 1;
-
-                // Draw last measure line
-				barlineTemp = barline;
-				if (ridx === rows.length - 1 && midx === measures.length - 1) {
-					barlineTemp = false;
-				}
-				else if (midx === measures.length - 1) {
-					const measureTemp = rows[ridx + 1].measures[0];
-					for (let i = 0; i < measureTemp.events.length; i++) {
-						const event = measureTemp.events[i];
-						if (event.name === 'barlineon') {
-							if (event.position === 0) {
-								barlineTemp = true;
-							}
-						}
-						else if (event.name === 'barlineoff') {
-							if (event.position === 0) {
-								barlineTemp = false;
-							}
-						}
-					}
-				}
-				else {
-					for (let i = 0; i < measures[midx + 1].events.length; i++) {
-						const event = measures[midx + 1].events[i];
-						if (event.name === 'barlineon') {
-							if (event.position === 0) {
-								barlineTemp = true;
-							}
-						}
-						else if (event.name === 'barlineoff') {
-							if (event.position === 0) {
-								barlineTemp = false;
-							}
-						}
-					}
-				}
-
-				if (barlineTemp) {
-					if (midx + 1 === measures.length) {
-						const mx2 = GET_BEAT_X(row.totalBeat);
-						const edgeDelta = (mx2 < measure.sxNoPad || mx2 > measure.exNoPad) ? -4 : 0;
-						drawLine(ctx, mx2, y, mx2, y + ROW_HEIGHT + measure.rowDelta + edgeDelta, 2, '#fff', eventCover, avoidText);
-					}
-				}
-
+                if (!barlineDrawn) {
+                    drawBarline(mx, 0, false);
+                } else if (branchStart.position !== undefined) {
+                    drawBarline(branchStart.ex, branchStart.position, false);
+                }
             }
         }
 
