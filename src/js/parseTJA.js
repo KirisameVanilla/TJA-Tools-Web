@@ -371,7 +371,7 @@ function getCourse(tjaHeaders, lines) {
         getMeasure(midx).data[currentBranch] = getNotes(measureData, rollStates, headers.balloon, midx, currentBranch);
         measureData = '';
     }
-	
+
     for (const line of lines) {
 		let balloons;
         if (line.type === 'header') {
@@ -451,7 +451,7 @@ function getCourse(tjaHeaders, lines) {
                         .split(/[^0-9]/)
                         .filter(b => b !== '')
                         .map(b => parseInt(b, 10));
-					
+
 					if (inits.length === 1) {
 						setHeaderValue('scoreInit', inits[0]);
 						setHeaderValue('scoreShin', null);
@@ -471,9 +471,9 @@ function getCourse(tjaHeaders, lines) {
                 case 'NOTESDESIGNER1':
                 case 'NOTESDESIGNER2':
                 case 'NOTESDESIGNER3':
-                case 'NOTESDESIGNER4': 
+                case 'NOTESDESIGNER4':
                     setHeaderValue('maker', line.value);
-                    break; 
+                    break;
 
                 case 'TTROWBEAT':
                     setHeaderValue('ttRowBeat', parseInt(line.value, 10));
@@ -770,7 +770,7 @@ function getCourse(tjaHeaders, lines) {
 		// Add Zero
 		let lengths = [];
 		const branchs = ['N','E','M'];
-		
+
 		for (let b of branchs) {
 			if (measures[i].data[b] != null) {
 				lengths.push(measures[i].data[b].nDivisions);
@@ -779,38 +779,38 @@ function getCourse(tjaHeaders, lines) {
 		}
 
 		const fixedMax = measures[i].nDivisions = arrayLCM(lengths);
-		
+
 		for (let j = 0; j < measures[i].events.length; j++) {
 			if (measures[i].data[measures[i].events[j].branch] != null) {
 				const rate = fixedMax / measures[i].data[measures[i].events[j].branch].nDivisions;
 				measures[i].events[j].position = measures[i].events[j].position * rate;
 			}
 		}
-		
+
 		for (let b of branchs) {
 			if (measures[i].data[b] != null) {
 				addZero(measures[i].data[b], fixedMax);
 			}
 		}
-		
+
 		// Merge HS Event
 		let canDelete = [];
 		for (let j = 0; j < measures[i].events.length; j++) {
 			if (measures[i].events[j].name === 'scroll') {
 				let newValue = {N:null, E:null, M:null};
 				newValue[measures[i].events[j].branch] = measures[i].events[j].value;
-				
+
 				for (let k = j + 1; k < measures[i].events.length; k++) {
 					if (measures[i].events[k].name === 'scroll' && measures[i].events[j].position === measures[i].events[k].position) {
 						newValue[measures[i].events[k].branch] = measures[i].events[k].value;
 						canDelete.push(k);
 					}
 				}
-				
+
 				measures[i].events[j].value = newValue;
 			}
 		}
-		
+
 		for (let cd of canDelete.reverse()) {
 			measures[i].events.splice(cd, 1);
 		}
@@ -972,29 +972,29 @@ export default function parseTJA(tja) {
                 case 'MAKER':
                     headers.maker = parsed.value;
                     break;
-				
+
 				case 'FONT':
                     headers.font = parsed.value;
                     break;
-				
+
 				case 'SPROLL':
                     headers.spRoll = parsed.value.toLowerCase();
                     break;
-				
+
 				case 'LEVELCOLOR':
                     headers.levelColor = parseInt(parsed.value, 10);
 					if (isNaN(headers.levelColor)) {
 						headers.levelColor = 0;
 					}
                     break;
-				
+
 				case 'LEVELURA':
                     headers.levelUra = parseInt(parsed.value, 10);
 					if (isNaN(headers.levelUra)) {
 						headers.levelUra = 0;
 					}
                     break;
-				
+
 				case 'TITLECOLOR':
                     headers.titleColor = parseInt(parsed.value, 10);
 					if (isNaN(headers.titleColor)) {
@@ -1041,16 +1041,16 @@ export default function parseTJA(tja) {
 export function getCourseLines(tja, courseId) {
 	let result = [];
 	let write = false;
-	
+
 	const lines = tja.split(/(\r\n|\r|\n)/)
         .map(line => line.trim());
-	
+
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i];
         if (line === '') continue;
-		
+
 		const parsed = parseLine(line);
-		
+
 		if (parsed.type === 'header' && parsed.scope === 'global') {
 			result.push(line);
 		}
@@ -1058,7 +1058,7 @@ export function getCourseLines(tja, courseId) {
 			if (parsed.name === 'COURSE') {
 				const courseValue = parsed.value.toLowerCase();
 				let course;
-				
+
 				switch (courseValue) {
 					case 'easy': case '0':
 						course = 0;
@@ -1080,7 +1080,7 @@ export function getCourseLines(tja, courseId) {
 						course = 4;
 						break;
 				}
-				
+
 				write = (course === parseInt(courseId)) ? true : false;
 			}
 			if (write) {
@@ -1098,7 +1098,7 @@ export function getCourseLines(tja, courseId) {
 			}
         }
 	}
-	
+
 	return result.join('\n');
 }
 
@@ -1108,7 +1108,7 @@ export function getEnabledBranch(chart, courseId) {
 	const course = chart.courses[courseId];
 	if (course === undefined)
 		return result;
-	
+
 	for (let bt of branchTypes) {
 		let enabled = false;
 		for (let m of course.measures) {
@@ -1118,6 +1118,6 @@ export function getEnabledBranch(chart, courseId) {
 			}
 		}
 	}
-	
+
 	return result;
 }

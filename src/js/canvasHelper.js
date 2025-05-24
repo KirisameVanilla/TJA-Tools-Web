@@ -167,13 +167,13 @@ export function initSprites() {
 		const data = require('./sprite/sprite.js').default;
 		let outdata = {};
 		let total = 0;
-		
+
 		for (let type in data) {
 			for (let key in data[type]) {
 				total++;
 			}
 		}
-		
+
 		let loadCount = 0;
 		for (let type in data) {
 			outdata[type] = {};
@@ -193,12 +193,12 @@ export function initSprites() {
 						ctx.drawImage(img, 0, 0);
 						ctx.globalCompositeOperation = 'source-atop';
 						ctx.fillStyle = '#fcc';
-						ctx.fillRect(0, 0, img.width, img.height);  
+						ctx.fillRect(0, 0, img.width, img.height);
 						ctx.globalCompositeOperation = 'source-over';
 						outdata['fuseNum'][key] = c;
 					}
 					loadCount++;
-					
+
 					if (loadCount === total) {
 						sprites = outdata;
 						resolve();

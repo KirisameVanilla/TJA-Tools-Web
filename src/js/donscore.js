@@ -9,7 +9,7 @@ export function convertToDonscore(chart, courseId) {
 	const course = chart.courses[courseId];
 	const branchTypes = ['N','E','M'];
 	let spSymbol = 'k';
-	
+
 	// Set SpRoll Symbol
 	switch (chart.headers.spRoll) {
 		case 'denden':
@@ -22,7 +22,7 @@ export function convertToDonscore(chart, courseId) {
 			spSymbol = 'p';
 			break;
 	}
-	
+
 	// Create Events Copy
 	let newEvent = [];
 	for (let measure of course.measures) {
@@ -36,13 +36,13 @@ export function convertToDonscore(chart, courseId) {
 		}
 		newEvent.push(tempEvent);
 	}
-	
+
 	// Align to 48th
 	let newData = [];
 	for (let i = 0; i < course.measures.length; i++) {
 		const measure = course.measures[i];
 		let tempData = {'N':null,'E':null,'M':null};
-		
+
 		for (let bt of branchTypes) {
 			if (measure.data[bt] === null) {
 				continue;
@@ -59,7 +59,7 @@ export function convertToDonscore(chart, courseId) {
 		}
 		newData.push(tempData);
 	}
-	
+
 	// Add for Roll
 	for (let bt of branchTypes) {
 		let balloonIdx = 0;
@@ -100,7 +100,7 @@ export function convertToDonscore(chart, courseId) {
 			}
 		}
 	}
-	
+
 	for (let bt of branchTypes) {
 		for (let i = 0; i < newData.length; i++) {
 			if (newData[i][bt] === null) {
@@ -112,7 +112,7 @@ export function convertToDonscore(chart, courseId) {
 			}
 		}
 	}
-	
+
 	// Fix Events Position
 	for (let i = 0; i < course.measures.length; i++) {
 		const measure = course.measures[i];
@@ -123,19 +123,19 @@ export function convertToDonscore(chart, courseId) {
 			}
 		}
 		const fixedMax = arrayLCM(lengths);
-		
+
 		for (let j = 0; j < newEvent[i].length; j++) {
 			const rate = fixedMax / measure.nDivisions;
 			newEvent[i][j].position = newEvent[i][j].position * rate;
 		}
-		
+
 		for (let bt of branchTypes) {
 			if (newData[i][bt] != null) {
 				addZero(newData[i][bt], fixedMax);
 			}
 		}
 	}
-	
+
 	// Convert Notes
 	let converted = [];
 	for (let i = 0; i < newData.length; i++) {
@@ -229,11 +229,11 @@ export function convertToDonscore(chart, courseId) {
 					}
 				}
 			}
-			
+
 			converted[i][bt] = tempData;
 		}
 	}
-	
+
 	// Fix Roll End
 	const rollEndSymbol = ['>',')',']'];
 	for (let bt of branchTypes) {
@@ -246,7 +246,7 @@ export function convertToDonscore(chart, courseId) {
 				const isForcedEnd = (ch[0] === '\\');
 				if (isForcedEnd)
 					ch = ch.substring(1);
-				
+
 				if (rollEndSymbol.includes(ch) && (i > 0 || j > 0)) {
 					if (j === 0) {
 						converted[i][bt][j] = ' ';
@@ -271,27 +271,27 @@ export function convertToDonscore(chart, courseId) {
 			}
 		}
 	}
-	
+
 	// Write Donscore
 	// Header
 	let titleUraSymbol = '(裏譜面)';
 	let levelUraSymbol = '裏';
 	const fixedTitle = (course.headers.course === 4 && chart.headers.levelUra != 1) ? chart.headers.title + titleUraSymbol : chart.headers.title;
 	const difficulty = ['かんたん', 'ふつう', 'むずかしい', 'おに', 'おに' + (chart.headers.levelUra === 1 ? levelUraSymbol : '')];
-	
+
 	result.push(`;converted by TJA Tools <https://whmhammer.github.io/tja-tools>`); // keep this URL to replaced it in GitHub action
 	result.push(`#title ${fixedTitle}`);
 	result.push(`#difficulty ${difficulty[course.headers.course]}`);
 	result.push(`#level ${course.headers.level}`);
-	
+
 	// Chart
 	let preBranch = ['N'];
 	let preBeatChar = 4;
 	let preMeter = [4,4];
-	
+
 	for (let m = 0; m < course.measures.length; m++) {
 		const measure = course.measures[m];
-		
+
 		// Change Branch
 		let nowBranch = [];
 		for (let bt of branchTypes) {
@@ -320,12 +320,12 @@ export function convertToDonscore(chart, courseId) {
 			}
 			result.push(branchText);
 		}
-		
+
 		// NewLine
 		if (measure.properties.ttBreak) {
 			result.push('#newline');
 		}
-		
+
 		// Meter & BeatChar
 		let nowMeter = [measure.length[1], measure.length[0]];
 		if (nowMeter[0] < 0)
@@ -340,7 +340,7 @@ export function convertToDonscore(chart, courseId) {
 		if (preBeatChar != nowBeatChar) {
 			result.push(`#beatchar ${nowBeatChar}`);
 		}
-		
+
 		// Events
 		for (let i = 0; i < newEvent[m].length; i++) {
 			if (isNaN(newEvent[m][i].position)) {
@@ -351,7 +351,7 @@ export function convertToDonscore(chart, courseId) {
 			const fixedPosition = event.position * (fixedMeasure / Math.abs(measure.length[1]));
 			const splitNum = converted[m][nowBranch[0]].length / Math.abs(measure.length[0]) * (fixedMeasure / 4);
 			let eventText = '';
-			
+
 			switch (event.name) {
 				case 'gogoStart':
 					eventText = '#begingogo';
@@ -390,7 +390,7 @@ export function convertToDonscore(chart, courseId) {
 					break;
 				case 'scroll':
 					let scrollsTemp = [];
-					
+
 					for (let bt of branchTypes) {
 						if (event.value[bt] === null) {
 							continue;
@@ -408,7 +408,7 @@ export function convertToDonscore(chart, courseId) {
 							scrollsTemp[scrollsTemp.length - 1].branch.push(bt);
 						}
 					}
-					
+
 					for (let sTemp of scrollsTemp) {
 						let eventText = `#hs ${sTemp.value}`;
 						if (event.position > 0) {
@@ -425,17 +425,17 @@ export function convertToDonscore(chart, courseId) {
 					break;
 			}
 		}
-		
+
 		// Notes
 		for (let nb of nowBranch) {
 			result.push(converted[m][nb].join(''));
 		}
-		
+
 		preBranch = nowBranch;
 		preBeatChar = nowBeatChar;
 		preMeter = nowMeter;
 	}
-	
+
 	console.log(result);
 	return result.join('\n');
 }

@@ -2,12 +2,12 @@ export async function loadAllFonts() {
 	let ua = window.navigator.userAgent.toLowerCase();
 	let fontPromises = []
 	//fontPromises.push(document.fonts.load('5px "Pixel 3x5"'));
-	
+
 	if(ua.indexOf("windows nt") === -1) {
 		fontPromises.push(document.fonts.load('bold 21px "Roboto", "Zen Kaku Gothic New"'));
 		fontPromises.push(document.fonts.load('bold 17px "Roboto", "Zen Kaku Gothic New"'));
 	}
-	
+
 	await Promise.all(fontPromises);
 }
 
@@ -24,7 +24,7 @@ export function getFontSetting(headerFont) {
 		strokeTitle: false,
 		strokeDifficulty: false,
 	};
-	
+
 	if (headerFont === 'sans-serif') {
 		result.titleText = 'bold 20px sans-serif';
 		result.subtitleText = 'bold 17px sans-serif';
@@ -45,7 +45,7 @@ export function getFontSetting(headerFont) {
 		result.hPaddingTitle = 5;
 		result.hSubtitle = 21;
 	}
-	
+
 	return result;
 }
 
@@ -77,6 +77,6 @@ export function getUraSymbol(headerFont) {
 		title: '(裏譜面)',
 		level: '裏',
 	}
-	
+
 	return result;
 }

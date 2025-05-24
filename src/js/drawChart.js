@@ -206,7 +206,7 @@ function drawBalloonSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, omitEnd, cou
 	drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, 'spRollMiddle');
 	drawNoteSprite(ctx, sRow, bidx * 24, sBeat, 'spRollStart');
 	drawNoteSprite(ctx, sRow, bidx * 24, sBeat, symbol);
-	
+
 	const { x, y } = getNoteCenter(sRow, sBeat);
 	const xDelta = Math.floor((count.toString().length * 6) / 2) - 3
 	drawImageText(ctx, x - 3 - xDelta, y - 3 + (bidx * 24), count.toString(), 'num');
@@ -232,7 +232,7 @@ function drawFuseSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, omitEnd, count)
 //==============================================================================
 // Main drawing function
 
-export default function (chart, courseId) {	
+export default function (chart, courseId) {
     const course = chart.courses[courseId];
 
     // Useful values
@@ -385,13 +385,13 @@ export default function (chart, courseId) {
                 }
 			}
         }
-		
+
 		let uraSymbols = getUraSymbol(chart.headers.font.toLowerCase());
 		let titleUraSymbol = uraSymbols.title;
 		let levelUraSymbol = uraSymbols.level;
-		
+
 		const fixedTitle = (course.headers.course === 4 && chart.headers.levelUra != 1) ? chart.headers.title + titleUraSymbol : chart.headers.title;
-		
+
 		const difficulty = ['かんたん', 'ふつう', 'むずかしい', 'おに', 'おに' + (chart.headers.levelUra === 1 ? levelUraSymbol : '')];
         const levelMax = [5, 7, 8, 10, 10];
         const difficultyText = (
@@ -400,7 +400,7 @@ export default function (chart, courseId) {
             '☆'.repeat(Math.max(levelMax[course.headers.course] - course.headers.level, 0)) +
             ` Lv.${course.headers.level}`
         );
-		
+
 		let titleTextColor = '#000';
 		if (chart.headers.titleColor === 1 || chart.headers.titleColor === 2) {
 			if (chart.headers.genre === 'J-POP' || chart.headers.genre === 'ポップス') {
@@ -431,7 +431,7 @@ export default function (chart, courseId) {
 				titleTextColor = chart.headers.titleColor === 2 ? '#ff7028' : '#961f00';
 			}
 		}
-		
+
 		let levelTextColor = '#000';
 		const diffColors = ['#f22706', '#92c400', '#0090e8', '#ce00a2', '#5a3cdc'];
 		switch (chart.headers.levelColor) {
@@ -445,7 +445,7 @@ export default function (chart, courseId) {
 				levelTextColor = diffColors[course.headers.course];
 				break;
 		}
-		
+
 		drawText(ctx, fontSetting.xTitle, textPositionY.title, fixedTitle, fontSetting.titleText, titleTextColor, 'top', 'left', fontSetting.strokeTitle);
 		if (chart.headers.subtitle) {
 			drawText(ctx, fontSetting.xTitle, textPositionY.subtitle, chart.headers.subtitle, fontSetting.subtitleText, titleTextColor, 'top', 'left', fontSetting.strokeTitle);
@@ -487,7 +487,7 @@ export default function (chart, courseId) {
                     }
                 }
             }
-			
+
 			if (ridx == rows.length - 1 && gogoStart) {
 				drawLongSprite(ctx, rows, 'N', gogoStart[0], gogoStart[1], ridx, row.totalBeat + 0.5, 'gogo');
 			}
@@ -558,7 +558,7 @@ export default function (chart, courseId) {
 
                     if (event.name === 'scroll') {
 						let scrollsTemp = [];
-						
+
 						for (let b of branchTypes) {
 							if (event.value[b] === null) {
 								continue;
@@ -576,16 +576,16 @@ export default function (chart, courseId) {
 								scrollsTemp[scrollsTemp.length - 1].branch.push(b);
 							}
 						}
-						
+
 						if (barlineTemp || event.position > 0) {
 							drawLine(ctx, ex, y + moveEvent - ((scrollsTemp.length - 1) * 6), ex, y + ROW_HEIGHT + measure.rowDelta, 2, '#444', eventCover, avoidText);
 						}
                         //drawPixelText(ctx, ex + 2, y + ROW_HEIGHT_INFO - 13, 'HS ' + toFixedZero(event.value.toFixed(2)), '#f00', 'bottom', 'left');
-						
+
 						let scrollCount = 0;
 						for (let sTemp of scrollsTemp.reverse()) {
 							let scrollText = '';
-							
+
 							if (scrollsTemp.length != 1 || sTemp.branch.length != measure.dataBranches.length) {
 								for (let stb of sTemp.branch) {
 									if (stb === 'N') {
@@ -617,7 +617,7 @@ export default function (chart, courseId) {
 							drawLine(ctx, ex, y + moveEvent, ex, y + ROW_HEIGHT + measure.rowDelta, 2, '#444', eventCover, avoidText);
 						}
                         //drawPixelText(ctx, ex + 2, y + ROW_HEIGHT_INFO - 7, 'BPM ' + toFixedZero(event.value.toFixed(2)), '#00f', 'bottom', 'left');
-						
+
 						let bpmText = 'BPM' + toFixedZero(parseFloat(event.value).toFixed(2));
 						drawImageText(ctx, ex, y + ROW_HEIGHT_INFO - 12 + moveEvent, bpmText, 'bpm');
 						eventCover.push({
@@ -690,14 +690,14 @@ export default function (chart, courseId) {
 						}
 					}
 				}
-				
+
 				if (barlineTemp) {
 					if (midx + 1 === measures.length) {
 						const mx2 = GET_BEAT_X(row.totalBeat);
 						drawLine(ctx, mx2, y, mx2, y + ROW_HEIGHT + measure.rowDelta, 2, '#fff', eventCover, avoidText);
 					}
 				}
-                
+
             }
         }
 
@@ -784,7 +784,7 @@ export default function (chart, courseId) {
 							case 'fuse':
 								drawFuseSprite(ctx, rows, bt, ridx, nBeat, longEnd[0], longEnd[1], longEnd[2], note.count);
 								break;
- 
+
 							case 'adlib':
 								drawNoteSprite(ctx, ridx, rowYDelta, nBeat, 'adlib');
 								break;

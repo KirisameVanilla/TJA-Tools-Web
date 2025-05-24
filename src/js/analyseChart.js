@@ -37,17 +37,17 @@ function pulseToTime(events, objects) {
 function convertToTimed(course, branchType) {
     const events = [], notes = [];
     let beat = 0, absBeat = 0, balloon = 0, roll = false, midxToNoteIdx = [];
-	
+
 	// Get Branch Data
 	let newData = [];
 	const branchTypes = ['N','E','M'];
 	let allBalloon = {'N':{},'E':{},'M':{}};
-	
+
 	for (let i = 0; i < course.measures.length; i++) {
 		let selected = branchType;
 		let selData = '';
 		const measure = course.measures[i];
-		
+
 		switch (branchType) {
 			case 'N':
 				if (measure.data['N'] != null) {
@@ -94,7 +94,7 @@ function convertToTimed(course, branchType) {
 		}
 		newData.push(selData);
 	}
-	
+
 	// Analyze Events
     for (let m = 0; m < course.measures.length; m++) {
         const measure = course.measures[m];
@@ -127,7 +127,7 @@ function convertToTimed(course, branchType) {
                 });
             }
         }
-		
+
 		// Analyze Notes
         midxToNoteIdx[m] = notes.length;
         for (let d = 0; d < newData[m].length; d++) {
@@ -260,7 +260,7 @@ function getStatistics(course) {
             mines++;
         }
     }
-	
+
     return {
         totalCombo: combo,
         notes: notes,
@@ -357,7 +357,7 @@ export function predictScore(stats, course, gogoFloor, scoreSystem) {
 	const rollAC15 = 1.0 / 15.0;
 	const rollAC16 = 1.0 / autoAC16[course.headers.course];
 	const rollScore = [[100,200],[120,240]];
-	
+
 	//AC15
 	scoreGoal = tenjo[course.headers.course][tempLevel - 1] * 10000;
 	while (scoreTemp < scoreGoal){
@@ -365,11 +365,11 @@ export function predictScore(stats, course, gogoFloor, scoreSystem) {
 		scoreDiff = Math.ceil(diffTemp / 4);
 		if (diffTemp % 10 == 0)
 			scoreInit += 10;
-		
+
 		noteScores = multipliers.map(m => drop1(scoreInit + scoreDiff * m));
 		noteScores2 = multipliers.map(m => (scoreInit + scoreDiff * m));
 		noteScoresBig = multipliers.map(m => drop1(scoreInit + scoreDiff * m) * 2);
-		
+
 		if (gogoFloor === 'AC15') {
 			noteGogoScores = noteScores.map(s => drop1(s * 1.2));
 			noteGogoScoresBig = noteScores.map(s => drop1(s * 1.2) * 2);
@@ -378,7 +378,7 @@ export function predictScore(stats, course, gogoFloor, scoreSystem) {
 			noteGogoScores = noteScores2.map(s => drop1(s * 1.2));
 			noteGogoScoresBig = noteScores2.map(s => drop1(s * 1.2) * 2);
 		}
-		
+
 		scoreTemp = (
 			noteScores.map((s, i) => stats.score.notes[0][0][i] * s).reduce((p, c) => p + c, 0) +
 			noteGogoScores.map((s, i) => stats.score.notes[0][1][i] * s).reduce((p, c) => p + c, 0) +
@@ -390,49 +390,49 @@ export function predictScore(stats, course, gogoFloor, scoreSystem) {
 			stats.score.balloonPop[1] * 6000 +
 			Math.floor(stats.totalCombo / 100) * 10000
 		);
-		
+
 		for (let i = 0; i < stats.rendas.length; i++) {
 			scoreTemp += Math.ceil(stats.rendas[i] / rollAC15)
 			* rollScore[stats.rendaExtends[i].isGoGoRenda][stats.rendaExtends[i].isBigRenda];
 		}
 		//console.log('通常：'+scoreInit+','+scoreDiff+'=>'+scoreTemp);
 	}
-	
+
 	//Shinuchi
 	scoreTemp = 0;
 	while (scoreTemp < 1000000){
 		scoreShin += 10;
-		
+
 		scoreTemp = ((stats.totalCombo + (stats.notes[2] + stats.notes[3])) * scoreShin) +
 						 (stats.score.balloon[0] * 300) +
 						 (stats.score.balloon[1] * 300) +
 						 (stats.score.balloonPop[0] * 5000) +
 						 (stats.score.balloonPop[1] * 5000);
-		
+
 		for (let i = 0; i < stats.rendas.length; i++) {
 			scoreTemp += Math.ceil(stats.rendas[i] / rollAC15)
 			* rollScore[0][stats.rendaExtends[i].isBigRenda];
 		}
 		//console.log('真打：'+scoreShin+'=>'+scoreTemp);
 	}
-	
+
 	//AC16
 	scoreTemp = 0;
 	while (scoreTemp < 1000000){
 		scoreNiji += 10;
-		
+
 		scoreTemp = (stats.totalCombo * scoreNiji) +
 						(stats.score.balloon[0] * 100) +
 						(stats.score.balloon[1] * 100) +
 						(stats.score.balloonPop[0] * 100) +
 						(stats.score.balloonPop[1] * 100);
-		
+
 		for (let i = 0; i < stats.rendas.length; i++) {
 			scoreTemp += Math.ceil(stats.rendas[i] / rollAC16) * 100;
 		}
 		//console.log('虹色：'+scoreNiji+'=>'+scoreTemp);
 	}
-	
+
 	//Shiage
 	if (scoreSystem === 'CS'){
 		return [scoreInit, scoreDiff, scoreShin];
