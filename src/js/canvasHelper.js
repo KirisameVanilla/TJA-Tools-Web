@@ -46,7 +46,7 @@ export function drawLine(ctx, sx, sy, ex, ey, width, stroke, eventCover = null, 
             if (points[0].t > t) { // t [ ] => --[t ]
                 t = points[0].t;
                 if (t > 1) {
-                    ctx.lineTo(ex, ex);
+                    ctx.lineTo(ex, ey);
                     return;
                 }
                 ctx.lineTo(points[0].x, points[0].y);
