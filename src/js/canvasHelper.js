@@ -28,6 +28,8 @@ export function drawLine(ctx, sx, sy, ex, ey, width, stroke, eventCover = null, 
         } else {
             intersections.sort((a, b) => distance(points[0], a) - distance(points[0], b));
 
+            ctx.lineWidth = width;
+            ctx.strokeStyle = stroke;
             ctx.beginPath();
             ctx.moveTo(sx, sy);
             intersections.forEach((point, index) => {
@@ -43,8 +45,6 @@ export function drawLine(ctx, sx, sy, ex, ey, width, stroke, eventCover = null, 
             if (intersections.length % 2 === 0) {
                 ctx.lineTo(ex, ey);
             }
-            ctx.lineWidth = width;
-            ctx.strokeStyle = stroke;
             ctx.stroke();
             ctx.closePath();
         }
@@ -54,11 +54,11 @@ export function drawLine(ctx, sx, sy, ex, ey, width, stroke, eventCover = null, 
 }
 
 function drawSimpleLine(ctx, sx, sy, ex, ey, width, stroke) {
+    ctx.lineWidth = width;
+    ctx.strokeStyle = stroke;
     ctx.beginPath();
     ctx.moveTo(sx, sy);
     ctx.lineTo(ex, ey);
-    ctx.lineWidth = width;
-    ctx.strokeStyle = stroke;
     ctx.stroke();
     ctx.closePath();
 }
