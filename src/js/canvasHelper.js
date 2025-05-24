@@ -157,39 +157,7 @@ export function drawSprite(ctx, x, y, key, type) {
 
 export function drawImageText(ctx, x, y, text, type) {
 	for (let i = 0; i < text.length; i++) {
-		let now = text.charAt(i);
-		let keyChar = '';
-		
-		switch (now) {
-			case '-':
-				keyChar = 'minus';
-				break;
-			
-			case '.':
-				keyChar = 'period';
-				break;
-			
-			case ' ':
-				keyChar = 'space';
-				break;
-			
-			case '普':
-				keyChar = 'normal';
-				break;
-			
-			case '玄':
-				keyChar = 'expert';
-				break;
-			
-			case '達':
-				keyChar = 'master';
-				break;
-			
-			default:
-				keyChar = now;
-				break;
-		}
-		
+		const keyChar = text.charAt(i);
 		drawSprite(ctx, x + (i * 6), y, keyChar, type);
 	}
 }
