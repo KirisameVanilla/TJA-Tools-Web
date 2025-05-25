@@ -174,6 +174,9 @@ export function drawSprite(ctx, x, y, key, type, alignY = 'top', alignX = 'left'
 		case 'center':
 			y -= sprite.naturalHeight / 2;
 			break;
+		case 'bottom':
+			y -= sprite.naturalHeight;
+			break;
 	}
 	switch (alignX) {
 		default:
@@ -181,6 +184,9 @@ export function drawSprite(ctx, x, y, key, type, alignY = 'top', alignX = 'left'
 			break;
 		case 'center':
 			x -= sprite.naturalWidth / 2;
+			break;
+		case 'right':
+			x -= sprite.naturalWidth;
 			break;
 	}
 	ctx.drawImage(sprite, x, y);

@@ -61,9 +61,9 @@ function getNoteCenter(row, beat) {
     };
 }
 
-function drawNoteSprite(ctx, row, yDelta, beat, type) {
+function drawNoteSprite(ctx, row, yDelta, beat, type, alignY = 'center', alignX = 'center') {
 	const { x, y } = getNoteCenter(row, beat);
-	drawSprite(ctx, x, y + yDelta, type, 'notes', 'center', 'center');
+	drawSprite(ctx, x, y + yDelta, type, 'notes', alignY, alignX);
 }
 
 function drawHandSprite(ctx, row, yDelta, beat, type) {
@@ -154,7 +154,7 @@ function drawRendaSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, omitEnd, type)
 			drawNoteSprite(ctx, eRow, bidxE * 24, eBeat, type + 'End');
 	}
 	drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, type + 'Middle');
-	drawNoteSprite(ctx, sRow, bidx * 24, sBeat, type + 'Start');
+	drawNoteSprite(ctx, sRow, bidx * 24, sBeat, type + 'Start', 'center', 'right');
 }
 
 function drawBalloonSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, omitEnd, count, imo = false, spSymbol = 'kusudama') {
@@ -183,7 +183,7 @@ function drawBalloonSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, omitEnd, cou
 			drawNoteSprite(ctx, eRow, bidxE * 24, eBeat, 'spRollEnd');
 	}
 	drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, 'spRollMiddle');
-	drawNoteSprite(ctx, sRow, bidx * 24, sBeat, 'spRollStart');
+	drawNoteSprite(ctx, sRow, bidx * 24, sBeat, 'spRollStart', 'center', 'right');
 	drawNoteSprite(ctx, sRow, bidx * 24, sBeat, symbol);
 
 	const { x, y } = getNoteCenter(sRow, sBeat);
