@@ -84,7 +84,12 @@ function drawNoteSprite(ctx, row, yDelta, beat, type) {
 	else if (type === 'fuseEnd')
 		drawSmallNote(ctx, x, y + yDelta, '#640aad', true, 'right');
 	else
-		drawSprite(ctx, x - 12, y - 12 + yDelta, type, 'notes');
+		drawSprite(ctx, x, y + yDelta, type, 'notes', 'center', 'center');
+}
+
+function drawHandSprite(ctx, row, yDelta, beat, type) {
+	const { x, y } = getNoteCenter(row, beat);
+	drawSprite(ctx, x, y + yDelta, type, 'notes', 'center', 'center');
 }
 
 //==============================================================================
@@ -107,7 +112,7 @@ function drawLongOnMeasure(ctx, rows, bt, ridx, midx, sBeat, eBeat, type) {
     else {
         const bidx = rows[ridx].measures[midx].dataBranches.indexOf(bt);
         if (bidx >= 0) {
-            y += bidx * 24 + ROW_OFFSET_NOTE_CENTER - 12;
+            y += bidx * 24 + ROW_OFFSET_NOTE_CENTER;
             drawRectSprite(ctx, sx, y, ex - sx, type)
         }
     }
@@ -156,13 +161,13 @@ function drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, type) {
 
 function drawRectSprite(ctx, x, y, w, type) {
 	if (type === 'fuseMiddle') {
-		y = y + 12 - NOTE_RADIUS;
+		y -= NOTE_RADIUS;
 		drawRect(ctx, x, y, w, 2 * NOTE_RADIUS, '#000');
 		drawRect(ctx, x, y + 1, w, 2 * (NOTE_RADIUS - 1), '#fff');
 		drawRect(ctx, x, y + 2, w, 2 * (NOTE_RADIUS - 2), '#640aad');
 	} else {
 		for (let i = 0; i < w; i++) {
-			drawSprite(ctx, x + i, y, type, 'notes');
+			drawSprite(ctx, x + i, y, type, 'notes', 'center', 'left');
 		}
 	}
 }
@@ -706,6 +711,18 @@ export default function (chart, courseId) {
 							}
 						}
 
+						// Hand
+						switch (note.handType) {
+							case 'hand':
+								drawNoteSprite(ctx, ridx, rowYDelta, nBeat, 'hand');
+								break;
+
+							case 'handBig':
+								drawNoteSprite(ctx, ridx, rowYDelta, nBeat, 'bigHand');
+								break;
+						}
+
+						// Note
 						switch (note.type) {
 							case 'don':
 								drawNoteSprite(ctx, ridx, rowYDelta, nBeat, 'don');
@@ -753,6 +770,13 @@ export default function (chart, courseId) {
 
 							case 'kadon':
 								drawNoteSprite(ctx, ridx, rowYDelta, nBeat, 'purple');
+								break;
+						}
+
+						// Overlay text
+						switch (note.handType) {
+							case 'handBig':
+								drawNoteSprite(ctx, ridx, rowYDelta, nBeat, 'bigHandText');
 								break;
 						}
 					}

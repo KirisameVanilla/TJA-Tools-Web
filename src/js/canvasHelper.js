@@ -165,8 +165,25 @@ export function drawPixelText(ctx, x, y, text, color, baseline = 'middle', textA
     drawText(ctx, x, y, text, '5px "Pixel 3x5"', color, baseline, textAlign);
 }
 
-export function drawSprite(ctx, x, y, key, type) {
-	ctx.drawImage(sprites[type][key], x, y);
+export function drawSprite(ctx, x, y, key, type, alignY = 'top', alignX = 'left') {
+	const sprite = sprites[type][key];
+	switch (alignY) {
+		default:
+		case 'top':
+			break;
+		case 'center':
+			y -= sprite.naturalHeight / 2;
+			break;
+	}
+	switch (alignX) {
+		default:
+		case 'left':
+			break;
+		case 'center':
+			x -= sprite.naturalWidth / 2;
+			break;
+	}
+	ctx.drawImage(sprite, x, y);
 }
 
 export function drawImageText(ctx, x, y, text, type) {

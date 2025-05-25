@@ -21,6 +21,9 @@ export default {
         "spRollEnd": require("./notes-spRollEnd.png").default,
         "spRollMiddle": require("./notes-spRollMiddle.png").default,
         "spRollStart": require("./notes-spRollStart.png").default,
+        "hand": require("./notes-hand.png").default,
+        "bigHand": require("./notes-bigHand.png").default,
+        "bigHandText": require("./notes-bigHandText.png").default,
     },
     "hs": {
         "0": require("./hs-0.png").default,

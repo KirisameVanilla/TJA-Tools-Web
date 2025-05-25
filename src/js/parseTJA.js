@@ -97,6 +97,15 @@ function noteSymbolToNoteType(noteSymbol) {
     return null;
 }
 
+function noteSymbolToHandType(noteSymbol) {
+    switch (noteSymbol) {
+        case 'A':
+        case 'B':
+            return 'handBig';
+    }
+    return null;
+}
+
 export function isRollType(noteType) {
     switch (noteType) {
         case 'renda':
@@ -134,6 +143,7 @@ function getNotes(data, rollStates, balloon, midx, currentBranch) {
         let note = {
             symbol: ch,
             type: noteSymbolToNoteType(ch),
+            handType: noteSymbolToHandType(ch),
             position: d,
         };
 
