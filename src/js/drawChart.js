@@ -61,30 +61,9 @@ function getNoteCenter(row, beat) {
     };
 }
 
-function drawSmallNote(ctx, x, y, color, drawInner = true, side = 'all') {
-    const draw = (side === 'left') ? drawCircleLeftHalf
-        : (side === 'right') ? drawCircleRightHalf
-        : drawCircle;
-
-    draw(ctx, x, y, NOTE_RADIUS, '#2e2e2e');
-
-    if (drawInner) {
-        draw(ctx, x, y, NOTE_RADIUS - 1, '#fff');
-        draw(ctx, x, y, NOTE_RADIUS - 2, color);
-    }
-    else {
-        draw(ctx, x, y, NOTE_RADIUS - 1, color);
-    }
-}
-
 function drawNoteSprite(ctx, row, yDelta, beat, type) {
 	const { x, y } = getNoteCenter(row, beat);
-	if (type === 'fuse')
-		drawSmallNote(ctx, x, y + yDelta, '#a4f', false);
-	else if (type === 'fuseEnd')
-		drawSmallNote(ctx, x, y + yDelta, '#640aad', true, 'right');
-	else
-		drawSprite(ctx, x, y + yDelta, type, 'notes', 'center', 'center');
+	drawSprite(ctx, x, y + yDelta, type, 'notes', 'center', 'center');
 }
 
 function drawHandSprite(ctx, row, yDelta, beat, type) {
@@ -160,15 +139,8 @@ function drawLongSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, type) {
 }
 
 function drawRectSprite(ctx, x, y, w, type) {
-	if (type === 'fuseMiddle') {
-		y -= NOTE_RADIUS;
-		drawRect(ctx, x, y, w, 2 * NOTE_RADIUS, '#000');
-		drawRect(ctx, x, y + 1, w, 2 * (NOTE_RADIUS - 1), '#fff');
-		drawRect(ctx, x, y + 2, w, 2 * (NOTE_RADIUS - 2), '#640aad');
-	} else {
-		for (let i = 0; i < w; i++) {
-			drawSprite(ctx, x + i, y, type, 'notes', 'center', 'left');
-		}
+	for (let i = 0; i < w; i++) {
+		drawSprite(ctx, x + i, y, type, 'notes', 'center', 'left');
 	}
 }
 
@@ -233,7 +205,7 @@ function drawFuseSprite(ctx, rows, bt, sRow, sBeat, eRow, eBeat, omitEnd, count)
 
 	const { x, y } = getNoteCenter(sRow, sBeat);
 	const xDelta = Math.floor((count.toString().length * 6) / 2) - 3
-	drawImageText(ctx, x - 3 - xDelta, y - 3 + (bidx * 24), count.toString(), 'fuseNum');
+	drawImageText(ctx, x - 3 - xDelta, y - 3 + (bidx * 24), count.toString(), 'num');
 }
 
 //==============================================================================

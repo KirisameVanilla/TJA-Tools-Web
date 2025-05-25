@@ -208,26 +208,11 @@ export function initSprites() {
 		let loadCount = 0;
 		for (let type in data) {
 			outdata[type] = {};
-			if (type === 'num')
-				outdata['fuseNum'] = {};
 			for (let key in data[type]) {
 				let img = new Image();
 				img.src = data[type][key];
 				img.onload = () => {
 					outdata[type][key] = img;
-					if (type === 'num') {
-						// draw a recolored `num` digit for `fuseNum`
-						let c = document.createElement('canvas');
-						c.width = img.width;
-						c.height = img.height;
-						let ctx = c.getContext('2d');
-						ctx.drawImage(img, 0, 0);
-						ctx.globalCompositeOperation = 'source-atop';
-						ctx.fillStyle = '#fcc';
-						ctx.fillRect(0, 0, img.width, img.height);
-						ctx.globalCompositeOperation = 'source-over';
-						outdata['fuseNum'][key] = c;
-					}
 					loadCount++;
 
 					if (loadCount === total) {
