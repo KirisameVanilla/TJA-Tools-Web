@@ -578,33 +578,26 @@ export default function (chart, courseId) {
 
                     if (event.name === 'scroll') {
 						let scrollsTemp = [];
-
-						for (let b of branchTypes) {
-							if (event.value[b] === null) {
+						let valueLookup = {};
+						for (const bt in event.value) {
+							if (event.value[bt] === null) {
 								continue;
 							}
-							let duplicate = false;
-							for (let j = 0; j < scrollsTemp.length; j++) {
-								if (event.value[b] === scrollsTemp[j].value) {
-									scrollsTemp[j].branch.push(b);
-									duplicate = true;
-									break;
-								}
+							if (valueLookup[event.value[bt]] === undefined) {
+								scrollsTemp.push(valueLookup[event.value[bt]] = {value: event.value[bt], branch: []});
 							}
-							if (!duplicate) {
-								scrollsTemp.push({value:event.value[b], branch:[]});
-								scrollsTemp[scrollsTemp.length - 1].branch.push(b);
-							}
+							valueLookup[event.value[bt]].branch.push(bt);
 						}
 
 						drawBarline(ex, event.position, true, scrollsTemp.length);
                         //drawPixelText(ctx, ex + 2, y + ROW_HEIGHT_INFO - 13, 'HS ' + toFixedZero(event.value.toFixed(2)), '#f00', 'bottom', 'left');
 
 						let scrollCount = 0;
-						for (let sTemp of scrollsTemp.reverse()) {
+						for (let si = scrollsTemp.length; si-- > 0;) {
+							const sTemp = scrollsTemp[si];
 							let scrollText = '';
 
-							if (scrollsTemp.length != 1 || sTemp.branch.length != measure.dataBranches.length) {
+							if (event.branching) {
 								for (let stb of sTemp.branch) {
 									if (stb === 'N') {
 										scrollText += '普';

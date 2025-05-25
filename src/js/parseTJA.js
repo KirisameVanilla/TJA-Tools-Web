@@ -348,7 +348,6 @@ function getCourse(tjaHeaders, lines) {
 		balloonOffset: {N: 0, E: 0, M: 0, all: 0},
 		roll: {N: null, E: null, M: null},
 	};
-	let currentScroll = {N: '1', E: '1', M: '1'};
 
     function getMeasure(midx) {
         while (midx >= measures.length) {
@@ -360,6 +359,7 @@ function getCourse(tjaHeaders, lines) {
                 events: [],
                 nDivisions: 1,
                 dataBranches: [],
+                branching: branching,
             };
             measures.push(measure);
         }
@@ -517,6 +517,7 @@ function getCourse(tjaHeaders, lines) {
 						name: 'branchStart',
 						position: measureData.length,
 						branch: currentBranch,
+						branching: branching,
 					});
                     break;
 
@@ -533,6 +534,7 @@ function getCourse(tjaHeaders, lines) {
 						name: 'branchEnd',
 						position: measureData.length,
 						branch: currentBranch,
+						branching: branching,
 					});
                     break;
 
@@ -601,6 +603,7 @@ function getCourse(tjaHeaders, lines) {
                                 name: 'gogoStart',
                                 position: measureData.length,
 								branch: currentBranch,
+								branching: branching,
                             });
                             break;
 
@@ -609,6 +612,7 @@ function getCourse(tjaHeaders, lines) {
                                 name: 'gogoEnd',
                                 position: measureData.length,
 								branch: currentBranch,
+								branching: branching,
                             });
                             break;
 
@@ -617,6 +621,7 @@ function getCourse(tjaHeaders, lines) {
                                 name: 'barlineon',
                                 position: measureData.length,
 								branch: currentBranch,
+								branching: branching,
                             });
                             break;
 
@@ -625,6 +630,7 @@ function getCourse(tjaHeaders, lines) {
                                 name: 'barlineoff',
                                 position: measureData.length,
 								branch: currentBranch,
+								branching: branching,
                             });
                             break;
 
@@ -634,10 +640,8 @@ function getCourse(tjaHeaders, lines) {
 								position: measureData.length,
 								value: line.value,
 								branch: currentBranch,
+								branching: branching,
 							});
-							for (let bt of (branching ? [currentBranch] : ['N', 'E', 'M']))
-								currentScroll[bt] = line.value;
-
                             break;
 
                         case 'BPMCHANGE':
@@ -646,6 +650,7 @@ function getCourse(tjaHeaders, lines) {
                                 position: measureData.length,
                                 value: line.value,
 								branch: currentBranch,
+								branching: branching,
                             });
                             break;
 
@@ -655,6 +660,7 @@ function getCourse(tjaHeaders, lines) {
                                 position: measureData.length,
                                 value: parseInt(line.value),
 								branch: currentBranch,
+								branching: branching,
                             });
                             break;
 
@@ -664,6 +670,7 @@ function getCourse(tjaHeaders, lines) {
                                 position: measureData.length,
                                 value: parseInt(line.value),
 								branch: currentBranch,
+								branching: branching,
                             });
                             break;
 
@@ -672,6 +679,7 @@ function getCourse(tjaHeaders, lines) {
                                 name: 'avoidtexton',
                                 position: measureData.length,
 								branch: currentBranch,
+								branching: branching,
                             });
                             break;
 
@@ -680,6 +688,7 @@ function getCourse(tjaHeaders, lines) {
                                 name: 'avoidtextoff',
                                 position: measureData.length,
 								branch: currentBranch,
+								branching: branching,
                             });
                             break;
 
@@ -692,6 +701,7 @@ function getCourse(tjaHeaders, lines) {
                                 name: 'section',
                                 position: measureData.length,
 								branch: currentBranch,
+								branching: branching,
                             });
                             break;
 
@@ -795,24 +805,44 @@ function getCourse(tjaHeaders, lines) {
 
 		// Merge HS Event
 		let canDelete = [];
+		let posToScroll = {};
 		for (let j = 0; j < measures[i].events.length; j++) {
-			if (measures[i].events[j].name === 'scroll') {
-				let newValue = {N:null, E:null, M:null};
-				newValue[measures[i].events[j].branch] = measures[i].events[j].value;
-
-				for (let k = j + 1; k < measures[i].events.length; k++) {
-					if (measures[i].events[k].name === 'scroll' && measures[i].events[j].position === measures[i].events[k].position) {
-						newValue[measures[i].events[k].branch] = measures[i].events[k].value;
-						canDelete.push(k);
+			const event = measures[i].events[j];
+			if (event.name === 'scroll') {
+				let value = event.value;
+				let lastScroll = posToScroll[event.position];
+				if (lastScroll === undefined) {
+					lastScroll = posToScroll[event.position] = event;
+					event.value = {};
+					for (const bt of measures[i].dataBranches) {
+						event.value[bt] = null;
 					}
 				}
-
-				measures[i].events[j].value = newValue;
+				else {
+					canDelete.push(j);
+				}
+				for (const bt of (event.branching ? [event.branch] : measures[i].dataBranches)) {
+					lastScroll.value[bt] = value;
+				}
 			}
 		}
 
 		for (let cd of canDelete.reverse()) {
 			measures[i].events.splice(cd, 1);
+		}
+
+		// Recalculate branching state
+		for (const pos in posToScroll) {
+			const event = posToScroll[pos];
+			let value = undefined;
+			event.branching = false;
+			for (const bt in event.value) {
+				if (value !== undefined && event.value[bt] !== value) {
+					event.branching = true;
+					break;
+				}
+				value = event.value[bt];
+			}
 		}
 	}
 
@@ -1112,7 +1142,7 @@ export function getEnabledBranch(chart, courseId) {
 	for (let bt of branchTypes) {
 		let enabled = false;
 		for (let m of course.measures) {
-			if (m.data[bt] != null) {
+			if (m.branching && m.data[bt] != null) {
 				result.push(bt);
 				break;
 			}

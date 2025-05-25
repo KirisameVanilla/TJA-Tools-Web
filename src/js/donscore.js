@@ -390,23 +390,15 @@ export function convertToDonscore(chart, courseId) {
 					break;
 				case 'scroll':
 					let scrollsTemp = [];
-
-					for (let bt of branchTypes) {
+					let valueLookup = {};
+					for (const bt in event.value) {
 						if (event.value[bt] === null) {
 							continue;
 						}
-						let duplicate = false;
-						for (let j = 0; j < scrollsTemp.length; j++) {
-							if (event.value[bt] === scrollsTemp[j].value) {
-								scrollsTemp[j].branch.push(bt);
-								duplicate = true;
-								break;
-							}
+						if (valueLookup[event.value[bt]] === undefined) {
+							scrollsTemp.push(valueLookup[event.value[bt]] = {value: event.value[bt], branch: []});
 						}
-						if (!duplicate) {
-							scrollsTemp.push({value:event.value[bt], branch:[]});
-							scrollsTemp[scrollsTemp.length - 1].branch.push(bt);
-						}
+						valueLookup[event.value[bt]].branch.push(bt);
 					}
 
 					for (let sTemp of scrollsTemp) {
@@ -414,7 +406,7 @@ export function convertToDonscore(chart, courseId) {
 						if (event.position > 0) {
 							eventText += ` ${splitNum} ${fixedPosition}`;
 						}
-						if (scrollsTemp.length != 1 || sTemp.branch.length != measure.dataBranches.length) {
+						if (event.branching) {
 							eventText += ' ';
 							for (let bt of branchTypes) {
 								eventText += sTemp.branch.includes(bt) ? 'o' : 'x';
