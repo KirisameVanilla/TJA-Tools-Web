@@ -153,7 +153,7 @@ function listenControlsDiffs() {
         selectedDifficulty = diff;
 
         const enabledBranch = getEnabledBranch(tjaParsed, selectedDifficulty);
-        selectedBranch = enabledBranch[enabledBranch.length - 1];
+        selectedBranch = enabledBranch[enabledBranch.length - 1] || 'N';
 
         updateUI();
     });
