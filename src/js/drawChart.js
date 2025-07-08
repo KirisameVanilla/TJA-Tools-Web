@@ -235,10 +235,6 @@ export default function (chart, courseId) {
         measure.nBeatNotes = Math.abs(measure.lengthNotes[0] / measure.lengthNotes[1] * 4);
         measure.rowDelta = (measure.dataBranches.length - 1) * 24;
 
-		if (rowBeatM >= 0 && measure.properties.moveLine != undefined && !isNaN(measure.properties.moveLine)) {
-			moveLineTemp = measure.properties.moveLine;
-		}
-
         const pushMeasure = (measureBeatPushed) => {
             const positionBeginPushed = (rowTemp.length > 0) ? 0 : positionBegin;
             midxToPosRmidx[midx] = midxToPosRmidx[midx] || [];
@@ -247,6 +243,10 @@ export default function (chart, courseId) {
             rowBeats.push(rowBeatM + measureBeatPushed);
             if (measure.dataBranches.length > nPrevBranches)
                 nPrevBranches = measure.dataBranches.length;
+
+            const moveLineM = measure.properties.moveLines.findLast(e => (e.position >= positionBeginPushed && e.position < positionEnd && !isNaN(e.value)));
+            if (moveLineM !== undefined)
+                moveLineTemp = moveLineM.value;
         }
 
         // calculate row wrap

@@ -716,8 +716,14 @@ function getCourse(tjaHeaders, lines) {
                             break;
 
 						case 'MOVELINE':
-							currentMeasure.properties['moveLine'] = parseInt(line.value);
-							break;
+                            currentMeasure.events.push({
+                                name: 'moveLine',
+                                position: measureData.length,
+								value: parseInt(line.value),
+								branch: currentBranch,
+								branching: branching,
+                            });
+                            break;
 
                         case 'TTBREAK':
 						case 'NEWLINE':
@@ -818,8 +824,9 @@ function getCourse(tjaHeaders, lines) {
 			}
 		}
 
-		// Merge HS Event + build ttBreaks property
+		// Merge HS Event + build row layout property
 		measures[i].properties.ttBreaks = [];
+		measures[i].properties.moveLines = [];
 		let canDelete = [];
 		let posToScroll = {};
 		for (let j = 0; j < measures[i].events.length; j++) {
@@ -842,9 +849,12 @@ function getCourse(tjaHeaders, lines) {
 				}
 			} else if (event.name === 'ttBreak') {
 				measures[i].properties.ttBreaks.push(event);
+			} else if (event.name === 'moveLine') {
+				measures[i].properties.moveLines.push(event);
 			}
 		}
 		measures[i].properties.ttBreaks.sort((a, b) => a.position - b.position);
+		measures[i].properties.moveLines.sort((a, b) => a.position - b.position);
 
 		for (let cd of canDelete.reverse()) {
 			measures[i].events.splice(cd, 1);
