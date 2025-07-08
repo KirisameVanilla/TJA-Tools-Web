@@ -30,10 +30,12 @@ const getRowDeltaSums = (offset = -1) => rowDeltaSums[(offset < 0 || offset >= r
 const GET_ROW_Y = row => CHART_PADDING_TOP.current + ((ROW_HEIGHT + ROW_MARGIN_BOTTOM) * row) + getRowDeltaSums(row);
 const GET_BEAT_X = beat => ROW_LEADING + (beat * BEAT_WIDTH);
 
-const GET_MEASURE_POS_BEAT = (measure, position) => measure.rowBeat + (measure.nBeats / measure.nDivisions * position);
-const GET_MEASURE_POS_BEAT_NOTE = (measure, position) => measure.rowBeat + (measure.nBeatNotes / measure.nDivisions * position);
+const GET_MEASURE_POS_BEAT = (rowBeat, measure, position) => rowBeat + (measure.nBeats / measure.nDivisions * position);
+const GET_MEASURE_POS_BEAT_NOTE = (rowBeat, measure, position) => rowBeat + (measure.nBeatNotes / measure.nDivisions * position);
 
-const GET_BEAT_ROW_MIDX = (row, beat) => row.measures.findLastIndex(m => (m.rowBeat <= beat));
+const GET_BEAT_ROW_MIDX = (row, beat) => row.rowBeats.findLastIndex(beatI => (beatI <= beat)) || 0;
+const IS_POSITION_IN_ROW = (row, midx, position) => ((midx !== 0 || position >= row.positionBegin)
+    && (midx !== row.measures.length - 1 || position < row.positionEnd))
 
 const branchTypes = ['N','E','M'];
 
@@ -105,15 +107,15 @@ function drawLongOnRow(ctx, rows, bt, ridx, sBeat, eBeat, type) {
         drawLongOnMeasure(ctx, rows, bt, ridx, sMidx, sBeat, eBeat, type);
     } else {
         // start to end-of-measure
-        drawLongOnMeasure(ctx, rows, bt, ridx, sMidx, sBeat, rows[ridx].measures[sMidx + 1].rowBeat, type);
+        drawLongOnMeasure(ctx, rows, bt, ridx, sMidx, sBeat, rows[ridx].rowBeats[sMidx + 1], type);
 
         // full measures
         for (let m = sMidx + 1; m < eMidx; ++m) {
-            drawLongOnMeasure(ctx, rows, bt, ridx, m, rows[ridx].measures[m].rowBeat, rows[ridx].measures[m + 1].rowBeat, type);
+            drawLongOnMeasure(ctx, rows, bt, ridx, m, rows[ridx].rowBeats[m], rows[ridx].rowBeats[m + 1], type);
         }
 
         // start-of-measure to end
-        drawLongOnMeasure(ctx, rows, bt, ridx, eMidx, rows[ridx].measures[eMidx].rowBeat, eBeat, type);
+        drawLongOnMeasure(ctx, rows, bt, ridx, eMidx, rows[ridx].rowBeats[eMidx], eBeat, type);
     }
 }
 
@@ -220,39 +222,63 @@ export default function (chart, courseId) {
     //============================================================================
     // 1. Calculate canvas size, split measures into rows
 
-    const rows = [], midxToRmidx = [];
+    const rows = [], midxToPosRmidx = [];
     let rowTemp = [], rowBeats = [0];
 	let nPrevBranches = 0;
 	let moveLineTemp = 0;
+    let positionBegin = 0, positionEnd = Infinity; // for the first and last measures in a row
 
     for (let midx = 0; midx < course.measures.length; midx++) {
+        const rowBeatM = rowBeats[rowBeats.length - 1];
         const measure = course.measures[midx];
         const measureBeat = measure.nBeats = Math.abs(measure.length[0] / measure.length[1] * 4);
         measure.nBeatNotes = Math.abs(measure.lengthNotes[0] / measure.lengthNotes[1] * 4);
         measure.rowDelta = (measure.dataBranches.length - 1) * 24;
 
-		if (measure.properties.moveLine != undefined && !isNaN(measure.properties.moveLine)) {
+		if (rowBeatM >= 0 && measure.properties.moveLine != undefined && !isNaN(measure.properties.moveLine)) {
 			moveLineTemp = measure.properties.moveLine;
 		}
 
-        if (ttRowBeat < rowBeats[rowBeats.length - 1] + measureBeat || measure.properties.ttBreak) {
-            rows.push({ totalBeat: rowBeats[rowBeats.length - 1], measures: rowTemp, nBranches: nPrevBranches, moveLine: moveLineTemp});
-            rowTemp = [];
-            rowBeats = [0];
-            nPrevBranches = 0;
-            moveLineTemp = 0;
+        const pushMeasure = (measureBeatPushed) => {
+            const positionBeginPushed = (rowTemp.length > 0) ? 0 : positionBegin;
+            midxToPosRmidx[midx] = midxToPosRmidx[midx] || [];
+            midxToPosRmidx[midx].push([positionBeginPushed, rows.length, rowTemp.length]);
+            rowTemp.push(measure);
+            rowBeats.push(rowBeatM + measureBeatPushed);
+            if (measure.dataBranches.length > nPrevBranches)
+                nPrevBranches = measure.dataBranches.length;
         }
 
-        midxToRmidx[midx] = [rows.length, rowTemp.length];
-        rowTemp.push(measure);
-        measure.rowBeat = rowBeats[rowBeats.length - 1];
-        rowBeats.push(rowBeats[rowBeats.length - 1] + measureBeat);
-        if (measure.dataBranches.length > nPrevBranches)
-            nPrevBranches = measure.dataBranches.length;
+        // calculate row wrap
+        const rowBeatWrap = (rowBeatM > 0 && rowBeatM + measureBeat > ttRowBeat) ? rowBeatM // auto whole-measure wrap
+            : measure.properties.ttBreak ? rowBeatM // manual wrap
+            : (Math.abs(measure.length[1]) < ttRowBeat * 3 / 4) ?
+                rowBeatM + Math.floor((ttRowBeat - rowBeatM) / Math.abs(measure.length[1])) * Math.abs(measure.length[1]) // soft mid-measure wrap at major grid
+            : ttRowBeat; // hard mid-measure wrap
+        if (rowBeatM + measureBeat <= rowBeatWrap) { // no need to wrap
+            pushMeasure(measureBeat);
+        } else {
+            const measureBeatWrap = rowBeatWrap - rowBeatM;
+            if (measureBeatWrap > 0) {
+                positionEnd = measure.nDivisions * measureBeatWrap / measure.nBeatNotes;
+                pushMeasure(measureBeatWrap);
+            }
+            rows.push({ totalBeat: rowBeats.pop(), rowBeats: rowBeats, measures: rowTemp, positionBegin: positionBegin, positionEnd: positionEnd, nBranches: nPrevBranches, moveLine: moveLineTemp});
+            rowTemp = [];
+            rowBeats = [-measureBeatWrap];
+            nPrevBranches = 0;
+            moveLineTemp = 0;
+            if (measureBeatWrap > 0)
+                positionBegin = positionEnd;
+            else
+                positionBegin = 0;
+            positionEnd = Infinity;
+            --midx; // continue process at next row
+        }
     }
 
     if (rowTemp.length)
-        rows.push({ totalBeat: rowBeats[rowBeats.length - 1], measures: rowTemp, nBranches: nPrevBranches, moveLine: moveLineTemp });
+        rows.push({ totalBeat: rowBeats.pop(), rowBeats: rowBeats, measures: rowTemp, positionBegin: positionBegin, positionEnd: positionEnd, nBranches: nPrevBranches, moveLine: moveLineTemp });
 
     rowDeltaSums.length = 0;
     rowDeltaSums.push(0);
@@ -317,17 +343,19 @@ export default function (chart, courseId) {
             const rowWidth = ROW_LEADING + (BEAT_WIDTH * row.totalBeat) + ROW_TRAILING;
             const y = GET_ROW_Y(ridx);
 
+            row.sxNoPads = [];
+            row.exNoPads = [];
 			for (let midx = 0; midx < measures.length; ++midx) {
                 const measure = row.measures[midx];
-                const sx = (midx === 0) ? 0 : GET_BEAT_X(measure.rowBeat);
-                const ex = (midx + 1 >= measures.length) ? rowWidth : GET_BEAT_X(row.measures[midx + 1].rowBeat);
+                const sx = (midx === 0) ? 0 : GET_BEAT_X(row.rowBeats[midx]);
+                const ex = (midx + 1 >= measures.length) ? rowWidth : GET_BEAT_X(row.rowBeats[midx + 1]);
                 const branches = measure.dataBranches;
                 const branchesPrev = (midx === 0) ? branches : row.measures[midx - 1].dataBranches;
                 const branchesNext = (midx + 1 >= measures.length) ? branches : row.measures[midx + 1].dataBranches;
                 const padPrev = (branchesPrev.length > branches.length);
                 const padNext = (branchesNext.length > branches.length);
-                let sxNoPad = measure.sxNoPad = (padPrev ? Math.min(ex, sx + ROW_TRAILING) : sx);
-                let exNoPad = measure.exNoPad = (padNext ? Math.max(sx, ex - ROW_LEADING) : ex);
+                let sxNoPad = row.sxNoPads[midx] = (padPrev ? Math.min(ex, sx + ROW_TRAILING) : sx);
+                let exNoPad = row.exNoPads[midx] = (padNext ? Math.max(sx, ex - ROW_LEADING) : ex);
                 if (padPrev && padNext && sxNoPad >= exNoPad) {
                     // space is not enough; do not pad
                     sxNoPad = sx;
@@ -432,7 +460,9 @@ export default function (chart, courseId) {
                 // Go-go time
                 for (let i = 0; i < measure.events.length; i++) {
                     const event = measure.events[i];
-                    const eBeat = GET_MEASURE_POS_BEAT(measure, event.position);
+                    if (!IS_POSITION_IN_ROW(row, midx, event.position))
+                        continue;
+                    const eBeat = GET_MEASURE_POS_BEAT(row.rowBeats[midx], measure, event.position);
 
                     if (event.name === 'gogoStart' && !gogoStart) {
                         gogoStart = [ridx, eBeat];
@@ -457,7 +487,7 @@ export default function (chart, courseId) {
 
             for (let midx = 0; midx < measures.length; midx++) {
                 const measure = measures[midx];
-                const mx = GET_BEAT_X(measure.rowBeat);
+                const mx = GET_BEAT_X(row.rowBeats[midx]);
 
                 // Sub grid
                 const ny = y + ROW_HEIGHT_INFO;
@@ -467,27 +497,34 @@ export default function (chart, courseId) {
                 const nGrids = nGridsBody + (isRowEnd ? 1 : 0);
                 for (let i = 0; i < nGrids; i++) {
                     const subBeat = (i >= nGridsBody) ? measure.nBeats : i / Math.abs(measure.length[1]) * 2;
-                    const subx = GET_BEAT_X(measure.rowBeat + subBeat);
+                    const beat = row.rowBeats[midx] + subBeat;
+                    if (!(beat >= 0 && beat <= row.totalBeat))
+                        continue;
+                    const subx = GET_BEAT_X(beat);
                     const style = '#ffffff' + ((i % 2 === 0 || i >= nGridsBody) ? '7f' : '3f');
                     // Measure-end grid for just-"merged" branch lanes
                     const rowDelta = (i === 0 && midx > 0) ? Math.max(row.measures[midx - 1].rowDelta, measure.rowDelta)
                         : measure.rowDelta;
-                    const edgeDelta = (subx < measure.sxNoPad || subx > measure.exNoPad) ? -4 : 0;
+                    const edgeDelta = (subx < row.sxNoPads[midx] || subx > row.exNoPads[midx]) ? -4 : 0;
                     drawLine(ctx, subx, ny, subx, ny + ROW_HEIGHT_NOTE + rowDelta + edgeDelta, 2, style);
                 }
 
                 // Measure number
                 //drawPixelText(ctx, mx + 2, y + ROW_HEIGHT_INFO - 1, measureNumber.toString(), '#000', 'bottom', 'left');
-                drawImageText(ctx, mx, y + ROW_HEIGHT_INFO - 6, measureNumber.toString(), 'num');
-                measureNumber += 1;
+                let barlineDrawn = false;
+                if (IS_POSITION_IN_ROW(row, midx, 0)) {
+                    drawImageText(ctx, mx, y + ROW_HEIGHT_INFO - 6, measureNumber.toString(), 'num');
+                    measureNumber += 1;
+                } else {
+                    barlineDrawn = true;
+                }
 
                 // Measure lines
-                let barlineDrawn = false;
                 let branchStart = {};
                 let lastUpperLinePosition = null;
                 let lastLowerLinePosition = null;
                 function drawBarline(ex, position, isEvent, scrollCount = 1) {
-                    const edgeDelta = (ex < measure.sxNoPad || ex > measure.exNoPad) ? -4 : 0;
+                    const edgeDelta = (ex < row.sxNoPads[midx] || ex > row.exNoPads[midx]) ? -4 : 0;
                     if (position !== lastUpperLinePosition) {
                         const lineColorUpper = (position === branchStart.position) ? LINE_COLOR.branch
                             : (position !== 0) ? (isEvent ? LINE_COLOR.event : null)
@@ -512,9 +549,9 @@ export default function (chart, courseId) {
                             const lastRow = rows[ridx - 1];
                             const y2 = GET_ROW_Y(ridx - 1);
                             const mx2 = GET_BEAT_X(lastRow.totalBeat);
-                            const lastMeasure = lastRow.measures[lastRow.measures.length - 1];
-                            const edgeDelta2 = (mx2 < lastMeasure.sxNoPad || mx2 > lastMeasure.exNoPad) ? -4 : 0;
-                            drawLine(ctx, mx2, y2, mx2, y2 + ROW_HEIGHT + lastMeasure.rowDelta + edgeDelta2, 2, LINE_COLOR.normal, eventCover, avoidText);
+                            const lastMidx = lastRow.measures.length - 1;
+                            const edgeDelta2 = (mx2 < lastRow.sxNoPads[lastMidx] || mx2 > lastRow.exNoPads[lastMidx]) ? -4 : 0;
+                            drawLine(ctx, mx2, y2, mx2, y2 + ROW_HEIGHT + lastRow.measures[lastMidx].rowDelta + edgeDelta2, 2, LINE_COLOR.normal, eventCover, avoidText);
                         }
                     }
                     if (position === 0) {
@@ -544,7 +581,9 @@ export default function (chart, courseId) {
                     .map(e => e.e);
 
                 for (let event of events) {
-                    const eBeat = GET_MEASURE_POS_BEAT(measure, event.position);
+                    if (!IS_POSITION_IN_ROW(row, midx, event.position))
+                        continue;
+                    const eBeat = GET_MEASURE_POS_BEAT(row.rowBeats[midx], measure, event.position);
                     const ex = GET_BEAT_X(eBeat);
 
                     if (event.position !== 0 && !barlineDrawn) {
@@ -658,7 +697,9 @@ export default function (chart, courseId) {
 
 					for (let didx = measure.data[bt].length; didx-- > 0;) {
 						const note = measure.data[bt][didx];
-						const nBeat = GET_MEASURE_POS_BEAT_NOTE(measure, note.position);
+						if (!IS_POSITION_IN_ROW(row, midx, note.position))
+							continue;
+						const nBeat = GET_MEASURE_POS_BEAT_NOTE(row.rowBeats[midx], measure, note.position);
 
 						let longEnd = null;
 
@@ -668,12 +709,14 @@ export default function (chart, courseId) {
 							if (rollEnd === undefined) {
 								longEnd = [undefined, undefined, true];
 							} else {
-								const rmidxE = midxToRmidx[rollEnd.midx];
-								const ridxE = rmidxE[0], midxE = rmidxE[1], positionE = rollEnd.note.position;
+								const measureE = course.measures[rollEnd.midx], positionE = rollEnd.note.position;
+								const posRmidxE = midxToPosRmidx[rollEnd.midx];
+								const rmidxE = posRmidxE.findLast(x => (x[0] <= positionE)) || posRmidxE[0];
+								const ridxE = rmidxE[1], midxE = rmidxE[2];
 
 								const omitE = (rollEnd.note.type !== 'end'); // omit forced roll ends for clarity
-								const measureE = rows[ridxE].measures[midxE];
-								const nBeatE = GET_MEASURE_POS_BEAT_NOTE(measureE, positionE);
+								const rowE = rows[ridxE];
+								const nBeatE = GET_MEASURE_POS_BEAT_NOTE(rowE.rowBeats[midxE], measureE, positionE);
 								if (ridxE > 0 && nBeatE === 0) {
 									longEnd = [ridxE - 1, rows[ridxE - 1].totalBeat, omitE];
 								}
