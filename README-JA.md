@@ -131,7 +131,7 @@ npm run build
 - コマンド
     - `#TTBREAK`（[Snack](https://github.com/Snack-X)様）、
       `#NEWLINE`（[Dannal65535](https://github.com/Dannal65535)様） \
-      このコマンドがある小節の先頭で改行させることが出来ます。 \
+      このコマンドがあるところで改行させることが出来ます。小節の途中でも使用出来ます。 \
       元々`#TTBREAK`は存在していましたが、
       どんすこあで使用されている`#newline`にも対応しました。
     - `#MOVELINE`（[Dannal65535](https://github.com/Dannal65535)様、[Wei-Cheng Yeh (IID)](https://github.com/IepIweidieng) 様） \

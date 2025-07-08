@@ -130,7 +130,7 @@ npm run build
 - 指令
     - `#TTBREAK` ([Snack](https://github.com/Snack-X)),
       `#NEWLINE` ([Dannal65535](https://github.com/Dannal65535)) \
-      在指令所在的小节开头换行。 \
+      在指令所在处换行。可用在小节中间。 \
       除了原先已有的 `#TTBREAK` 外，
       现在还支持 Donscore 的 `#newline`。
     - `#MOVELINE` ([Dannal65535](https://github.com/Dannal65535)、[Wei-Cheng Yeh (IID)](https://github.com/IepIweidieng)) \

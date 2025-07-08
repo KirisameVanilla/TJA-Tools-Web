@@ -130,7 +130,7 @@ You shall then open `webpack-dist/index.html` (not `src/index.html`) with your w
 - Commands
     - `#TTBREAK` ([Snack](https://github.com/Snack-X)),
       `#NEWLINE` ([Dannal65535](https://github.com/Dannal65535)) \
-      Wrap the line at the start of the bar with this command. \
+      Wrap the line at this command. Can be used in the middle of a measure. \
       Apart from the previously existing `#TTBREAK`,
       it now also supports `#newline` used in Donscore.
     - `#MOVELINE` ([Dannal65535](https://github.com/Dannal65535), [Wei-Cheng Yeh (IID)](https://github.com/IepIweidieng)) \

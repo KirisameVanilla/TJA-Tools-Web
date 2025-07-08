@@ -721,7 +721,12 @@ function getCourse(tjaHeaders, lines) {
 
                         case 'TTBREAK':
 						case 'NEWLINE':
-                            currentMeasure.properties['ttBreak'] = true;
+                            currentMeasure.events.push({
+                                name: 'ttBreak',
+                                position: measureData.length,
+								branch: currentBranch,
+								branching: branching,
+                            });
                             break;
 
 						/*
@@ -813,7 +818,8 @@ function getCourse(tjaHeaders, lines) {
 			}
 		}
 
-		// Merge HS Event
+		// Merge HS Event + build ttBreaks property
+		measures[i].properties.ttBreaks = [];
 		let canDelete = [];
 		let posToScroll = {};
 		for (let j = 0; j < measures[i].events.length; j++) {
@@ -834,8 +840,11 @@ function getCourse(tjaHeaders, lines) {
 				for (const bt of (event.branching ? [event.branch] : measures[i].dataBranches)) {
 					lastScroll.value[bt] = value;
 				}
+			} else if (event.name === 'ttBreak') {
+				measures[i].properties.ttBreaks.push(event);
 			}
 		}
+		measures[i].properties.ttBreaks.sort((a, b) => a.position - b.position);
 
 		for (let cd of canDelete.reverse()) {
 			measures[i].events.splice(cd, 1);
