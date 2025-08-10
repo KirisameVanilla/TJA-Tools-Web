@@ -15,6 +15,23 @@
                 </h2>
                 <div class="controls">
                     <input type="file" id="tja-file" accept=".tja, .txt">
+                    <div id="zip-file-selector" class="zip-file-selector" style="display: none;">
+                        <label class="l10n">
+                            <span lang="en">Select TJA file from ZIP:</span>
+                            <span lang="ja">ZIPファイルからTJAファイルを選択:</span>
+                        </label>
+                        <select id="zip-tja-select" class="zip-tja-select">
+                            <option value="">-- Select a TJA file --</option>
+                        </select>
+                        <button id="load-zip-tja" class="load-zip-tja l10n">
+                            <span lang="en">Load Selected</span>
+                            <span lang="ja">選択したファイルを読み込み</span>
+                        </button>
+                        <button id="cancel-zip" class="cancel-zip l10n">
+                            <span lang="en">Cancel</span>
+                            <span lang="ja">キャンセル</span>
+                        </button>
+                    </div>
                     <br />
                     <div style="float:left">
                         <label class="l10n"><span lang="en">Encoding:</span><span lang="ja">文字コード: </span></label>
@@ -77,9 +94,9 @@
                     <p><code class="stat-level"></code></p>
                     <h4 class="l10n"><span lang="en">Branch</span><span lang="ja">分岐</span></h4>
 					<div class="controls-branch">
-                        <span class="button btn-branch-n is-hidden l10n" data-value='N'><span lang="en">Normal</span><span lang="ja">普通</span></span>
-                        <span class="button btn-branch-e is-hidden l10n" data-value='E'><span lang="en">Professional</span><span lang="ja">玄人</span></span>
-                        <span class="button btn-branch-m is-hidden l10n" data-value='M'><span lang="en">Master</span><span lang="ja">達人</span></span>
+                        <span class="is-hidden button btn-branch-n l10n" data-value='N'><span lang="en">Normal</span><span lang="ja">普通</span></span>
+                        <span class="is-hidden button btn-branch-e l10n" data-value='E'><span lang="en">Professional</span><span lang="ja">玄人</span></span>
+                        <span class="is-hidden button btn-branch-m l10n" data-value='M'><span lang="en">Master</span><span lang="ja">達人</span></span>
 					</div>
                     <h4 class="l10n"><span lang="en">Max Combo</span><span lang="ja">最大コンボ数</span></h4>
                     <p><code class="stat-total-combo"></code></p>
@@ -113,7 +130,7 @@
                             <span lang="en">Ka</span><span lang="ja">小</span> <code class="stat-kat-small"></code> + <span class="is-size-big"><span lang="en">KA</span><span lang="ja">大</span> <code class="stat-kat-big"></code></span>
                         </span>
                         /
-                        <span class="is-color-kadon is-size-big l10n">
+                        <span class="is-size-big is-color-kadon l10n">
                             <code class="stat-kadon"></code> <span lang="en">KADON</span><span lang="ja">カドン</span>
                         </span>
                         =

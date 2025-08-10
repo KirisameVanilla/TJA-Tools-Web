@@ -32,9 +32,9 @@
   ],
   "main": "index.html",
   "scripts": {
-    "start": "NODE_ENV=development webpack-dev-server --progress --mode development",
-    "build": "NODE_ENV=production webpack --mode production",
-    "build:dev": "NODE_ENV=development webpack --mode development"
+    "start": "cross-env NODE_ENV=development webpack-dev-server --progress --mode development",
+    "build": "cross-env NODE_ENV=production webpack --mode production",
+    "build:dev": "cross-env NODE_ENV=development webpack --mode development"
   },
   "license": "MIT",
   "devDependencies": {
@@ -43,6 +43,7 @@
     "@babel/preset-env": "^7.26.0",
     "@babel/runtime": "^7.26.0",
     "babel-loader": "^9.2.1",
+    "cross-env": "^10.0.0",
     "css-loader": "^7.1.2",
     "cssnano": "^7.0.6",
     "file-loader": "^6.2.0",
@@ -66,6 +67,7 @@
     "downloadjs": "^1.4.7",
     "html2canvas": "^1.4.1",
     "iconv-lite": "^0.6.3",
+    "jszip": "^3.10.1",
     "pako": "^2.1.0",
     "umbrellajs": "^3.3.3"
   }

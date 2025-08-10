@@ -4,6 +4,7 @@ import {
 
 import $ from 'umbrellajs';
 import * as d3 from 'd3';
+import JSZip from 'jszip';
 
 import downloadjs from 'downloadjs';
 import html2canvas from 'html2canvas';
@@ -48,6 +49,10 @@ const $charsetGb18030 = $('#charset-gb18030').first();
 const $editorLive = $('#editor-live').first();
 const $autoScrollToBottom = $('#auto-scroll-to-bottom').first();
 const $embedDonscore = $('#embed-donscore').first();
+const $zipFileSelector = $('#zip-file-selector');
+const $zipTjaSelect = $('#zip-tja-select');
+const $loadZipTja = $('#load-zip-tja');
+const $cancelZip = $('#cancel-zip');
 const $editorProcess = $('.editor-process');
 const $input = $('.area-editor .input');
 const $errors = $('.area-errors .errors');
@@ -63,6 +68,7 @@ let selectedPage = 'preview';
 let selectedScoreSystem = 'CS';
 let selectedGogoFloor = 'AC15';
 let selectedCalcMode = 'fromFile';
+let zipFiles = null; // Store extracted ZIP file contents
 
 const downloadNewUniqueId = async () => {
     if (tjaParsed === null) {
@@ -229,6 +235,89 @@ function loadTJA(file) {
     };
 
     reader.readAsArrayBuffer(file);
+}
+
+async function handleZipFile(zipData) {
+    try {
+        const zip = new JSZip();
+        const zipContent = await zip.loadAsync(zipData);
+        
+        // Find all TJA files in the ZIP
+        const tjaFiles = [];
+        zipContent.forEach((relativePath, file) => {
+            if (relativePath.toLowerCase().endsWith('.tja') && !file.dir) {
+                tjaFiles.push({
+                    path: relativePath,
+                    file: file
+                });
+            }
+        });
+
+        if (tjaFiles.length === 0) {
+            alert('No TJA files found in the ZIP archive.');
+            return;
+        }
+
+        if (tjaFiles.length === 1) {
+            // If only one TJA file, load it directly
+            const tjaContent = await tjaFiles[0].file.async('arraybuffer');
+            loadTJAFromBuffer(tjaContent);
+        } else {
+            // Show selection UI
+            zipFiles = tjaFiles;
+            showZipFileSelector(tjaFiles);
+        }
+    } catch (error) {
+        console.error('Error processing ZIP file:', error);
+        alert('Error processing ZIP file: ' + error.message);
+    }
+}
+
+function loadTJAFromBuffer(arrayBuffer) {
+    const uintArray = new Uint8Array(arrayBuffer);
+    const buffer = Buffer.from(uintArray);
+
+    let encoding;
+    $('.charset-auto-detected').text('');
+    if ($charsetUtf8.checked) {
+        encoding = 'UTF-8';
+    } else if ($charsetShiftjis.checked) {
+        encoding = 'Shift-JIS';
+    } else if ($charsetGb18030.checked) {
+        encoding = 'GB18030';
+    } else {
+        encoding = chardet.detect(buffer);
+        $('.charset-auto-detected').text(`: ${encoding}`);
+    }
+    const content = iconv.decode(buffer, encoding);
+
+    $input.first().value = content;
+    selectedDifficulty = '';
+
+    processTJA();
+    updateUI();
+}
+
+function showZipFileSelector(tjaFiles) {
+    // Clear previous options
+    $zipTjaSelect.first().innerHTML = '<option value="">-- Select a TJA file --</option>';
+    
+    // Add options for each TJA file
+    tjaFiles.forEach((tjaFile, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = tjaFile.path;
+        $zipTjaSelect.first().appendChild(option);
+    });
+    
+    // Show the selector
+    $zipFileSelector.first().style.display = 'block';
+}
+
+function hideZipFileSelector() {
+    $zipFileSelector.first().style.display = 'none';
+    zipFiles = null;
+    window.currentZip = null;
 }
 
 function processTJA() {
@@ -725,6 +814,101 @@ $('.download-donscore .button').on('click', async evt => {
 window.onload = async function() {
     await initUsedSprite();
     await loadAllFonts();
+    
+    // Listen for postMessage events from other websites
+    window.addEventListener('message', async (event) => {
+        // Validate origin for security (optional - adjust as needed)
+        // if (event.origin !== 'https://trusted-domain.com') {
+        //     return;
+        // }
+        
+        if (event.data && event.data.type === 'zip' && event.data.blob instanceof Blob) {
+            try {
+                let zipBlob = event.data.blob;
+                const result = await window.loadZipFromBlob(zipBlob);
+                
+                if (result.success && result.tjaFiles.length > 0) {
+                    // Store the zip object for later file extraction
+                    window.currentZip = await JSZip.loadAsync(zipBlob);
+                    
+                    if (result.tjaFiles.length === 1) {
+                        // If only one TJA file, load it directly
+                        await loadTjaFileFromZip(result.tjaFiles[0]);
+                    } else {
+                        // Show selection UI for multiple files
+                        showTjaFileSelector(result.tjaFiles);
+                    }
+                }
+            } catch (error) {
+                console.error('Error handling postMessage ZIP data:', error);
+                alert('Error processing received ZIP data: ' + error.message);
+            }
+        }
+    });
+}
+
+window.loadZipFromBlob = async function(blob) {
+    try {
+      const zip = await JSZip.loadAsync(blob);
+      this.tjaFiles = [];
+
+      zip.forEach((relPath, file) => {
+        if (!file.dir) {
+          if (relPath.endsWith(".tja")) this.tjaFiles.push(relPath);
+        }
+      });
+
+      if (this.tjaFiles.length === 0) {
+        throw new Error("zip 包中未找到 tja 文件");
+      }
+
+      return {
+        tjaFiles: this.tjaFiles,
+        success: true
+      };
+    } catch (e) {
+      throw new Error("zip 解压失败: " + e.message);
+    }
+}
+
+// Show TJA file selector UI
+function showTjaFileSelector(tjaFiles) {
+    // Clear previous options
+    $zipTjaSelect.first().innerHTML = '<option value="">-- Select a TJA file --</option>';
+    
+    // Add options for each TJA file
+    tjaFiles.forEach((tjaFile, index) => {
+        const option = document.createElement('option');
+        option.value = tjaFile;
+        option.textContent = tjaFile;
+        $zipTjaSelect.first().appendChild(option);
+    });
+    
+    // Show the selector
+    $zipFileSelector.first().style.display = 'block';
+}
+
+// Load selected TJA file from ZIP
+async function loadTjaFileFromZip(filePath) {
+    try {
+        if (!window.currentZip) {
+            throw new Error('No ZIP file loaded');
+        }
+        
+        const file = window.currentZip.file(filePath);
+        if (!file) {
+            throw new Error(`File ${filePath} not found in ZIP`);
+        }
+        
+        const arrayBuffer = await file.async('arraybuffer');
+        loadTJAFromBuffer(arrayBuffer);
+        
+        // Hide selector if it was shown
+        hideZipFileSelector();
+    } catch (error) {
+        console.error('Error loading TJA file from ZIP:', error);
+        alert('Error loading TJA file: ' + error.message);
+    }
 }
 
 $('.btn-unique').on('click', evt => {
@@ -735,6 +919,21 @@ $('.controls-locale input[name=locale]').on('click', evt => {
     selectedLocale = $(evt.currentTarget).data('value');
     document.documentElement.setAttribute('lang', selectedLocale);
     updateUI();
+});
+
+// ZIP file selector event handlers
+$loadZipTja.on('click', async evt => {
+    const selectedFile = $zipTjaSelect.first().value;
+    if (selectedFile === '') {
+        alert('Please select a TJA file.');
+        return;
+    }
+    
+    await loadTjaFileFromZip(selectedFile);
+});
+
+$cancelZip.on('click', evt => {
+    hideZipFileSelector();
 });
 
 //==============================================================================

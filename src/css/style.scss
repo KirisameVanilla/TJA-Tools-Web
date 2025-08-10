@@ -128,6 +128,61 @@ body {
         .editor-process {
             margin-left: 4px;
         }
+        
+        .zip-file-selector {
+            margin-top: 10px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: bold;
+            }
+            
+            .zip-tja-select {
+                width: 100%;
+                padding: 4px;
+                margin-bottom: 8px;
+                border: 1px solid #ccc;
+                border-radius: 2px;
+            }
+            
+            button {
+                margin-right: 8px;
+                padding: 4px 8px;
+                border: 1px solid #ccc;
+                border-radius: 2px;
+                background-color: #fff;
+                cursor: pointer;
+                
+                &:hover {
+                    background-color: #f0f0f0;
+                }
+                
+                &.load-zip-tja {
+                    background-color: #4CAF50;
+                    color: white;
+                    border-color: #45a049;
+                    
+                    &:hover {
+                        background-color: #45a049;
+                    }
+                }
+                
+                &.cancel-zip {
+                    background-color: #f44336;
+                    color: white;
+                    border-color: #d32f2f;
+                    
+                    &:hover {
+                        background-color: #d32f2f;
+                    }
+                }
+            }
+        }
     }
 
     .input {
