@@ -507,8 +507,8 @@ function buildStatisticsPage(data) {
             (stats.score.balloonPop[1] * 100);
     }
 
-    const strPts = '<span lang="en"> Points</span><span lang="ja">点</span>';
-    const strRolls = '<span lang="en">Drumrolls</span><span lang="ja">連打</span>';
+    const strPts = '<span lang="en"> Points</span><span lang="ja">点</span><span lang="zh-cn">分</span>';
+    const strRolls = '<span lang="en">Drumrolls</span><span lang="ja">連打</span><span lang="zh-cn">连击</span>';
     if (selectedScoreSystem != 'AC16New') {
         if (stats.rendas.length) $('.stat-max-score').html(`${scoreInit}${strPts}, ${scoreDiff}${strPts} => ${statPotential}${strPts} + ${strRolls}`);
         else $('.stat-max-score').html(`${scoreInit}${strPts}, ${scoreDiff}${strPts} => ${statPotential}${strPts}`);
@@ -571,8 +571,8 @@ function buildStatisticsPage(data) {
     $('.stat-kat-ratio').text(statKatRatio.toFixed(2) + '%');
     $('.stat-kadon-ratio').text(statKaDonRatio.toFixed(2) + '%');
 
-    const strMin = '<span lang="en">m</span><span lang="ja">分</span>';
-    const strSec = '<span lang="en">s</span><span lang="ja">秒</span>';
+    const strMin = '<span lang="en">m</span><span lang="ja">分</span><span lang="zh-cn">分</span>';
+    const strSec = '<span lang="en">s</span><span lang="ja">秒</span><span lang="zh-cn">秒</span>';
     $('.stat-density').text(((stats.totalCombo - 1) / stats.length).toFixed(2));
     $('.stat-length').text(stats.length.toFixed(2));
     const formatTime = (seconds) => `${Math.floor(seconds / 60)}${strMin}${(seconds % 60).toFixed(2).padStart(5, '0')}${strSec}`;
@@ -590,8 +590,8 @@ function buildStatisticsPage(data) {
          .join(' + '));
     $('.stat-renda-total').html(stats.rendas.reduce((a, b) => a + b, 0).toFixed(3) + strSec);
 
-    const strHits = '<span lang="en">hit(s)</span><span lang="ja">打</span>';
-    const strHps = '<span lang="en">hit/s</span><span lang="ja">打/秒</span>';
+    const strHits = '<span lang="en">hit(s)</span><span lang="ja">打</span><span lang="zh-cn">击</span>';
+    const strHps = '<span lang="en">hit/s</span><span lang="ja">打/秒</span><span lang="zh-cn">击/秒</span>';
     $('.stat-balloon').html(stats.balloons.map(b => (
         (b[3] ? markInGogo : markNone)(
             ((b[2] === 'balloonEx') ? markEx : markNone)(
