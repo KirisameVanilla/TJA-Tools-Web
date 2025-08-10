@@ -13,7 +13,7 @@ import chardet from 'chardet';
 import iconv from 'iconv-lite';
 
 import parseTJA from './parseTJA';
-import { i18n, t, setLanguage } from './i18n';
+import { i18n, t, setLanguage, difficultyTypeToString } from './i18n';
 import {
     getCourseLines,
     getEnabledBranch
