@@ -362,20 +362,5 @@ div.area-footer > hr {
   margin: 0 auto 0;
 }
 
-.l10n [lang] {
-    padding: 0;
-    margin: 0;
-}
-
-html[lang="en"] .l10n [lang]:not([lang|="en" i]) {
-    display: none;
-}
-
-html[lang="ja"] .l10n [lang]:not([lang|="ja" i]) {
-    display: none;
-}
-
-html[lang="zh-cn"] .l10n [lang]:not([lang|="zh-cn" i]) {
-    display: none;
-}
+// 旧的l10n CSS规则已移除，现在使用JavaScript i18n模块
 
