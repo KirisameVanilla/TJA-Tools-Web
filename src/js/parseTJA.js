@@ -3,15 +3,15 @@ import { arrayLCM, addZero } from './common';
 export function difficultyTypeToString(difficultyType) {
     switch (difficultyType) {
         case 0:
-            return '<span lang="en">Easy</span><span lang="ja">かんたん</span>';
+            return '<span lang="en">Easy</span><span lang="ja">かんたん</span><span lang="zh-cn">简单</span>';
         case 1:
-            return '<span lang="en">Normal</span><span lang="ja">ふつう</span>';
+            return '<span lang="en">Normal</span><span lang="ja">ふつう</span><span lang="zh-cn">普通</span>';
         case 2:
-            return '<span lang="en">Hard</span><span lang="ja">むずかしい</span>';
+            return '<span lang="en">Hard</span><span lang="ja">むずかしい</span><span lang="zh-cn">困难</span>';
         case 3:
-            return '<span lang="en">Oni</span><span lang="ja">おに</span>';
+            return '<span lang="en">Oni</span><span lang="ja">おに</span><span lang="zh-cn">鬼</span>';
         case 4:
-            return '<span lang="en">Edit</span><span lang="ja">おに裏</span>';
+            return '<span lang="en">Edit</span><span lang="ja">おに裏</span><span lang="zh-cn">里鬼</span>';
     }
     return 'Unknown';
 }

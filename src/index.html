@@ -11,7 +11,7 @@
         <section class="pane-left">
             <div class="area is-titled area-editor">
                 <h2 class="title l10n">
-                    <span lang="en">Editor (Drag and drop or <label for="tja-file">choose</label> a .TJA file)</span><span lang="ja">エディタ (tjaファイルをドラッグ＆ドロップするか<label for="tja-file">選択</label>してください)</span>
+                    <span lang="en">Editor (Drag and drop or <label for="tja-file">choose</label> a .TJA file)</span><span lang="ja">エディタ (tjaファイルをドラッグ＆ドロップするか<label for="tja-file">選択</label>してください)</span><span lang="zh-cn">编辑器（拖拽或<label for="tja-file">选择</label>一个 .TJA 文件）</span>
                 </h2>
                 <div class="controls">
                     <input type="file" id="tja-file" accept=".tja, .txt">
@@ -19,6 +19,7 @@
                         <label class="l10n">
                             <span lang="en">Select TJA file from ZIP:</span>
                             <span lang="ja">ZIPファイルからTJAファイルを選択:</span>
+                            <span lang="zh-cn">从ZIP文件中选择TJA文件：</span>
                         </label>
                         <select id="zip-tja-select" class="zip-tja-select">
                             <option value="">-- Select a TJA file --</option>
@@ -26,23 +27,25 @@
                         <button id="load-zip-tja" class="load-zip-tja l10n">
                             <span lang="en">Load Selected</span>
                             <span lang="ja">選択したファイルを読み込み</span>
+                            <span lang="zh-cn">加载选中文件</span>
                         </button>
                         <button id="cancel-zip" class="cancel-zip l10n">
                             <span lang="en">Cancel</span>
                             <span lang="ja">キャンセル</span>
+                            <span lang="zh-cn">取消</span>
                         </button>
                     </div>
                     <br />
                     <div style="float:left">
-                        <label class="l10n"><span lang="en">Encoding:</span><span lang="ja">文字コード: </span></label>
-                        <label class="l10n"><input id="charset-auto" type="radio" name="charset" checked><span lang="en">Auto</span><span lang="ja">自動認識</span><span class="charset-auto-detected"></span></label>
+                        <label class="l10n"><span lang="en">Encoding:</span><span lang="ja">文字コード: </span><span lang="zh-cn">编码：</span></label>
+                        <label class="l10n"><input id="charset-auto" type="radio" name="charset" checked><span lang="en">Auto</span><span lang="ja">自動認識</span><span lang="zh-cn">自动</span><span class="charset-auto-detected"></span></label>
                         <label><input id="charset-utf-8" type="radio" name="charset">UTF-8</label>
                         <label><input id="charset-shift-jis" type="radio" name="charset">Shift-JIS</label>
                         <label><input id="charset-gb18030" type="radio" name="charset">GB18030</label>
                     </div>
                     <div style="float:right">
-                        <label class="l10n"><input id="editor-live" type="checkbox" checked><span lang="en">Live-editing</span><span lang="ja">自動反映</span></label>
-                        <button class="editor-process l10n"><span lang="en">Process</span><span lang="ja">反映</span></button>
+                        <label class="l10n"><input id="editor-live" type="checkbox" checked><span lang="en">Live-editing</span><span lang="ja">自動反映</span><span lang="zh-cn">实时编辑</span></label>
+                        <button class="editor-process l10n"><span lang="en">Process</span><span lang="ja">反映</span><span lang="zh-cn">处理</span></button>
                     </div>
                 </div>
                 <div class="content">
@@ -50,7 +53,7 @@
                 </div>
             </div>
             <div class="area is-titled area-errors">
-                <h2 class="title l10n"><span lang="en">Errors</span><span lang="ja">エラー</span></h2>
+                <h2 class="title l10n"><span lang="en">Errors</span><span lang="ja">エラー</span><span lang="zh-cn">错误</span></h2>
                 <div class="content">
                     <div class="errors"></div>
                 </div>
@@ -58,12 +61,13 @@
             <div class="area area-footer">
                 <a class="source-repo" href="https://github.com/WHMHammer/tja-tools" target="_blank"><!-- keep this URL to replaced it in GitHub action -->
                     <img src="https://github.githubassets.com/pinned-octocat.svg">
-                    <label class="l10n"><span lang="en">Source Repo</span><span lang="ja">リポジトリ</span></label>
+                    <label class="l10n"><span lang="en">Source Repo</span><span lang="ja">リポジトリ</span><span lang="zh-cn">源码仓库</span></label>
                 </a>
                 <hr />
                 <span class="controls-locale">
                     <label><input type="radio" name="locale" data-value='en' checked>English</label>
                     <label><input type="radio" name="locale" data-value='ja'>日本語</label>
+                    <label><input type="radio" name="locale" data-value='zh-cn'>简体中文</label>
                 </span>
             </div>
         </section>
@@ -72,38 +76,38 @@
                 <div class="controls-diff" style="float:left">
                 </div>
                 <div class="controls-page" style="float:right">
-                    <span class="action btn-unique l10n"><span lang="en">Generate <code>uniqueId.json</code></span><span lang="ja"><code>uniqueId.json</code>を生成</span></span>
-                    <span class="action btn-download l10n"><span lang="en">Download as image</span><span lang="ja">画像に保存</span></span>
-                    <span class="button btn-page-preview l10n" data-value='preview'><span lang="en">Preview</span><span lang="ja">プレビュー</span></span>
-                    <span class="button btn-page-statistics l10n" data-value='statistics'><span lang="en">Statistics</span><span lang="ja">統計</span></span>
+                    <span class="action btn-unique l10n"><span lang="en">Generate <code>uniqueId.json</code></span><span lang="ja"><code>uniqueId.json</code>を生成</span><span lang="zh-cn">生成 <code>uniqueId.json</code></span></span>
+                    <span class="action btn-download l10n"><span lang="en">Download as image</span><span lang="ja">画像に保存</span><span lang="zh-cn">下载为图片</span></span>
+                    <span class="button btn-page-preview l10n" data-value='preview'><span lang="en">Preview</span><span lang="ja">プレビュー</span><span lang="zh-cn">预览</span></span>
+                    <span class="button btn-page-statistics l10n" data-value='statistics'><span lang="en">Statistics</span><span lang="ja">統計</span><span lang="zh-cn">统计</span></span>
                 </div>
                 <br />
                 <div class="controls">
-                    <label class="l10n"><input id="auto-scroll-to-bottom" type="checkbox"><span lang="en">Auto scroll-to-bottom</span><span lang="ja">下へ自動スクロールする</span></label>
-                    <label class="l10n"><input id="embed-donscore" type="checkbox" checked><span lang="en">Embed Donscore notation</span><span lang="ja">どんすこあ構文を埋め込む</span></label>
+                    <label class="l10n"><input id="auto-scroll-to-bottom" type="checkbox"><span lang="en">Auto scroll-to-bottom</span><span lang="ja">下へ自動スクロールする</span><span lang="zh-cn">自动滚动到底部</span></label>
+                    <label class="l10n"><input id="embed-donscore" type="checkbox" checked><span lang="en">Embed Donscore notation</span><span lang="ja">どんすこあ構文を埋め込む</span><span lang="zh-cn">嵌入Donscore记谱法</span></label>
                 </div>
             </div>
             <div id="area-pages" class="area area-pages">
                 <div class="page page-preview"></div>
                 <div class="page page-statistics">
-                    <h3 class="l10n"><span lang="en">Statistics</span><span lang="ja">統計</span></h3>
+                    <h3 class="l10n"><span lang="en">Statistics</span><span lang="ja">統計</span><span lang="zh-cn">统计</span></h3>
 					<div class="download-donscore">
-                        <span class="button l10n"><span lang="en">Save Donscore notation</span><span lang="ja">どんすこあ構文を保存</span></span>
+                        <span class="button l10n"><span lang="en">Save Donscore notation</span><span lang="ja">どんすこあ構文を保存</span><span lang="zh-cn">保存Donscore记谱法</span></span>
 					</div>
-                    <h4 class="l10n"><span lang="en">Difficulty</span><span lang="ja">難易度</span></h4>
+                    <h4 class="l10n"><span lang="en">Difficulty</span><span lang="ja">難易度</span><span lang="zh-cn">难度</span></h4>
                     <p><code class="stat-level"></code></p>
-                    <h4 class="l10n"><span lang="en">Branch</span><span lang="ja">分岐</span></h4>
+                    <h4 class="l10n"><span lang="en">Branch</span><span lang="ja">分岐</span><span lang="zh-cn">分支</span></h4>
 					<div class="controls-branch">
-                        <span class="is-hidden button btn-branch-n l10n" data-value='N'><span lang="en">Normal</span><span lang="ja">普通</span></span>
-                        <span class="is-hidden button btn-branch-e l10n" data-value='E'><span lang="en">Professional</span><span lang="ja">玄人</span></span>
-                        <span class="is-hidden button btn-branch-m l10n" data-value='M'><span lang="en">Master</span><span lang="ja">達人</span></span>
+                        <span class="is-hidden button btn-branch-n l10n" data-value='N'><span lang="en">Normal</span><span lang="ja">普通</span><span lang="zh-cn">普通</span></span>
+                        <span class="is-hidden button btn-branch-e l10n" data-value='E'><span lang="en">Professional</span><span lang="ja">玄人</span><span lang="zh-cn">玄人</span></span>
+                        <span class="is-hidden button btn-branch-m l10n" data-value='M'><span lang="en">Master</span><span lang="ja">達人</span><span lang="zh-cn">达人</span></span>
 					</div>
-                    <h4 class="l10n"><span lang="en">Max Combo</span><span lang="ja">最大コンボ数</span></h4>
+                    <h4 class="l10n"><span lang="en">Max Combo</span><span lang="ja">最大コンボ数</span><span lang="zh-cn">最大连击数</span></h4>
                     <p><code class="stat-total-combo"></code></p>
-                    <h4 class="l10n"><span lang="en">Score</span><span lang="ja">配点</span></h4>
+                    <h4 class="l10n"><span lang="en">Score</span><span lang="ja">配点</span><span lang="zh-cn">分数</span></h4>
 					<div class="controls-score-system">
 					<p class="l10n">
-                    <label><input type="radio" class="radio" name="scoreSystem" value="CS" checked>AC15+<span lang="en">Shin-uchi</span><span lang="ja">真打</span></label>
+                    <label><input type="radio" class="radio" name="scoreSystem" value="CS" checked>AC15+<span lang="en">Shin-uchi</span><span lang="ja">真打</span><span lang="zh-cn">真打</span></label>
                     <label><input type="radio" class="radio" name="scoreSystem" value="AC16Old">AC15+AC16</label>
                     <label><input type="radio" class="radio" name="scoreSystem" value="AC16New">AC16</label>
 					</p>
@@ -112,26 +116,26 @@
                     <label><input type="radio" class="radio" name="gogoFloor" value="RC">RC</label>
 					</p>
 					<p class="l10n">
-                    <label><input type="radio" class="radio" name="calcMode" value="fromFile" checked><span lang="en">From TJA file</span><span lang="ja">配点をテキストから</span></label>
-                    <label><input type="radio" class="radio" name="calcMode" value="predict"><span lang="en">Calculate SCOREINIT and SCOREDIFF</span><span lang="ja">配点を予測する</span></label>
+                    <label><input type="radio" class="radio" name="calcMode" value="fromFile" checked><span lang="en">From TJA file</span><span lang="ja">配点をテキストから</span><span lang="zh-cn">从TJA文件</span></label>
+                    <label><input type="radio" class="radio" name="calcMode" value="predict"><span lang="en">Calculate SCOREINIT and SCOREDIFF</span><span lang="ja">配点を予測する</span><span lang="zh-cn">计算SCOREINIT和SCOREDIFF</span></label>
 					</p>
 					</div>
                     <p><code class="stat-max-score l10n"></code></p>
 					<p><code class="stat-max-score2 l10n"></code></p>
 					<h4>BPM</h4>
                     <p><code class="stat-bpm"></code></p>
-                    <h4 class="l10n"><span lang="en">Ratio of Notes</span><span lang="ja">ノーツの割合</span></h4>
+                    <h4 class="l10n"><span lang="en">Ratio of Notes</span><span lang="ja">ノーツの割合</span><span lang="zh-cn">音符比例</span></h4>
                     <p>
                         <span class="is-color-don l10n">
-                            <span lang="en">Don</span><span lang="ja">小</span> <code class="stat-don-small"></code> + <span class="is-size-big"><span lang="en">DON</span><span lang="ja">大</span> <code class="stat-don-big"></code></span>
+                            <span lang="en">Don</span><span lang="ja">小</span><span lang="zh-cn">咚</span> <code class="stat-don-small"></code> + <span class="is-size-big"><span lang="en">DON</span><span lang="ja">大</span><span lang="zh-cn">大咚</span> <code class="stat-don-big"></code></span>
                         </span>
                         /
                         <span class="is-color-kat l10n">
-                            <span lang="en">Ka</span><span lang="ja">小</span> <code class="stat-kat-small"></code> + <span class="is-size-big"><span lang="en">KA</span><span lang="ja">大</span> <code class="stat-kat-big"></code></span>
+                            <span lang="en">Ka</span><span lang="ja">小</span><span lang="zh-cn">咔</span> <code class="stat-kat-small"></code> + <span class="is-size-big"><span lang="en">KA</span><span lang="ja">大</span><span lang="zh-cn">大咔</span> <code class="stat-kat-big"></code></span>
                         </span>
                         /
                         <span class="is-size-big is-color-kadon l10n">
-                            <code class="stat-kadon"></code> <span lang="en">KADON</span><span lang="ja">カドン</span>
+                            <code class="stat-kadon"></code> <span lang="en">KADON</span><span lang="ja">カドン</span><span lang="zh-cn">咔咚</span>
                         </span>
                         =
                         <code class="is-color-don stat-don"></code>
@@ -145,30 +149,30 @@
                         /
                         <code class="is-color-kadon stat-kadon-ratio"></code>)
                     </p>
-                    <h4 class="l10n"><span lang="en">ADLibs Mines</span><span lang="ja">ADLib・爆弾</span></h4>
+                    <h4 class="l10n"><span lang="en">ADLibs Mines</span><span lang="ja">ADLib・爆弾</span><span lang="zh-cn">随意打击·炸弹</span></h4>
                     <p>
                         <span class="is-color-adlib l10n">
-                            <code class="stat-adlib"></code> <span lang="en">ADLibs</span><span lang="ja">ADLib</span>
+                            <code class="stat-adlib"></code> <span lang="en">ADLibs</span><span lang="ja">ADLib</span><span lang="zh-cn">随意打击</span>
                         </span>
                         /
                         <span class="is-color-mine l10n">
-                            <code class="stat-mine"></code> <span lang="en">Mines</span><span lang="ja">爆弾</span>
+                            <code class="stat-mine"></code> <span lang="en">Mines</span><span lang="ja">爆弾</span><span lang="zh-cn">炸弹</span>
                         </span>
                     </p>
-                    <h4 class="l10n"><span lang="en">Average Density</span><span lang="ja">平均密度</span></h4>
+                    <h4 class="l10n"><span lang="en">Average Density</span><span lang="ja">平均密度</span><span lang="zh-cn">平均密度</span></h4>
                     <p class="l10n">
-                    <code class="stat-density"></code> <span lang="en">hit/s</span><span lang="ja">打/秒</span> (<span lang="en">in</span><span lang="ja">演奏時間</span> <code class="stat-length"></code><span lang="en">s</span><span lang="ja"> 秒</span> = <code class="stat-formatted-length"></code>)
+                    <code class="stat-density"></code> <span lang="en">hit/s</span><span lang="ja">打/秒</span><span lang="zh-cn">击/秒</span> (<span lang="en">in</span><span lang="ja">演奏時間</span><span lang="zh-cn">演奏时间</span> <code class="stat-length"></code><span lang="en">s</span><span lang="ja"> 秒</span><span lang="zh-cn"> 秒</span> = <code class="stat-formatted-length"></code>)
                     </p>
 					<div class="renda-head">
-                        <h4 class="l10n"><span lang="en">Drumrolls</span><span lang="ja">連打</span></h4>
-                        <button class="renda-text-copy l10n"><span lang="en">Copy (Japanese)</span><span lang="ja">コピー</span></button>
+                        <h4 class="l10n"><span lang="en">Drumrolls</span><span lang="ja">連打</span><span lang="zh-cn">连击</span></h4>
+                        <button class="renda-text-copy l10n"><span lang="en">Copy (Japanese)</span><span lang="ja">コピー</span><span lang="zh-cn">复制（日文）</span></button>
 					</div>
                     <p class="l10n">
                         <code class="stat-renda"></code> = <code class="stat-renda-total"></code>
                     </p>
-                    <h4 class="l10n"><span lang="en">Balloons</span><span lang="ja">風船</span></h4>
+                    <h4 class="l10n"><span lang="en">Balloons</span><span lang="ja">風船</span><span lang="zh-cn">气球</span></h4>
                     <p class="l10n"><code class="stat-balloon"></code></p>
-                    <h3 class="l10n"><span lang="en">Density Graph</span><span lang="ja">密度グラフ</span></h3>
+                    <h3 class="l10n"><span lang="en">Density Graph</span><span lang="ja">密度グラフ</span><span lang="zh-cn">密度图表</span></h3>
                     <svg class="stat-graph"></svg>
                 </div>
             </div>
