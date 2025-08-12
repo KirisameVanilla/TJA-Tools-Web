@@ -4,9 +4,10 @@ English [日本語](doc/README-JA.md) [中文](doc/README-CH.md)
 
 A tool to visualize `.tja` chart files. \
 Forked from [Snack](https://github.com/Snack-X)'s [tja-tools](https://github.com/Snack-X/tja-tools); \
-based on [WHMHammer](https://github.com/WHMHammer)'s [tja-tools](https://github.com/WHMHammer/tja-tools) (this fork); \
+based on [WHMHammer](https://github.com/WHMHammer)'s [tja-tools](https://github.com/WHMHammer/tja-tools); \
 based on [Dannal65535](https://github.com/Dannal65535)'s [tja-tools](https://github.com/Dannal65535/tja-tools); \
-based on [sakurada0291](https://github.com/sakurada0291)'s [tja-tools-tl](https://github.com/sakurada0291/tja-tools-tl).
+based on [sakurada0291](https://github.com/sakurada0291)'s [tja-tools-tl](https://github.com/sakurada0291/tja-tools-tl); \
+based on [KirisameVanilla](https://github.com/KirisameVanilla)'s [tja-tools-web](https://github.com/KirisameVanilla/tja-tools-web) (this fork).
 
 ## Run
 
@@ -189,10 +190,11 @@ You shall then open `webpack-dist/index.html` (not `src/index.html`) with your w
 ## Acknowledgement
 
 - [Snack](https://github.com/Snack-X): The original author of the project
-- [WHMHammer](https://github.com/WHMHammer): The main maintainer of this fork version. Added initial English translation.
+- [WHMHammer](https://github.com/WHMHammer): Added initial English translation.
 - [申しコミ](https://github.com/0auBSQ): Added support to `A`, `B`, `C`, `D`, `F`, and `G` notes. Added display of subtitle and chart maker
 - [Dannal65535](https://github.com/Dannal65535)：Added Support of showing different branches side-by-side. Made preview image compatible with Donscore. Added Japanese translation. Added additional Donscore sprite images.
 - [sakurada0291](https://github.com/sakurada0291): Added English translation
+- [KirisameVanilla](https://github.com/KirisameVanilla): The main maintainer of this fork version. Added zh-cn translation and extract i18n module.
 - わの人: The original author of Donscore
 - rocktyt: The later developer of Donscore
 - aestivalis(あきら氏): The original sprite image provider of Donscore
