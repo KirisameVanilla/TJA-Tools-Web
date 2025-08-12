@@ -2,11 +2,13 @@
 
 [English](../README.md) [日本語](README-JA.md) 中文
 
-将 `.tja` 文件转化为图片。 \
-由 [Snack](https://github.com/Snack-X) 的 [tja-tools](https://github.com/Snack-X/tja-tools) 分叉， \
-基于 [WHMHammer](https://github.com/WHMHammer) 的 [tja-tools](https://github.com/WHMHammer/tja-tools)（此分叉版本）， \
-基于 [Dannal65535](https://github.com/Dannal65535) 的 [tja-tools](https://github.com/Dannal65535/tja-tools)， \
-基于 [sakurada0291](https://github.com/sakurada0291) 的 [tja-tools-tl](https://github.com/sakurada0291/tja-tools-tl)。
+
+一个用于可视化 `.tja` 谱面文件的工具。 \
+分支自 [Snack](https://github.com/Snack-X) 的 [tja-tools](https://github.com/Snack-X/tja-tools)； \
+基于 [WHMHammer](https://github.com/WHMHammer) 的 [tja-tools](https://github.com/WHMHammer/tja-tools)； \
+基于 [Dannal65535](https://github.com/Dannal65535) 的 [tja-tools](https://github.com/Dannal65535/tja-tools)； \
+基于 [sakurada0291](https://github.com/sakurada0291) 的 [tja-tools-tl](https://github.com/sakurada0291/tja-tools-tl)； \
+基于 [KirisameVanilla](https://github.com/KirisameVanilla) 的 [tja-tools-web](https://github.com/KirisameVanilla/tja-tools-web)（本分支）。
 
 ## 运行
 
@@ -186,13 +188,15 @@ npm run build
       点击标题旁边的复制按钮，
       即可复制按照 [譜面とかWiki](https://wikiwiki.jp/taiko-fumen) 所用的格式格式化的连打秒数文本。
 
+
 ## 致谢
 
 - [Snack](https://github.com/Snack-X)：项目的原作者
-- [WHMHammer](https://github.com/WHMHammer)：此分叉版本的主要维护者，添加了初始英文翻译
-- [申しコミ](https://github.com/0auBSQ)：添加了对`A`、`B`、`C`、`D`、`F`、`G`音符的支持，添加了次标题与谱面制作者的显示
-- [Dannal65535](https://github.com/Dannal65535)：添加了并列显示不同分歧轨道的支持，使预览图片与 Donscore 兼容，添加了日语翻译，添加了额外的 Donscore 图像
-- [sakurada0291](https://github.com/sakurada0291)：添加了英文翻译
-- わの人：Donscore 原项目作者
-- rocktyt：Donscore 原项目再开发者
-- aestivalis(あきら氏)：Donscore 原项目图像提供者
+- [WHMHammer](https://github.com/WHMHammer)：添加初始英文翻译。
+- [申请コミ](https://github.com/0auBSQ)：添加对 `A`、`B`、`C`、`D`、`F`、`G` 音符的支持，添加副标题和谱面制作者显示。
+- [Dannal65535](https://github.com/Dannal65535)：添加并列显示不同分歧轨道，兼容 Donscore 预览图片，添加日文翻译和额外 Donscore 精灵图片。
+- [sakurada0291](https://github.com/sakurada0291)：添加英文翻译。
+- [KirisameVanilla](https://github.com/KirisameVanilla)：本分支主要维护者，添加简体中文翻译并抽离 i18n 模块。
+- わの人：Donscore 原作者
+- rocktyt：Donscore 后续开发者
+- aestivalis(あきら氏)：Donscore 精灵图片原始提供者

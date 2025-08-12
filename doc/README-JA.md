@@ -2,11 +2,13 @@
 
 [English](../README.md) 日本語 [中文](README-CH.md)
 
-tjaファイルの譜面画像や情報を表示するツールです。 \
-[Snack](https://github.com/Snack-X)様の[tja-tools](https://github.com/Snack-X/tja-tools)をフォークした、 \
-[WHMHammer](https://github.com/WHMHammer)様の[tja-tools](https://github.com/WHMHammer/tja-tools)（このフォーク）をベースにしている、 \
-[Dannal65535](https://github.com/Dannal65535)様の[tja-tools](https://github.com/Dannal65535/tja-tools)をベースにした、 \
-[sakurada0291](https://github.com/sakurada0291)様の[tja-tools-tl](https://github.com/sakurada0291/tja-tools-tl)をベースにしました。
+
+`.tja` 譜面ファイルを可視化するツールです。 \
+[Snack](https://github.com/Snack-X)様の[tja-tools](https://github.com/Snack-X/tja-tools)をフォーク； \
+[WHMHammer](https://github.com/WHMHammer)様の[tja-tools](https://github.com/WHMHammer/tja-tools)をベース； \
+[Dannal65535](https://github.com/Dannal65535)様の[tja-tools](https://github.com/Dannal65535/tja-tools)をベース； \
+[sakurada0291](https://github.com/sakurada0291)様の[tja-tools-tl](https://github.com/sakurada0291/tja-tools-tl)をベース； \
+[KirisameVanilla](https://github.com/KirisameVanilla)様の[tja-tools-web](https://github.com/KirisameVanilla/tja-tools-web)（本フォーク）をベース。
 
 ## サイト
 
@@ -187,13 +189,15 @@ npm run build
       見出し横のコピーボタンをクリックすると、
       [譜面とかWiki](https://wikiwiki.jp/taiko-fumen)で書かれている形式で連打秒数のテキストをコピーできます。
 
+
 ## スペシャルサンクス
 
 - [Snack](https://github.com/Snack-X)様：ツールの製作者
-- [WHMHammer](https://github.com/WHMHammer)様：このフォーク版の主な製作者、初期の英語翻訳の追加
-- [申しコミ](https://github.com/0auBSQ)様：`A`、`B`、`C`、`D`、`F`、`G`の音符の追加、サブタイトルと譜面製作者の表示の追加
-- [Dannal65535](https://github.com/Dannal65535)様：異なる分岐を並べて表示の機能の追加、どんすこあとのプレビュー画像の互換性の追加、日本語翻訳の追加、どんすこあ風の画像の追加
-- [sakurada0291](https://github.com/sakurada0291)様：英語翻訳の追加
-- わの人 様：どんすこあの製作者
-- rocktyt 様：どんすこあの再開発
-- aestivalis(あきら氏) 様：どんすこあへの画像提供
+- [WHMHammer](https://github.com/WHMHammer)様：初期の英語翻訳を追加。
+- [申しコミ](https://github.com/0auBSQ)様：`A`、`B`、`C`、`D`、`F`、`G`の音符の追加、サブタイトルと譜面制作者の表示の追加。
+- [Dannal65535](https://github.com/Dannal65535)様：異なる分岐を並べて表示、どんすこあとのプレビュー画像の互換性、日本語翻訳と追加どんすこあスプライト画像の追加。
+- [sakurada0291](https://github.com/sakurada0291)様：英語翻訳の追加。
+- [KirisameVanilla](https://github.com/KirisameVanilla)様：本フォークの主なメンテナ、簡体字中国語翻訳とi18nモジュールの抽出を追加。
+- わの人 様：どんすこあの原作者
+- rocktyt 様：どんすこあの後続開発者
+- aestivalis(あきら氏) 様：どんすこあスプライト画像の元提供者
