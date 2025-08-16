@@ -250,27 +250,42 @@ export default function (chart, courseId) {
         }
 
         // calculate row wrap
+        let rowBeatWrap = Infinity;
+        // manual wrap
+        let measureBeatTail = measureBeat;
         const ttBreakNext = measure.properties.ttBreaks.find(e => (rowBeatM + e.position / measure.nDivisions * measure.nBeatNotes > 0));
-        const rowBeatWrap = (rowBeatM > 0 && rowBeatM + measureBeat > ttRowBeat) ? rowBeatM // auto whole-measure wrap
-            : (ttBreakNext !== undefined) ? rowBeatM + ttBreakNext.position / measure.nDivisions * measure.nBeatNotes // manual wrap
-            : (Math.abs(measure.length[1]) < ttRowBeat * 3 / 4) ?
-                rowBeatM + Math.floor((ttRowBeat - rowBeatM) / Math.abs(measure.length[1])) * Math.abs(measure.length[1]) // soft mid-measure wrap at major grid
-            : ttRowBeat; // hard mid-measure wrap
-        const needWrap = (rowBeatM + measureBeat > rowBeatWrap);
-        const needWrapNext = (ttBreakNext !== undefined && rowBeatM + measureBeat === rowBeatWrap);
+        if (ttBreakNext !== undefined) {
+            measureBeatTail = ttBreakNext.position / measure.nDivisions * measure.nBeatNotes;
+            rowBeatWrap = rowBeatM + measureBeatTail;
+        }
+        // auto wrap
+        if (rowBeatM + measureBeatTail >= ttRowBeat + 1 / BEAT_WIDTH) {
+            if (rowBeatM > 0)
+                rowBeatWrap = Math.min(rowBeatWrap, rowBeatM); // whole-measure wrap
+            else {
+                const measureMajorTail = Math.floor(ttRowBeat - rowBeatM) / Math.abs(measure.length[1]);
+                if (measureMajorTail >= 1)
+                    rowBeatWrap = Math.min(rowBeatWrap, rowBeatM + measureMajorTail * Math.abs(measure.length[1])); // soft mid-measure wrap at major grid
+                else
+                    rowBeatWrap = Math.min(rowBeatWrap, ttRowBeat); // hard mid-measure wrap
+            }
+        }
 
-        if (!needWrap)
-            pushMeasure(measureBeat);
-
-        if (needWrap || needWrapNext) {
-            const measureBeatWrap = needWrap ? rowBeatWrap - rowBeatM : 0;
-            if (needWrap && measureBeatWrap > 0) {
+        if (!isFinite(rowBeatWrap)) {
+            pushMeasure(measureBeat); // with unbounded end
+        } else {
+            const wrapAtHead = (rowBeatWrap <= rowBeatM);
+            const wrapAtEnd = (rowBeatWrap >= rowBeatM + measureBeat);
+            const measureBeatWrap = wrapAtHead ? 0
+                : wrapAtEnd ? measureBeat
+                : rowBeatWrap - rowBeatM;
+            if (!wrapAtHead) {
                 positionEnd = measure.nDivisions * measureBeatWrap / measure.nBeatNotes;
                 pushMeasure(measureBeatWrap);
             }
             rows.push({ totalBeat: rowBeats.pop(), rowBeats: rowBeats, measures: rowTemp, positionBegin: positionBegin, positionEnd: positionEnd, nBranches: nPrevBranches, moveLine: moveLineTemp});
             rowTemp = [];
-            rowBeats = [-measureBeatWrap];
+            rowBeats = [wrapAtEnd ? 0 : -measureBeatWrap];
             nPrevBranches = 0;
             moveLineTemp = 0;
             if (measureBeatWrap > 0)
@@ -278,7 +293,7 @@ export default function (chart, courseId) {
             else
                 positionBegin = 0;
             positionEnd = Infinity;
-            if (needWrap)
+            if (!wrapAtEnd)
                 --midx; // continue process at next row
         }
     }
