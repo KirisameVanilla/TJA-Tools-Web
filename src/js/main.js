@@ -253,7 +253,7 @@ function showPreview() {
         if ($embedDonscore.checked) {
             $img.src = embedText(chartImg, convertToDonscore(tjaParsed, selectedDifficulty));
         } else {
-            $img.src = embedText(chartImg, getCourseLines($input.first().value, selectedDifficulty));
+            $img.src = embedText(chartImg, getCourseLines($input.first().value, tjaParsed, selectedDifficulty));
         }
 
         $('.page-preview').append($img);

@@ -1101,9 +1101,24 @@ export default function parseTJA(tja) {
     return { headers, courses };
 }
 
-export function getCourseLines(tja, courseId) {
+export function getCourseLines(tja, chart, courseId) {
 	let result = [];
-	let write = false;
+	const course = chart.courses[courseId];
+	const courseTarget = course.headers.course;
+	const styleTarget = course.headers.style;
+
+	let courseValue = undefined;
+	let styleValues = [];
+	styleValues[undefined] = 1;
+
+	const getWriteHeader = () => (courseValue === undefined || courseValue === courseTarget);
+	const getWriteData = () => (
+		((courseValue !== undefined) ? courseValue : 3) === courseTarget
+		&& styleValues[courseValue] === styleTarget
+	);
+
+	let writeHeader = getWriteHeader();
+	let writeData = getWriteHeader();
 
 	const lines = tja.split(/(\r\n|\r|\n)/);
 
@@ -1119,46 +1134,32 @@ export function getCourseLines(tja, courseId) {
 		}
 		else if (parsed.type === 'header' && parsed.scope === 'course') {
 			if (parsed.name === 'COURSE') {
-				const courseValue = parsed.value.toLowerCase();
-				let course;
-
-				switch (courseValue) {
-					case 'easy': case '0':
-						course = 0;
-						break;
-
-					case 'normal': case '1':
-						course = 1;
-						break;
-
-					case 'hard': case '2':
-						course = 2;
-						break;
-
-					case 'oni': case '3':
-						course = 3;
-						break;
-
-					case 'edit': case 'ura': case '4':
-						course = 4;
-						break;
+				let value = parseCourseValue(parsed.value);
+				if (value !== null) {
+					courseValue = value;
+					if (styleValues[courseValue] === undefined)
+						styleValues[courseValue] = styleValues[undefined];
+					writeHeader = getWriteHeader();
+					writeData = getWriteData();
 				}
-
-				write = (course === parseInt(courseId)) ? true : false;
 			}
-			if (write) {
+			else if (parsed.name === 'STYLE') {
+				let value = parseStyleValue(parsed.value);
+				if (value !== null) {
+					styleValues[courseValue] = value;
+					writeData = getWriteData();
+				}
+			}
+			if (writeHeader)
 				result.push(line);
-			}
 		}
 		else if (parsed.type === 'command') {
-			if (write) {
+			if (writeData)
 				result.push(line);
-			}
         }
 		else if (parsed.type === 'data') {
-			if (write) {
+			if (writeData)
 				result.push(line);
-			}
         }
 	}
 
