@@ -79,6 +79,9 @@ function noteSymbolToNoteType(noteSymbol) {
         case '7':
             return 'balloon';
 
+        case '8':
+            return 'end';
+
         case '9':
             return 'balloonEx';
 
@@ -94,7 +97,7 @@ function noteSymbolToNoteType(noteSymbol) {
         case 'G':
             return 'kadon';
     }
-    return null;
+    return noteSymbol.match(/[0-9A-Z]/) ? 'unknown' : null;
 }
 
 function noteSymbolToHandType(noteSymbol) {
@@ -136,16 +139,26 @@ export function isBalloonType(noteType) {
 
 function getNotes(data, rollStates, balloon, midx, currentBranch) {
     const notes = [];
+    data = data.replaceAll(/\s+/g, '');
     notes.nDivisions = data.length || 1;
-    for (let d = 0; d < data.length; ++d) {
+    for (let d = 0, dSkip = 0; d < data.length; ++d) {
         const ch = data.charAt(d);
 
         let note = {
             symbol: ch,
             type: noteSymbolToNoteType(ch),
             handType: noteSymbolToHandType(ch),
-            position: d,
+            position: d - dSkip,
         };
+        if (note.type === null) {
+            // TODO: emit unrecognized note symbol (ignored) warning
+            --notes.nDivisions;
+            ++dSkip;
+            continue;
+        }
+        if (note.type === 'unknown') {
+            // TODO: emit unknown note type warning
+        }
 
         if (isRollType(note.type)) {
             if (rollStates.roll[currentBranch] !== null)
@@ -160,9 +173,9 @@ function getNotes(data, rollStates, balloon, midx, currentBranch) {
             }
         } else if (note.type !== 'blank' && rollStates.roll[currentBranch] !== null) {
             let noteEnd = {
-                symbol: (ch == '8') ? ch : null,
-                type: (ch == '8') ? 'end' : 'endForced',
-                position: d,
+                symbol: (note.type === 'end') ? ch : null,
+                type: (note.type === 'end') ? 'end' : 'endForced',
+                position: d - dSkip,
                 start: rollStates.roll[currentBranch],
             };
             rollStates.roll[currentBranch].note.end = {note: noteEnd, midx: midx, didx: notes.length};
@@ -170,7 +183,7 @@ function getNotes(data, rollStates, balloon, midx, currentBranch) {
             rollStates.roll[currentBranch] = null;
         }
 
-        if (note.type !== null && note.type !== 'blank')
+        if (note.type !== 'blank' && note.type !== 'end')
             notes.push(note);
     }
     return notes;
@@ -244,51 +257,43 @@ function parseLine(line) {
     let match;
 
     // comment
-    if (match = line.match(/\/\/.*/))
-        line = line.substr(0, match.index).trim();
+    line = line.trimStart();
+    function trimComment(str) {
+        return str.replace(/\/\/.*/, '').trim();
+    }
+    if (trimComment(line) === "")
+        return null;
 
     // header
-    if (match = line.match(/^([A-Z0-9]+):(.+)/i)) {
+    if (match = line.match(/^(\.?[A-Z0-9_]+):(.*)/i)) { // . for simulator-exclusive headers, _ for i18n headers
         const nameUpper = match[1].toUpperCase();
         const value = match[2];
 
-        if (HEADER_GLOBAL.includes(nameUpper)) {
-            return {
-                type: 'header',
-                scope: 'global',
-                name: nameUpper,
-                value: value.trim(),
-            };
-        }
-        else if (HEADER_COURSE.includes(nameUpper)) {
-            return {
-                type: 'header',
-                scope: 'course',
-                name: nameUpper,
-                value: value.trim(),
-            };
-        }
+        return {
+            type: 'header',
+            scope: HEADER_COURSE.includes(nameUpper) ? 'course' : 'global',
+            name: nameUpper,
+            value: trimComment(value),
+            valueRaw: value, // for TITLE:, SUBTITLE:, etc., in TaikoJiro
+        };
     }
     // command
-    else if (match = line.match(/^#([A-Z]+)(?:\s+(.+))?/i)) {
+    else if (match = line.match(/^#([A-Z]+)\s?(.*)/i)) { // missing space is recognized in TaikoJiro
         const nameUpper = match[1].toUpperCase();
-        const value = match[2] || '';
-
-        if (COMMAND.includes(nameUpper)) {
-            return {
-                type: 'command',
-                name: nameUpper,
-                value: value.trim(),
-            };
-        }
-    }
-    // data
-    else if (match = line.match(/^(([0-9]|A|B|C|D|F|G|H|I)+,?|,)$/)) {
-        const data = match[1];
+        const value = match[2];
 
         return {
+            type: 'command',
+            name: nameUpper,
+            value: trimComment(value),
+            valueRaw: value, // for #LYRIC, etc.
+        };
+    }
+    // data
+    else if (line.match(/^[0-9A-Z,]/)) { // loose pattern to prevent dropping note data with unknown note symbols
+        return {
             type: 'data',
-            data: data,
+            data: trimComment(line),
         };
     }
 
@@ -462,19 +467,13 @@ function getCourse(tjaHeaders, lines) {
                         .filter(b => b !== '')
                         .map(b => parseInt(b, 10));
 
-					if (inits.length === 1) {
-						setHeaderValue('scoreInit', inits[0]);
-						setHeaderValue('scoreShin', null);
-					}
-					else if (inits.length >= 2){
-						setHeaderValue('scoreInit', inits[0]);
-						setHeaderValue('scoreShin', inits[1]);
-					}
+                    setHeaderValue('scoreInit', (inits.length >= 1) ? inits[0] : 0);
+                    setHeaderValue('scoreShin', (inits.length >= 2) ? inits[1] : null);
                     //headers.scoreInit = parseInt(line.value, 10);
                     break;
 
                 case 'SCOREDIFF':
-                    setHeaderValue('scoreDiff', parseInt(line.value, 10));
+                    setHeaderValue('scoreDiff', (line.value !== '') ? parseInt(line.value, 10) : 0);
                     break;
 
                 case 'NOTESDESIGNER0':
@@ -482,7 +481,7 @@ function getCourse(tjaHeaders, lines) {
                 case 'NOTESDESIGNER2':
                 case 'NOTESDESIGNER3':
                 case 'NOTESDESIGNER4':
-                    setHeaderValue('maker', line.value);
+                    setHeaderValue('maker', line.valueRaw); // TODO: emit warning when value !== valueRaw
                     break;
 
                 case 'TTROWBEAT':
@@ -751,11 +750,12 @@ function getCourse(tjaHeaders, lines) {
                 initBalloonHeader();
             }
             let data = line.data;
-            if (data.endsWith(',')) {
-				measureData += data.slice(0, -1);
-				pushMeasure();
+            let measures = data.split(',');
+            for (let i = 0; i < measures.length - 1; ++i) {
+                measureData += measures[i];
+                pushMeasure();
             }
-            else measureData += data;
+            measureData += measures[measures.length - 1];
         }
     }
 
@@ -996,18 +996,18 @@ export default function parseTJA(tja) {
 
     for (idx = 0; idx < lines.length; idx++) {
         const line = lines[idx];
-        if (line === '') continue;
-
         const parsed = parseLine(line);
+        if (parsed === null)
+            continue;
 
         if (parsed.type === 'header' && parsed.scope === 'global') {
             switch (parsed.name) {
                 case 'TITLE':
-                    headers.title = parsed.value;
+                    headers.title = parsed.valueRaw; // TODO: emit warning when value !== valueRaw
                     break;
 
                 case 'SUBTITLE':
-                    headers.subtitle = parsed.value.replace(/^(\+\+|--)/, '');
+                    headers.subtitle = parsed.valueRaw.replace(/^(\+\+|--)/, ''); // TODO: emit warning when value !== valueRaw
                     break;
 
                 case 'BPM':
@@ -1027,11 +1027,11 @@ export default function parseTJA(tja) {
                     break;
 
                 case 'GENRE':
-                    headers.genre = parsed.value;
+                    headers.genre = parsed.valueRaw; // TODO: emit warning when value !== valueRaw
                     break;
 
                 case 'MAKER':
-                    headers.maker = parsed.value;
+                    headers.maker = parsed.valueRaw; // TODO: emit warning when value !== valueRaw
                     break;
 
 				case 'FONT':
@@ -1084,6 +1084,8 @@ export default function parseTJA(tja) {
         }
         else if (parsed.type === 'data') {
             if (!hasStarted) {
+                if (!parsed.data.match(/^[0-9]/)) // likely an incomplete header
+                    continue; // TODO: emit incomplete header warning
                 // TODO: emit missing-#START warning
                 hasStarted = true;
             }
@@ -1103,14 +1105,14 @@ export function getCourseLines(tja, courseId) {
 	let result = [];
 	let write = false;
 
-	const lines = tja.split(/(\r\n|\r|\n)/)
-        .map(line => line.trim());
+	const lines = tja.split(/(\r\n|\r|\n)/);
 
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i];
-        if (line === '') continue;
 
 		const parsed = parseLine(line);
+		if (parsed === null)
+			continue;
 
 		if (parsed.type === 'header' && parsed.scope === 'global') {
 			result.push(line);
