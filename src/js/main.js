@@ -164,7 +164,7 @@ function addControlsDiff(difficultyId, headers) {
     if (headers.style > 1) {
         diffName += `-${headers.style}P (P${headers.startPlayer})`;
     }
-    let element = `<span class="button btn-diff-${difficultyId} l10n" data-value='${difficultyId}'>${diffName}</span>`;
+    let element = `<span class="button btn-diff-${difficultyId}" data-value='${difficultyId}'>${diffName}</span>`;
 
     $(`.controls-diff`).append(element);
     $(`.controls-diff`).append(' ');
