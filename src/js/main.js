@@ -740,7 +740,7 @@ $input.on('input', () => {
 $input.on('dragover', e => {
     e.stopPropagation();
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'cppy';
+    e.dataTransfer.dropEffect = 'copy';
 });
 
 $tjaFile.addEventListener('change', () => {
