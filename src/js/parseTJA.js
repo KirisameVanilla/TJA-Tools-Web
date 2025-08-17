@@ -486,7 +486,7 @@ function getCourse(tjaHeaders, lines) {
                     break;
 
                 case 'TTROWBEAT':
-                    const ttRowBeat = parseInt(line.value, 10);
+                    const ttRowBeat = parseFloat(line.value);
                     if (ttRowBeat >= 1)
                         setHeaderValue('ttRowBeat', ttRowBeat);
                     break;
