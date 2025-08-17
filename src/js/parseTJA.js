@@ -410,7 +410,8 @@ function getCourse(tjaHeaders, lines) {
                     break;
 
                 case 'LEVEL':
-                    setHeaderValue('level', parseInt(line.value, 10));
+                    if (line.value !== null)
+                        setHeaderValue('level', line.value);
                     break;
 
                 case 'BALLOON':

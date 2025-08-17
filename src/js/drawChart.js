@@ -402,10 +402,12 @@ export default function (chart, courseId) {
 
 		const difficulty = ['かんたん', 'ふつう', 'むずかしい', 'おに', 'おに' + (chart.headers.levelUra === 1 ? levelUraSymbol : '')];
         const levelMax = [5, 7, 8, 10, 10];
+        const levelInt = parseInt(course.headers.level);
         const difficultyText = (
             difficulty[course.headers.course] + ' ' +
-            '★'.repeat(course.headers.level) +
-            '☆'.repeat(Math.max(levelMax[course.headers.course] - course.headers.level, 0)) +
+            '★'.repeat(Math.max(Math.min(levelMax[course.headers.course], levelInt), 0)) +
+            ((levelInt > levelMax[course.headers.course]) ? '+' : '') +
+            '☆'.repeat(Math.max(levelMax[course.headers.course] - levelInt, 0)) +
             ` Lv.${course.headers.level}`
         );
 
