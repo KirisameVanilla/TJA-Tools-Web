@@ -201,6 +201,13 @@ function updateUI() {
     $(`.controls-branch .btn-branch-${selectedBranch.toLowerCase()}`).addClass('is-active');
 }
 
+function loadFile(type, blob) {
+    if (type === 'zip' || type === 'application/zip' || type === 'application/x-zip-compressed')
+        loadZip(blob);
+    else
+        loadTJA(blob);
+}
+
 function loadTJA(file) {
     if (!file) {
         return;
@@ -663,13 +670,14 @@ $input.on('dragover', e => {
 });
 
 $tjaFile.addEventListener('change', () => {
-    loadTJA($tjaFile.files[0]);
+    loadFile($tjaFile.files[0].type, $tjaFile.files[0]);
 });
 
 $input.on('drop', dropEvt => {
     dropEvt.stopPropagation();
     dropEvt.preventDefault();
-    loadTJA(dropEvt.dataTransfer.files[0]);
+    const file = dropEvt.dataTransfer.files[0];
+    loadFile(file.type, file);
 });
 
 $('.controls-branch .button').on('click', evt => {
@@ -753,25 +761,29 @@ window.addEventListener('message', async (event) => {
     //     return;
     // }
 
-    if (event.data && event.data.type === 'zip' && event.data.blob instanceof Blob) {
-        try {
-            const result = await loadZipFromBlob(event.data.blob);
-
-            if (result.tjaFiles.length === 0) {
-                throw new Error('No TJA files found in the ZIP archive.');
-            } else if (result.tjaFiles.length === 1) {
-                // If only one TJA file, load it directly
-                await loadTjaFileFromZip(result.zip, result.tjaFiles[0]);
-            } else {
-                // Show selection UI for multiple files
-                showZipFileSelector(result.zip, result.tjaFiles);
-            }
-        } catch (error) {
-            console.error('Error handling postMessage ZIP data:', error);
-            alert('Error processing received ZIP data: ' + error.message);
-        }
-    }
+    // caller: win.postMessage({ type: 'zip', blob: content }, '*');
+    if (event.data && typeof event.data.type === 'string' && event.data.blob instanceof Blob)
+        loadFile(event.data.type, event.data.blob);
 });
+
+async function loadZip(blob) {
+    try {
+        const result = await loadZipFromBlob(blob);
+
+        if (result.tjaFiles.length === 0) {
+            throw new Error('No TJA files found in the ZIP archive.');
+        } else if (result.tjaFiles.length === 1) {
+            // If only one TJA file, load it directly
+            await loadTjaFileFromZip(result.zip, result.tjaFiles[0]);
+        } else {
+            // Show selection UI for multiple files
+            showZipFileSelector(result.zip, result.tjaFiles);
+        }
+    } catch (error) {
+        console.error('Error handling postMessage ZIP data:', error);
+        alert('Error processing received ZIP data: ' + error.message);
+    }
+}
 
 async function loadZipFromBlob(blob) {
     try {
