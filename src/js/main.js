@@ -52,6 +52,8 @@ const $editorProcess = $('.editor-process');
 const $input = $('.area-editor .input');
 const $errors = $('.area-errors .errors');
 const $rendaHead = $('.renda-head');
+const $previewImg = document.createElement('img');
+let $previewCanvas = null;
 
 let selectedLocale = 'en';
 let tjaParsed = null;
@@ -109,6 +111,15 @@ const downloadStatisticsAsImage = async () => {
     downloadjs(dataURL, `${tjaParsed.headers.title}.statistics.png`, 'image/png');
 };
 
+function embedChartNotation() {
+    const chartImg = $previewImg.dataset.chartImg;
+    if ($previewImg.dataset.embedMode === 'Donscore') {
+        $previewImg.src = embedText(chartImg, convertToDonscore(tjaParsed, selectedDifficulty));
+    } else {
+        $previewImg.src = embedText(chartImg, getCourseLines($input.first().value, tjaParsed, selectedDifficulty));
+    }
+}
+
 const downloadPreviewImage = async () => {
     if (tjaParsed === null || selectedDifficulty === "") {
         alert("Please select a chart and difficulty");
@@ -119,10 +130,16 @@ const downloadPreviewImage = async () => {
         return;
     }
 
-    const img = document.querySelector('#tja-preview');
-    if (!img) return;
+    const dataURL = $previewImg.src;
+    if (dataURL === '')
+        return;
+    if (($previewImg.dataset.embedMode === 'Donscore') !== $embedDonscore.checked) {
+        $previewImg.dataset.embedMode = ($embedDonscore.checked ? 'Donscore' : 'TJA');
+        displayErrors(`Re-embedding ${$previewImg.dataset.embedMode} notation...`);
+        await new Promise(resolve => setTimeout(resolve, 0)); // update ui
 
-    const dataURL = img.src;
+        embedChartNotation();
+    }
     downloadjs(dataURL, `${tjaParsed.headers.title}.preview.png`, 'image/png');
 };
 
@@ -238,27 +255,24 @@ function processTJA() {
     }
 }
 
-function showPreview() {
+async function showPreview() {
     if (tjaParsed === null || tjaParsed.courses[selectedDifficulty] === undefined)
         return;
 
     $('#tja-preview').remove();
+    $previewImg.src = '';
 
     try {
-        const $canvas = drawChart(tjaParsed, selectedDifficulty);
-        const $img = document.createElement('img');
-        $img.id = 'tja-preview';
-        const chartImg = optimizePNG($canvas);
+        const $canvas = $previewCanvas = drawChart(tjaParsed, selectedDifficulty);
+        $canvas.id = 'tja-preview';
+        $('.page-preview').append($canvas);
 
-        if ($embedDonscore.checked) {
-            $img.src = embedText(chartImg, convertToDonscore(tjaParsed, selectedDifficulty));
-        } else {
-            $img.src = embedText(chartImg, getCourseLines($input.first().value, tjaParsed, selectedDifficulty));
-        }
+        $previewImg.dataset.embedMode = ($embedDonscore.checked ? 'Donscore' : 'TJA');
+        displayErrors(`Embedding ${$previewImg.dataset.embedMode} notation...`);
+        await new Promise(resolve => setTimeout(resolve, 0)); // update ui
 
-        $('.page-preview').append($img);
-
-        displayErrors('No error');
+        $previewImg.dataset.chartImg = optimizePNG($canvas);
+        embedChartNotation();
     } catch (e) {
         console.error(e);
         displayErrors(e.message);
@@ -267,7 +281,28 @@ function showPreview() {
 
 function hidePreview() {
     $('#tja-preview').remove();
+    $previewImg.src = '';
+    $previewCanvas = null;
 }
+
+$previewImg.addEventListener('load', () => {
+    $('#tja-preview').remove();
+
+    $previewImg.id = 'tja-preview';
+    $('.page-preview').append($previewImg);
+
+    displayErrors('No error');
+});
+
+$previewImg.addEventListener('error', () => {
+    if ($previewCanvas !== null) {
+        $('#tja-preview').remove();
+        $previewCanvas.id = 'tja-preview';
+        $('.page-preview').append($previewCanvas);
+    }
+
+    displayErrors(`Cannot show the image with ${$previewImg.dataset.embedMode} notation embedded. You can download it instead.`);
+});
 
 function showStatistics() {
     if (tjaParsed === null || tjaParsed.courses[selectedDifficulty] === undefined)
