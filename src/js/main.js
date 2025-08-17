@@ -311,6 +311,9 @@ $previewImg.addEventListener('load', () => {
 });
 
 $previewImg.addEventListener('error', () => {
+    if (!$previewImg.src || $previewImg.src === location.href)
+        return;
+
     if ($previewCanvas !== null) {
         $('#tja-preview').remove();
         $previewCanvas.id = 'tja-preview';
